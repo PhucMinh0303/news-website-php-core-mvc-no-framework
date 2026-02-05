@@ -1,0 +1,417 @@
+<?php
+/**
+ * News Listing Page - All Articles
+ */
+?>
+<main class="section10">
+  <section class="f_page r_p6">
+    <div class="min_wrap-news">
+      <article class="ct_page">
+        <div class="news">
+          <!-- Card 1 -->
+          <a href="<?php echo View::url('news/1'); ?>" class="news-card">
+            <div class="news-img">
+              <img
+                src="<?php echo View::asset('img/section5/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272692-veex8.webp'); ?>"
+                alt="event"
+              />
+            </div>
+            <div class="news-info">
+              <span class="category"
+                ><i class="fa-solid fa-calendar-week"></i> 21/12/2025</span
+              >
+              <h3>
+                NÂNG HẠNG - KHỞI ĐẦU CHO CÁC QUYẾT SÁCH, CẢI CÁCH MẠNH MẼ HƠN,
+                CHUẨN MỰC HƠN VÀ KỶ LUẬT HƠN
+              </h3>
+            </div>
+          </a>
+
+          <!-- Card 2 -->
+          <a href="<?php echo View::url('news/2'); ?>" class="news-card">
+            <div class="news-img">
+              <img
+                src="<?php echo View::asset('img/section5/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272625-jr69f.webp'); ?>"
+                alt="VNeID"
+              />
+            </div>
+            <div class="news-info">
+              <span class="category"
+                ><i class="fa-solid fa-calendar-week"></i> 21/12/2025</span
+              >
+              <h3>
+                Nâng hạng - khởi đầu cho các quyết sách, cải cách mạnh mẽ hơn,
+                chuẩn mực hơn và kỷ luật hơn
+              </h3>
+            </div>
+          </a>
+        </div>
+        <!--end list_rh_4-->
+
+        <ul class="list_news">
+          <li>
+            <a
+              href="<?php echo View::url('news/dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong'); ?>"
+              title="Đầu tư tài chính với số vốn nhỏ - Nên hay không?"
+            >
+              <figure class="img_list_news">
+                <span class="kieu_New">
+                  <i class="fa-duotone fa-solid fa-image"></i>
+                </span>
+
+                <img
+                  src="<?php echo View::asset('img/news/dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong-1763350202-indak.webp'); ?>"
+                  alt="Đầu tư tài chính với số vốn nhỏ - Nên hay không?"
+                />
+              </figure>
+            </a>
+
+            <div class="nd_list_news">
+              <h3 class="na_list_news link_hv">
+                <a
+                  href="<?php echo View::url('news/dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong'); ?>"
+                  class="link_hv"
+                  title="Đầu tư tài chính với số vốn nhỏ - Nên hay không?"
+                  >Đầu tư tài chính với số vốn nhỏ - Nên hay không?</a
+                >
+              </h3>
+
+              <div class="ti_tool">
+                <span>
+                  <i class="fa-solid fa-calendar-week"></i>
+                  17/11/2025
+                </span>
+              </div>
+
+              <div class="des_list_news">
+                Trên thị trường hiện có nhiều hình thức đầu tư giúp gia tăng số
+                tiền nhanh chóng. Tuy nhiên, để có được lợi nhuận cao thường đòi
+                hỏi việc đầu tư, kinh doanh số vốn khá lớn. Do đó, rất nhiều
+                người đặt ra câu hỏi "Có thể đầu tư tài chính với số vốn nhỏ
+                không?"
+              </div>
+            </div>
+          </li>
+
+          <li>
+            <a
+              href="<?php echo View::url('news/dau-tu-tai-chinh-4-0-nha-dau-tu-can-can-trong-voi-nhung-chieu-tro-lua-dao'); ?>"
+              title="Đầu tư tài chính 4.0 - Nhà đầu tư cần cẩn trọng với những chiêu trò lừa đảo!"
+            >
+              <figure class="img_list_news">
+                <span class="kieu_New">
+                  <i class="fa-duotone fa-solid fa-image"></i>
+                </span>
+
+                <img
+                  src="<?php echo View::asset('img/news/dau-tu-tai-chinh-4-0-nha-dau-tu-can-can-trong-voi-nhung-chieu-tro-lua-dao-1763350121-7qbwc.webp'); ?>"
+                  alt="Đầu tư tài chính 4.0 - Nhà đầu tư cần cẩn trọng với những chiêu trò lừa đảo!"
+                />
+              </figure>
+            </a>
+
+            <div class="nd_list_news">
+              <h3 class="na_list_news link_hv">
+                <a
+                  href="<?php echo View::url('news/dau-tu-tai-chinh-4-0-nha-dau-tu-can-can-trong-voi-nhung-chieu-tro-lua-dao'); ?>"
+                  class="link_hv"
+                  title="Đầu tư tài chính 4.0 - Nhà đầu tư cần cẩn trọng với những chiêu trò lừa đảo!"
+                  >Đầu tư tài chính 4.0 - Nhà đầu tư cần cẩn trọng với những
+                  chiêu trò lừa đảo!</a
+                >
+              </h3>
+
+              <div class="ti_tool">
+                <span>
+                  <i class="fa-solid fa-calendar-week"></i>
+
+                  17/11/2025
+                </span>
+              </div>
+
+              <div class="des_list_news">
+                Đầu tư tài chính là một lĩnh vực hấp dẫn và tiềm năng cho những
+                ai muốn gia tăng thu nhập, khao khát đạt được tự do tài chính.
+                Tuy nhiên, với sự phát triển của công nghệ và xu hướng đầu tư
+                tài chính 4.0, cũng có nhiều trường hợp nhà đầu tư bị&nbsp;lừa
+                đảo đầu tư tài chính&nbsp;thông qua những hình thức đầu tư
+                online.
+              </div>
+            </div>
+          </li>
+
+          <li>
+            <a
+              href="<?php echo View::url('news/cac-app-dau-tu-chung-khoan-uy-tin-nhat-tren-thi-truong-nam-2025'); ?>"
+              title="Các App đầu tư chứng khoán uy tín nhất trên thị trường năm 2025"
+            >
+              <figure class="img_list_news">
+                <span class="kieu_New">
+                  <i class="fa-duotone fa-solid fa-image"></i>
+                </span>
+
+                <img
+                  src="<?php echo View::asset('img/news/cac-app-dau-tu-chung-khoan-uy-tin-nhat-tren-thi-truong-nam-2025-1763349359-ctajx.webp'); ?>"
+                  alt="Các App đầu tư chứng khoán uy tín nhất trên thị trường năm 2025"
+                />
+              </figure>
+            </a>
+
+            <div class="nd_list_news">
+              <h3 class="na_list_news link_hv">
+                <a
+                  href="<?php echo View::url('news/cac-app-dau-tu-chung-khoan-uy-tin-nhat-tren-thi-truong-nam-2025'); ?>"
+                  class="link_hv"
+                  title="Các App đầu tư chứng khoán uy tín nhất trên thị trường năm 2025"
+                  >Các App đầu tư chứng khoán uy tín nhất trên thị trường năm
+                  2025</a
+                >
+              </h3>
+
+              <div class="ti_tool">
+                <span>
+                  <i class="fa-solid fa-calendar-week"></i>
+                  17/11/2025
+                </span>
+              </div>
+
+              <div class="des_list_news">
+                Với sự phát triển của thị trường chứng khoán Việt Nam, nhiều app
+                đầu tư chứng khoán được phát triển giúp nhà đầu tư thuận tiện
+                hơn trong việc giao dịch cổ phiếu trên điện thoại.
+                Cùng&nbsp;Anfin&nbsp;điểm danh 9 app đầu tư chứng khoán uy tín
+                hàng đầu trên thị trường Việt Nam, giúp nhà đầu tư yên tâm giao
+                dịch.
+              </div>
+            </div>
+          </li>
+
+          <li>
+            <a
+              href="<?php echo View::url('news/top-5-cac-dien-dan-dau-tu-tai-chinh-uy-tin-nhat-hien-nay'); ?>"
+              title="Top 5 các diễn đàn đầu tư tài chính uy tín nhất hiện nay"
+            >
+              <figure class="img_list_news">
+                <span class="kieu_New">
+                  <i class="fa-duotone fa-solid fa-image"></i>
+                </span>
+
+                <img
+                  src="<?php echo View::asset('img/news/top-5-cac-dien-dan-dau-tu-tai-chinh-uy-tin-nhat-hien-nay-1763349148-h1mp8.webp'); ?>"
+                  alt="Top 5 các diễn đàn đầu tư tài chính uy tín nhất hiện nay"
+                />
+              </figure>
+            </a>
+
+            <div class="nd_list_news">
+              <h3 class="na_list_news link_hv">
+                <a
+                  href="<?php echo View::url('news/top-5-cac-dien-dan-dau-tu-tai-chinh-uy-tin-nhat-hien-nay'); ?>"
+                  class="link_hv"
+                  title="Top 5 các diễn đàn đầu tư tài chính uy tín nhất hiện nay"
+                  >Top 5 các diễn đàn đầu tư tài chính uy tín nhất hiện nay</a
+                >
+              </h3>
+
+              <div class="ti_tool">
+                <span>
+                  <i class="fa-solid fa-calendar-week"></i>
+                  17/11/2025
+                </span>
+              </div>
+
+              <div class="des_list_news">
+                Trên thị trường hiện nay có rất nhiều những&nbsp;diễn đàn đầu tư
+                tài chính, tuy nhiên không phải nhà đầu tư nào cũng tìm được cho
+                mình một diễn đàn đầu tư uy tín và chất lượng. Trong bài viết
+                dưới đây, EMIR sẽ mang đến những thông tin hữu ích giúp quý nhà
+                đầu tư có thể hiểu rõ hơn về&nbsp;diễn đàn đầu tư tài
+                chính&nbsp;cũng như tìm được diễn đàn phù hợp nhất, hỗ trợ cho
+                mình trong quá trình đầu tư.
+              </div>
+            </div>
+          </li>
+
+          <li>
+            <a
+              href="<?php echo View::url('news/quan-ly-tai-san-ca-nhan-nen-bat-dau-tu-dau'); ?>"
+              title="Quản lý tài sản cá nhân - Nên bắt đầu từ đâu"
+            >
+              <figure class="img_list_news">
+                <span class="kieu_New">
+                  <i class="fa-duotone fa-solid fa-image"></i>
+                </span>
+
+                <img
+                  src="<?php echo View::asset('img/news/quan-ly-tai-san-ca-nhan-nen-bat-dau-tu-dau-1763348797-0ws4a.webp'); ?>"
+                  alt="Quản lý tài sản cá nhân - Nên bắt đầu từ đâu"
+                />
+              </figure>
+            </a>
+
+            <div class="nd_list_news">
+              <h3 class="na_list_news link_hv">
+                <a
+                  href="<?php echo View::url('news/quan-ly-tai-san-ca-nhan-nen-bat-dau-tu-dau'); ?>"
+                  class="link_hv"
+                  title="Quản lý tài sản cá nhân - Nên bắt đầu từ đâu"
+                  >Quản lý tài sản cá nhân - Nên bắt đầu từ đâu</a
+                >
+              </h3>
+
+              <div class="ti_tool">
+                <span>
+                  <i class="fa-solid fa-calendar-week"></i>
+
+                  17/11/2025
+                </span>
+              </div>
+
+              <div class="des_list_news">
+                Quản lý tài sản&nbsp;giúp cá nhân và tổ chức đảm bảo rằng họ sử
+                dụng tài sản một cách hiệu quả và đạt được mục tiêu tài chính
+                của mình. Song, việc&nbsp;quản lý tài sản&nbsp;là công việc tốn
+                khá nhiều thời gian và đòi hỏi người quản lý phải có kiến thức
+                cũng như kinh nghiệm. Nếu bạn chưa biết bắt đầu quản lý tài sản
+                cá nhân như thế nào, tham khảo ngay bài viết dưới đây
+                nhé!&nbsp;&nbsp;
+              </div>
+            </div>
+          </li>
+        </ul>
+        <!--end list_news-->
+
+        <div class="page" style="text-align: left">
+          <div class="PageNum">
+            <span>1</span
+            ><a rel="nofollow" href="<?php echo View::url('news/page/2'); ?>"
+              >2</a
+            ><a rel="nofollow" href="<?php echo View::url('news/page/2'); ?>">
+              » </a
+            ><a rel="nofollow" href="<?php echo View::url('news/page/2'); ?>">
+              ›
+            </a>
+          </div>
+
+          <div class="clear"></div>
+        </div>
+      </article>
+      <!--end ct_page-->
+
+      <aside class="sb_page">
+        <div class="l_qhcd">
+          <div class="r1_l_qhcd">
+            <strong>HOSE: <?php echo View::escape(SITE_NAME); ?></strong>
+
+            <span>Cập nhật mới nhất <?php echo date('d/m/Y'); ?></span>
+          </div>
+
+          <div class="r2_l_qhcd">
+            <strong>34,30</strong>
+
+            <span>Giá hiện thời</span>
+          </div>
+        </div>
+        <!--end l_qhcd-->
+
+        <ul class="r_qhcd">
+          <li>
+            <div class="">Giá mở cửa</div>
+
+            <div class="">Thay đổi</div>
+
+            <div class="">Giá cao nhất trong ngày</div>
+          </li>
+
+          <li>
+            <div class="">35,00</div>
+
+            <div class="clor_r_qhcd_1">
+              <i class="fa-solid fa-arrow-down"></i>
+              -0,60 (0,00%)
+            </div>
+
+            <div class="">35,05</div>
+          </li>
+
+          <li>
+            <div class="">Giá đóng cửa hôm trước</div>
+
+            <div class="">Khối lượng</div>
+
+            <div class="">Giá thấp nhất trong ngày</div>
+          </li>
+
+          <li>
+            <div class="">34,30</div>
+
+            <div class="clor_r_qhcd_2">
+              <i class="fa-solid fa-arrow-up"></i>
+
+              23.177.900,00
+            </div>
+
+            <div class="">34,05</div>
+          </li>
+        </ul>
+        <!--end r_qhcd-->
+
+        <ul class="list-wrap-news">
+          <li>
+            <a href="<?php echo View::url('page/asset-management'); ?>">
+              <figure class="logo-wrap-news">
+                <img
+                  src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>"
+                />
+              </figure>
+              <span>Quản lý tài sản</span>
+            </a>
+          </li>
+          <li>
+            <a href="<?php echo View::url('page/portfolio-management'); ?>">
+              <figure class="logo-wrap-news">
+                <img
+                  src="<?php echo View::asset('img/product-service/logo/quan-ly-danh-muc-dau-tu-1763277274-6hzt.svg'); ?>"
+                />
+              </figure>
+              <span>Quản lý danh mục đầu tư</span>
+            </a>
+          </li>
+          <li>
+            <a href="<?php echo View::url('page/business-management-consulting'); ?>">
+              <figure class="logo-wrap-news">
+                <img
+                  src="<?php echo View::asset('img/product-service/logo/tu-van-quan-tri-doanh-nghiep-1763277277-waxnv.svg'); ?>"
+                />
+              </figure>
+              <span>Tư vấn quản trị doanh nghiệp</span>
+            </a>
+          </li>
+          <li>
+            <a href="<?php echo View::url('page/m-a-project-consulting'); ?>">
+              <figure class="logo-wrap-news">
+                <img
+                  src="<?php echo View::asset('img/product-service/logo/tu-van-dau-tu-phat-trien-du-an-1763277280-fpcox.svg'); ?>"
+                />
+              </figure>
+              <span>Tư vấn dự án M&A</span>
+            </a>
+          </li>
+          <li>
+            <a href="<?php echo View::url('page/m-a-and-corporate-restructuring'); ?>">
+              <figure class="logo-wrap-news">
+                <img
+                  src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>"
+                />
+              </figure>
+              <span>M&A và tái cấu trúc doanh nghiệp </span>
+            </a>
+          </li>
+        </ul>
+        <!--end list_sp_sb-->
+      </aside>
+      <!--end sb_page-->
+    </div>
+    <!--end min_wrap-->
+  </section>
+</main>

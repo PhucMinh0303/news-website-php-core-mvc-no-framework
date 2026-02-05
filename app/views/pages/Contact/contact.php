@@ -1,0 +1,136 @@
+<?php
+/**
+ * Contact Form Page - Contact Us
+ */
+?>
+<main class="section10">
+  
+  <section class="f_contact">
+    <div class="min_wrap_contact r_p69">
+      <div class="l_f_contact">
+        <div class="t_f_contact til_cont_1">
+          <div class="td_til_cont">Liên hệ với chúng tôi</div>
+          <h2 class="na_til_cont">
+            Công ty Cổ phần Đầu tư &amp; Quản lý Tài sản <?php echo View::escape(SITE_NAME); ?>
+          </h2>
+        </div>
+        <!--end til_cont_1-->
+        <div class="note_f_contact">
+          Mọi thắc mắc và yêu cầu cần hỗ trợ từ chúng tôi, vui lòng để lại thông
+          tin tại đây. Chúng tôi sẽ xem xét và gửi phản hồi sớm nhất.
+        </div>
+        <ul class="list_info_f_contact">
+          <li>
+            <p>Hotline hỗ trợ 24/7</p>
+            <div>
+              <a href="tel:1900888988" title="1900.888.988">1900.888.988</a>
+            </div>
+          </li>
+          <li>
+            <p>Email</p>
+            <div>
+              <a href="mailto:info@capitalam.vn" title="info@capitalam.vn"
+                >info@capitalam.vn</a
+              >
+            </div>
+          </li>
+          <li>
+            <p>Hội sở</p>
+            <div>
+              Hasco Building, 98 Xuân Thủy, Phường An Khánh, Tp. Hồ Chí Minh
+            </div>
+          </li>
+          <li>
+            <p>Chi nhánh</p>
+            <div>
+              Tầng 8, Toà nhà số 2A Đại Cồ Việt, Phường Hai Bà Trưng, Tp. Hà Nội
+            </div>
+          </li>
+        </ul>
+        <!--end list_info_f_contact-->
+        <form method="post" action="<?php echo View::url('contact/send'); ?>">
+          <input
+            style="display: none"
+            type="text"
+            name="key_check"
+            value="<?php echo View::escape(session_id()); ?>"
+          />
+          <ul class="form_l_f_contact">
+            <li>
+              <input
+                type="text"
+                class="ipt_l_f_contact box-sizing-fix"
+                name="ten"
+                placeholder="Họ tên *"
+                value=""
+                required=""
+              />
+            </li>
+            <li>
+              <input
+                type="text"
+                class="ipt_l_f_contact box-sizing-fix"
+                name="dt"
+                placeholder="Điện thoại *"
+                value=""
+                required=""
+              />
+            </li>
+            <li>
+              <input
+                type="text"
+                class="ipt_l_f_contact box-sizing-fix"
+                name="email"
+                placeholder="Email"
+                value=""
+              />
+            </li>
+            <li>
+              <input
+                type="text"
+                class="ipt_l_f_contact box-sizing-fix"
+                name="cap"
+                placeholder="Mã bảo mật *"
+                required=""
+              />
+              <img
+                src="<?php echo BASE_URL; ?>scripts/capcha/dongian.php"
+                alt="Mã bảo mật"
+                class="img_capcha"
+              />
+            </li>
+            <li>
+              <textarea
+                class="txt_l_f_contact box-sizing-fix"
+                name="noidung"
+                placeholder="Nội dung"
+              ></textarea>
+            </li>
+            <p class="validate_text"></p>
+            <li>
+              <button type="submit" class="but_l_f_contact" name="guilienhe">
+                Gửi Liên Hệ
+              </button>
+            </li>
+          </ul>
+          <!--end form_l_f_contact-->
+        </form>
+      </div>
+      <!--end l_f_contact-->
+      <div class="r_f_contact">
+        <iframe
+          class="full_show_map"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.0986603177403!2d106.73265920975658!3d10.803755258646367!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752619fe290d67%3A0x19096300cc83b102!2zOTggWHXDom4gVGjhu6d5LCBUaOG6o28gxJBp4buBbiwgVGjhu6cgxJDhu6ljLCBUaMOgbmggcGjhu5EgSOG7kyBDaMOtIE1pbmggNzAwMDAsIFZp4buHdCBOYW0!5e0!3m2!1svi!2s!4v1763736486127!5m2!1svi!2s"
+          width="100%"
+          height="450"
+          style="border: 0"
+          allowfullscreen=""
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+      </div>
+      <!--end r_f_contact-->
+    </div>
+    <!--end min_wrap-->
+  </section>
+</main>
