@@ -186,6 +186,12 @@ class Controller {
     {
         require_once '../app/views/' . $view . '.php';
     }
+    protected function json(array $data)
+    {
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
+    }
 }
 
 ?>

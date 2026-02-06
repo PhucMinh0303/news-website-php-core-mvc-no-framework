@@ -10,7 +10,7 @@ require_once 'app/bootstrap.php';
 require_once 'app/config/config.php';
 // Models
 require_once 'app/Core/Database.php';
-require_once 'app/Models/User.php';
+require_once 'app/Models/User_model.php';
 // Core
 require_once 'app/core/App.php';
 require_once 'app/core/Controller.php';
