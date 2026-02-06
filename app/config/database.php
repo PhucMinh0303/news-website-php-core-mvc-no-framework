@@ -1,17 +1,11 @@
 <?php
-// Database Configuration
-return [
-    'driver'    => 'mysql',
-    'host'      => env('DB_HOST', 'localhost'),
-    'database'  => env('DB_DATABASE', 'capitalam2'),
-    'username'  => env('DB_USERNAME', 'admin_capitalam2'),
-    'password'  => env('DB_PASSWORD', 'YourSecurePassword123!'),
-    'charset'   => 'utf8mb4',
-    'collation' => 'utf8mb4_unicode_ci',
-    'prefix'    => '',
-    'options'   => [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]
-];
+namespace App\Config;
+
+class Database
+{
+    const HOST = 'localhost';
+    const USER = 'root';
+    const PASSWORD = '123456';
+    const DB_NAME = 'capitalam2';
+    const CHARSET = 'utf8mb4';
+}
