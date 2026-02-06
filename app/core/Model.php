@@ -1,130 +1,62 @@
 <?php
-/**
- * Base Model Class
- * All models inherit from this class for data access
- */
+namespace App\Core;
 
-class Model {
-    /**
-     * @var array Sample data storage (can be replaced with database)
-     */
-    protected static $data = [];
+abstract class Model
+{
+    protected $table;
+    protected $db;
     
-    /**
-     * Get all records
-     */
-    public static function getAll() {
-        return static::$data;
+    public function __construct()
+    {
+        $this->db = Database::getInstance();
     }
     
-    /**
-     * Get record by ID
-     */
-    public static function getById($id) {
-        foreach (static::$data as $record) {
-            if (isset($record['id']) && $record['id'] == $id) {
-                return $record;
-            }
-        }
-        return null;
+    public function all()
+    {
+        $sql = "SELECT * FROM {$this->table}";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll();
     }
     
-    /**
-     * Get records by field value
-     */
-    public static function getBy($field, $value) {
-        $results = [];
-        foreach (static::$data as $record) {
-            if (isset($record[$field]) && $record[$field] == $value) {
-                $results[] = $record;
-            }
-        }
-        return $results;
+    public function find($id)
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
+        $stmt = $this->db->query($sql, [$id]);
+        return $stmt->fetch();
     }
     
-    /**
-     * Find records (basic search)
-     */
-    public static function find($criteria) {
-        $results = [];
-        foreach (static::$data as $record) {
-            $match = true;
-            foreach ($criteria as $field => $value) {
-                if (!isset($record[$field]) || $record[$field] != $value) {
-                    $match = false;
-                    break;
-                }
-            }
-            if ($match) {
-                $results[] = $record;
-            }
-        }
-        return $results;
-    }
-    
-    /**
-     * Create new record
-     */
-    public static function create($data) {
-        // Generate ID if not provided
-        if (!isset($data['id'])) {
-            $data['id'] = count(static::$data) + 1;
-        }
+    public function create($data)
+    {
+        $columns = implode(', ', array_keys($data));
+        $placeholders = implode(', ', array_fill(0, count($data), '?'));
         
-        static::$data[] = $data;
-        return $data;
-    }
-    
-    /**
-     * Update record
-     */
-    public static function update($id, $data) {
-        foreach (static::$data as &$record) {
-            if (isset($record['id']) && $record['id'] == $id) {
-                $record = array_merge($record, $data);
-                return $record;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Delete record
-     */
-    public static function delete($id) {
-        foreach (static::$data as $key => $record) {
-            if (isset($record['id']) && $record['id'] == $id) {
-                unset(static::$data[$key]);
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Get total count
-     */
-    public static function count() {
-        return count(static::$data);
-    }
-    
-    /**
-     * Paginate records
-     */
-    public static function paginate($page = 1, $perPage = 10) {
-        $offset = ($page - 1) * $perPage;
-        $items = array_slice(static::$data, $offset, $perPage);
-        $total = count(static::$data);
-        $pages = ceil($total / $perPage);
+        $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
+        $this->db->query($sql, array_values($data));
         
-        return [
-            'items' => $items,
-            'page' => $page,
-            'perPage' => $perPage,
-            'total' => $total,
-            'pages' => $pages
-        ];
+        return $this->db->lastInsertId();
+    }
+    
+    public function update($id, $data)
+    {
+        $setClause = implode(' = ?, ', array_keys($data)) . ' = ?';
+        $values = array_values($data);
+        $values[] = $id;
+        
+        $sql = "UPDATE {$this->table} SET {$setClause} WHERE id = ?";
+        return $this->db->query($sql, $values)->rowCount();
+    }
+    
+    public function delete($id)
+    {
+        $sql = "DELETE FROM {$this->table} WHERE id = ?";
+        return $this->db->query($sql, [$id])->rowCount();
+    }
+    
+    public function where($conditions, $params = [])
+    {
+        $whereClause = implode(' AND ', $conditions);
+        $sql = "SELECT * FROM {$this->table} WHERE {$whereClause}";
+        $stmt = $this->db->query($sql, $params);
+        return $stmt->fetchAll();
     }
 }
-
-?>

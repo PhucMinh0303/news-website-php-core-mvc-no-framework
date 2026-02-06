@@ -4,11 +4,13 @@
  * All requests are routed through this file
  */
 
-// Load application bootstrap
+// Load application bootstrap Vdt@#2023
 require_once 'app/bootstrap.php';
 
 require_once 'app/config/config.php';
-
+// Models
+require_once 'app/Core/Database.php';
+require_once 'app/Models/User.php';
 // Core
 require_once 'app/core/App.php';
 require_once 'app/core/Controller.php';
@@ -21,6 +23,7 @@ require_once 'app/controllers/PageController.php';
 require_once 'app/controllers/NewsController.php';
 require_once 'app/controllers/ContactController.php';
 require_once 'app/controllers/NotFoundController.php';
+require_once 'app/controllers/UserController.php';
 
 // Create router instance
 $router = new Router();
