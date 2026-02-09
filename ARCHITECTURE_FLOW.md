@@ -469,4 +469,193 @@ Response: {
 
 ---
 
+## 12. PHP View to JavaScript Connection (CRITICAL SECTION)
+
+### Overview
+
+The connection between PHP views and JavaScript is established through three key mechanisms:
+
+1. **View Helper Function** (`View::asset()`)
+2. **Script Loading Pipeline** (scripts-root.php)
+3. **DOM-based JavaScript Initialization** (script.js)
+
+### Homepage Rendering Flow
+
+```
+User visits / → Router → HomeController@index()
+  ↓
+$this->render('homepage/homepage')
+  ↓
+app/views/homepage/homepage.php LOADS
+  ├─ includes head-root.php (CSS, meta)
+  ├─ includes header.php (Navigation)
+  ├─ includes section1-5 (Content)
+  └─ includes scripts-root.php (Script loading)
+```
+
+### File: app/views/homepage/homepage.php
+
+```php
+<?php include VIEWS_PATH . 'pages/include/head-root.php'; ?>
+<?php include VIEWS_PATH . 'pages/include/header.php'; ?>
+<?php include VIEWS_PATH . 'pages/introduce/section1.php'; ?>  // Hero Slider
+<?php include VIEWS_PATH . 'pages/introduce/section2.php'; ?>  // Content
+<?php include VIEWS_PATH . 'pages/introduce/section3-2.php'; ?> // Services
+<?php include VIEWS_PATH . 'pages/introduce/section4.php'; ?>  // Partners
+<?php include VIEWS_PATH . 'pages/introduce/section5.php'; ?>  // Content
+<?php include VIEWS_PATH . 'pages/include/footer.php'; ?>
+<?php include VIEWS_PATH . 'pages/include/scripts-root.php'; ?> // SCRIPT LOADING
+```
+
+DOM Containers Created:
+
+- `<div id="header">Navigation</div>`
+- `<div id="section1">Hero Slider</div>`
+- `<div id="section3">Services</div>`
+- `<div id="section4">Partners</div>`
+- `<div id="section5">Content</div>`
+- `<div id="footer">Footer</div>`
+
+### File: app/views/pages/include/scripts-root.php
+
+```php
+<!-- Main application script -->
+<script src="<?php echo View::asset('js/script.js'); ?>"></script>
+
+<!-- External libraries -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+```
+
+### View::asset() Helper
+
+**Location:** `app/core/View.php`
+
+```php
+public static function asset($path) {
+    return '/public/assets/' . $path;
+}
+
+// Usage: View::asset('js/script.js')
+// Output: /public/assets/js/script.js
+```
+
+### JavaScript Execution (script.js)
+
+```javascript
+// 1. Fetch content from PHP views
+fetch("/introduce/section1")
+  .then((res) => res.text())
+  .then((html) => {
+    // 2. Inject into DOM container
+    document.getElementById("section1").innerHTML = html;
+
+    // 3. Wait for DOM render
+    setTimeout(() => {
+      // 4. Initialize components
+      initSection1Events();
+    }, 100);
+  });
+```
+
+### Critical Connection Points
+
+**Connection 1: View Helper to Asset**
+
+```
+PHP: View::asset('js/script.js')
+  ↓
+HTML: <script src="/public/assets/js/script.js"></script>
+  ↓
+Browser loads: /public/assets/js/script.js
+```
+
+**Connection 2: PHP Containers to JavaScript Targets**
+
+```
+PHP creates: <div id="section1"></div>
+  ↓
+JS queries: document.getElementById("section1")
+  ↓
+JS updates: .innerHTML = fetchedContent
+```
+
+**Connection 3: Fetch Paths to Router to Views**
+
+```
+JS: fetch("/introduce/section1")
+  ↓
+Router: routes to PageController@section1
+  ↓
+Serves: app/views/pages/introduce/section1.php
+  ↓
+JS: Receives HTML and injects into DOM
+```
+
+### Complete Initialization Sequence
+
+```
+1. GET / HTTP/1.1
+2. PHP renders homepage.php (creates container elements)
+3. HTML response sent to browser (with container div#ids)
+4. Browser parses HTML and creates DOM tree
+5. Browser loads stylesheets (CSS applied)
+6. Browser loads external libraries (Swiper, AOS)
+7. script.js executes (safe to access DOM + libraries)
+8. script.js fetches section content from PHP views
+9. script.js injects fetched HTML into containers
+10. script.js initializes components (Swiper, events, etc)
+11. Event listeners attached to elements
+12. Page fully interactive and ready for user interaction
+```
+
+### Best Practices
+
+**DO:**
+
+- Load scripts AFTER all HTML content
+- Use centralized View::asset() helper
+- Keep container IDs consistent between PHP & JS
+- Use setTimeout before initializing (100ms minimum)
+- Check Network & Console tabs for debugging
+
+**DON'T:**
+
+- Load scripts in `<head>` section
+- Initialize before fetch completes
+- Hardcode asset paths
+- Change element IDs without updating JavaScript
+- Ignore async/timing issues
+
+### Debugging Checklist
+
+```
+❌ script.js returns 404
+  → View::asset('js/script.js') path correct?
+  → File exists at public/assets/js/script.js?
+
+❌ Elements not found in JavaScript
+  → Container divs exist in homepage.php?
+  → Element IDs match JavaScript queries?
+  → setTimeout delay sufficient?
+
+❌ External libraries undefined
+  → CDN libraries load before script.js?
+  → scripts-root.php load order correct?
+
+❌ Fetched content not appearing
+  → Check Network tab for fetch requests
+  → Router maps paths to views correctly?
+  → .innerHTML executes after fetch?
+
+❌ Event listeners not working
+  → initializeEvents() called after fetch?
+  → Elements queried with correct selectors?
+  → Check console for JavaScript errors
+```
+
+---
+
 This architecture enables clean separation of concerns with proper data flow between server-side logic (PHP/Controllers/Models) and client-side interactivity (JavaScript).
+
+For detailed documentation, see [PHP_TO_JS_CONNECTION_MAP.md](PHP_TO_JS_CONNECTION_MAP.md).
