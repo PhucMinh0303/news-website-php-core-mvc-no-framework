@@ -1,10 +1,9 @@
 <?php
+require_once '../app/bootstrap.php';
 
-require_once __DIR__ . '/../app/core/App.php';
+use App\Core\Router;
 
-use App\Core\App;
+$router = new Router();
+require_once '../routes/api.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
-$app = new App();
-$app->runApi();
+$router->dispatch();

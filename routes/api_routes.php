@@ -1,6 +1,8 @@
 <?php
 
 use App\Controllers\Api\NewsApiController;
+use App\Core\Controller;
+use App\Models\News;
 
 $router->get('/news', [NewsApiController::class, 'index']);
 $router->get('/news/{id:\d+}', [NewsApiController::class, 'show']);

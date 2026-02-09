@@ -57,7 +57,7 @@ class View {
     /**
      * Create an asset URL with cache-busting
      */
-    public static function asset($path) {
+    public static function asset(string $path) {
         $assetPath = ROOT_PATH . 'public/assets/' . ltrim($path, '/');
         $url = BASE_URL . 'public/assets/' . ltrim($path, '/');
         
@@ -84,6 +84,7 @@ class View {
         $json = json_encode($data);
         return "<script>window.{$variableName} = {$json};</script>";
     }
+    
     
 }
 

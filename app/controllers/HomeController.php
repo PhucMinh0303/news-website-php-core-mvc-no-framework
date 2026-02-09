@@ -16,6 +16,11 @@ class HomeController extends Controller {
             'section4',
             'section5'
         ]);
+        $this->setData('animation_data', [
+            'element' => '.some-element',
+            'animation' => 'fadeIn',
+            'duration' => 1000
+        ]);
         
         // Data for JavaScript
         $animationData = [
