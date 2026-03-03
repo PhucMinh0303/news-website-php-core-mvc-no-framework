@@ -1,6 +1,6 @@
 <?php
 /**
- * Home Page View
+ * Admin panel main view
  */
 ?>
 <!---->
