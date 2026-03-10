@@ -20,6 +20,9 @@ class Router {
         $this->addRoute('', 'HomeController@index');
         $this->addRoute('/', 'HomeController@index');
         $this->addRoute('home', 'HomeController@index');
+
+        // Admin panel
+        $this->addRoute('admin', 'AdminController@index');
         
         // Introduction
         $this->addRoute('introduction', 'PageController@introduction');

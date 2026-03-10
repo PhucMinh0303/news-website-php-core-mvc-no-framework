@@ -125,7 +125,10 @@ footer {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
-  transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease,
+    transform 0.25s ease;
 }
 
 .dropdown > .dropdown-menu li {
@@ -646,7 +649,9 @@ visible có nghĩa là phần tử sẽ hiển thị bình thường.*/
   background-size: cover;
   background-position: center;
   z-index: 0;
-  transition: background-image 0.4s ease, transform 0.4s ease;
+  transition:
+    background-image 0.4s ease,
+    transform 0.4s ease;
 }
 .list_rh_2 {
   display: flex;
@@ -860,7 +865,9 @@ visible có nghĩa là phần tử sẽ hiển thị bình thường.*/
   width: 100%;
   border-radius: 5px;
   overflow: hidden;
-  transition: padding 0.3s ease, background-color 0.3s ease;
+  transition:
+    padding 0.3s ease,
+    background-color 0.3s ease;
 }
 
 .news-img img {
@@ -992,6 +999,7 @@ visible có nghĩa là phần tử sẽ hiển thị bình thường.*/
 .btn-green {
   background: linear-gradient(90deg, #0075df 0%, #005cb4 100%);
   color: #fff;
+  text-decoration: none;
 }
 
 .btn-blue {

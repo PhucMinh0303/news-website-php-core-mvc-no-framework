@@ -87,9 +87,9 @@
         <input type="text" placeholder="Tìm kiếm..." />
         <button type="button" id="search-btn">Tìm kiếm</button>
       </div>
-      <button class="btn btn-green">
+      <a href="<?php echo View::url('admin'); ?>" class="btn btn-green">
         ĐĂNG NHẬP <i class="fa-solid fa-arrow-right-to-bracket"></i>
-      </button>
+      </a>
     </div>
   </div>
 </header>

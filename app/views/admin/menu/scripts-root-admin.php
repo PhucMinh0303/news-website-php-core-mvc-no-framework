@@ -1,6 +1,5 @@
     <!-- Load scripts -->
-    <script src="<?php echo View::asset('js/script.js'); ?>"></script>
-    <script src="<?php echo View::asset('js/product-service.js'); ?>"></script>
+    <script src="<?php echo View::asset('js/admin.js'); ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 

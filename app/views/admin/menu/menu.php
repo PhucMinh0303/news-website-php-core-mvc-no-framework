@@ -3,6 +3,7 @@
  * Menu management view for admin panel
  */
 ?>
+
 <aside class="sidebar">
   <div class="logo">
     <div class="logo-icon">N</div>

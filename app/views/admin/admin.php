@@ -1,15 +1,8 @@
 <?php
-/**
- * Admin panel main view
- */
+$page_title = "Admin Panel";
 ?>
 <!---->
-<?php include VIEWS_PATH . 'pages/include/head-root.php'; ?>
-<?php include VIEWS_PATH . 'pages/include/header.php'; ?>
-<?php include VIEWS_PATH . 'pages/introduce/section1.php'; ?>
-<?php include VIEWS_PATH . 'pages/introduce/section2.php'; ?>
-<?php include VIEWS_PATH . 'pages/introduce/section3-2.php'; ?>
-<?php include VIEWS_PATH . 'pages/introduce/section4.php'; ?>
-<?php include VIEWS_PATH . 'pages/introduce/section5.php'; ?>
-<?php include VIEWS_PATH . 'pages/include/footer.php'; ?>
-<?php include VIEWS_PATH . 'pages/include/scripts-root.php'; ?>
+<?php include VIEWS_PATH . 'admin/menu/head-root-admin.php'; ?>
+<?php include VIEWS_PATH . 'admin/menu/menu.php'; ?>
+<?php include VIEWS_PATH . 'admin/main/dashboard_admin.php'; ?>
+<?php include VIEWS_PATH . 'admin/menu/scripts-root-admin.php'; ?>

@@ -24,6 +24,7 @@ require_once 'app/controllers/NewsController.php';
 require_once 'app/controllers/ContactController.php';
 require_once 'app/controllers/NotFoundController.php';
 require_once 'app/controllers/UserController.php';
+require_once 'app/controllers/Admin/AdminController.php';
 
 // Create router instance
 $router = new Router();

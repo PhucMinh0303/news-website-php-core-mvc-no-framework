@@ -3,14 +3,9 @@
  * Dashboard overview view for admin panel
  */
 ?>
+
 <!-- Main -->
 <main class="main">
-  <!-- Topbar -->
-  <div class="topbar">
-    <input type="text" placeholder="Search articles..." />
-    <button class="btn-primary">+ Create Article</button>
-  </div>
-
   <!-- Header -->
   <div class="page-header">
     <div>

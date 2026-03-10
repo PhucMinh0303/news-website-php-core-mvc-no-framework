@@ -12,9 +12,8 @@
     <title><?php echo isset($view_page_title) ? View::escape($view_page_title) . ' - ' . View::escape(SITE_NAME) : View::escape(SITE_TITLE); ?></title>
 
     <!-- CSS chính -->
-    <link rel="stylesheet" href="<?php echo View::asset('css/styles.css'); ?>" />
-    <link rel="stylesheet" href="<?php echo View::asset('css/section10.css'); ?>" />
-    <link rel="stylesheet" href="<?php echo View::asset('css/responsive-mobile.css'); ?>" />
+    <link rel="stylesheet" href="<?php echo View::asset('css/admin.css'); ?>" />
+    
 
     <!-- Font Awesome -->
     <link
