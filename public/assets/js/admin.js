@@ -14,17 +14,35 @@ async function loadHTML(url, containerId) {
 
 // Tải menu và main mặc định khi trang load
 window.addEventListener("load", async () => {
-  await loadHTML("menu/menu.html", "menu-container");
-  await loadHTML("main/main.html", "main-container");
+  const menuUrl = window.ADMIN_URLS?.menu || "menu/menu.html";
+  const mainBaseUrl = (window.ADMIN_URLS?.main || "main/main.html").replace(
+    /\/+$/,
+    "",
+  );
+
+  await loadHTML(menuUrl, "menu-container");
+  await loadHTML(mainBaseUrl, "main-container");
 
   // Sau khi menu được tải, gắn sự kiện click cho các mục
-  attachMenuEvents();
+  attachMenuEvents(mainBaseUrl);
 });
 
 // Hàm xử lý click menu
-function attachMenuEvents() {
+function attachMenuEvents(mainBaseUrl) {
   const menuItems = document.querySelectorAll(".menu-item");
   const mainContainer = document.getElementById("main-container");
+
+  const buildMainUrl = (page) => {
+    if (!page || page === "main") return mainBaseUrl;
+
+    // If base URL points to an HTML file, keep using the .html convention.
+    if (mainBaseUrl.endsWith(".html")) {
+      return `${mainBaseUrl.replace(/\.html$/, "")}/${page}.html`;
+    }
+
+    // Otherwise, treat it as a route base
+    return `${mainBaseUrl.replace(/\/+$/, "")}/${page}`;
+  };
 
   menuItems.forEach((item) => {
     item.addEventListener("click", async (e) => {
@@ -40,13 +58,125 @@ function attachMenuEvents() {
       const page = item.dataset.page; // ví dụ: "articles", "contact", ...
 
       // Xây dựng đường dẫn file main tương ứng
-      let mainFile = "main/main.html"; // mặc định
-      if (page && page !== "main") {
-        mainFile = `main/${page}.html`;
-      }
+      const mainFile = buildMainUrl(page);
 
       // Tải nội dung mới vào main-container
       await loadHTML(mainFile, "main-container");
     });
   });
+
+  // Hỗ trợ chuyển trang dùng các nút/các thành phần khác có data-page (ví dụ: nút "Create Articles")
+  document.addEventListener("click", async (e) => {
+    const target = e.target.closest("[data-page]");
+    if (!target) return;
+
+    // Tránh xử lý lại cho menu-item (đã có handler riêng)
+    if (target.classList.contains("menu-item")) return;
+
+    e.preventDefault();
+    const page = target.dataset.page;
+    const mainFile = buildMainUrl(page);
+    await loadHTML(mainFile, "main-container");
+  });
 }
+// Hàm xử lý contact (được gọi sau khi menu được tải)
+// ================= CONTACT SYSTEM =================
+
+let selectedMessage = null;
+
+/* OPEN MESSAGE */
+
+function openMessage(element) {
+  selectedMessage = element;
+
+  const detail = document.getElementById("detailPanel");
+  const empty = document.getElementById("emptyPanel");
+
+  if (detail) detail.style.display = "block";
+  if (empty) empty.style.display = "none";
+
+  document
+    .querySelectorAll(".message-item")
+    .forEach((item) => item.classList.remove("active"));
+
+  element.classList.add("active");
+}
+
+/* MOVE MESSAGE TO ARCHIVE */
+
+function moveToArchive() {
+  if (!selectedMessage) return;
+
+  const archiveList = document.getElementById("archiveList");
+
+  archiveList.appendChild(selectedMessage);
+
+  selectedMessage.classList.remove("active");
+  selectedMessage = null;
+
+  updateInboxCount();
+  checkArchiveEmpty();
+}
+
+/* CLICK BUTTON ARCHIVE */
+
+document.addEventListener("click", function (e) {
+  if (e.target.classList.contains("btn-archive")) {
+    moveToArchive();
+  }
+});
+
+/* TAB SWITCHING */
+
+document.addEventListener("click", function (e) {
+  if (!e.target.classList.contains("tab")) return;
+
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach((t) => t.classList.remove("active"));
+
+  e.target.classList.add("active");
+
+  const inbox = document.getElementById("inboxList");
+  const archive = document.getElementById("archiveList");
+
+  if (!inbox || !archive) return;
+
+  if (e.target.id === "tabInbox") {
+    inbox.style.display = "block";
+    archive.style.display = "none";
+  }
+
+  if (e.target.id === "tabArchive") {
+    inbox.style.display = "none";
+    archive.style.display = "block";
+  }
+});
+
+/* UPDATE INBOX COUNT */
+
+function updateInboxCount() {
+  const inbox = document.getElementById("inboxList");
+  const count = inbox ? inbox.children.length : 0;
+
+  const inboxTab = document.getElementById("tabInbox");
+
+  if (inboxTab) {
+    inboxTab.innerText = "Inbox (" + count + ")";
+  }
+}
+
+/* CHECK ARCHIVE EMPTY */
+
+function checkArchiveEmpty() {
+  const archive = document.getElementById("archiveList");
+  const empty = document.getElementById("archiveEmpty");
+
+  if (!archive || !empty) return;
+
+  if (archive.children.length === 0) {
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+  }
+}
+/*page to add*/

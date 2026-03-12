@@ -23,6 +23,9 @@ class Router {
 
         // Admin panel
         $this->addRoute('admin', 'AdminController@index');
+        $this->addRoute('admin/menu', 'AdminController@menu');
+        $this->addRoute('admin/main', 'AdminController@main');
+        $this->addRoute('admin/main/@slug', 'AdminController@main');
         
         // Introduction
         $this->addRoute('introduction', 'PageController@introduction');

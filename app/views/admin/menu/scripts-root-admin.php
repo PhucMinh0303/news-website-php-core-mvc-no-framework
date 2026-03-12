@@ -1,3 +1,11 @@
+    <!-- Admin URLs (used by admin.js to load partials) -->
+    <script>
+      window.ADMIN_URLS = {
+        menu: "<?php echo View::url('admin/menu'); ?>",
+        main: "<?php echo View::url('admin/main'); ?>"
+      };
+    </script>
+
     <!-- Load scripts -->
     <script src="<?php echo View::asset('js/admin.js'); ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>

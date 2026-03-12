@@ -5,50 +5,78 @@
 ?>
 <main class="main">
   <div class="main-header">
-    <h1>Articles</h1>
+    <h1>Recruitment</h1>
     <!-- Có thể thêm nút Create Article hoặc filter nếu cần -->
+     <div class="filters">
+
+      <!-- STATUS -->
+      <select class="filter-select">
+        <option>All Statuses</option>
+        <option>Draft</option>
+        <option>Published</option>
+        <option>Archived</option>
+        <option>Pending</option>
+      </select>
+
+      <!-- CATEGORY -->
+      <select class="filter-select">
+        <option>All Categories</option>
+        <option>Politics</option>
+        <option>Technology</option>
+        <option>Health</option>
+        <option>World</option>
+        <option>Science</option>
+        <option>Sports</option>
+        <option>Economy</option>
+      </select>
+
+    </div>
   </div>
   <!-- Topbar -->
   <div class="topbar">
-    <input type="text" placeholder="Search articles..." />
-    <button class="btn-primary">+ Create Article</button>
+    <input type="text" placeholder="Search recruitment..." />
+    <button class="btn-primary" data-page="addRecruitment">+ Post Job</button>
   </div>
 
-  <div class="articles-list">
-    <!-- Một article card -->
-    <div class="article-card">
-      <div class="article-header">
-        <h2 class="article-title">
-          New Policy Reform Impacts Small Businesses Across the Nation
-        </h2>
-        <div class="article-views">12,450 views</div>
-      </div>
-
-      <div class="article-meta-grid">
-        <div class="meta-item">
-          <span class="meta-label">CATEGORY</span>
-          <span class="meta-value">Economy</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">STATUS</span>
-          <span class="meta-value status-published">Published</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">AUTHOR</span>
-          <span class="meta-value">Sarah Jenkins</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">ACTIONS</span>
-          <div class="action-icons">
-            <i class="fas fa-folder"></i>
-            <!-- icon thư mục -->
-            <i class="fas fa-file-alt"></i>
-            <!-- icon tài liệu -->
-          </div>
-        </div>
-      </div>
+  <div class="posts-table">
+    <div class="table-header">
+      <div class="col-title">TITLE</div>
+      <div class="col-category">CATEGORY</div>
+      <div class="col-status">STATUS</div>
+      <div class="col-author">AUTHOR</div>
+      <div class="col-actions">ACTIONS</div>
     </div>
 
-    <!-- Có thể thêm nhiều article card khác nếu cần -->
+    <div class="table-row">
+      <div class="col-title title-box">
+        <img src="thumb.jpg" class="thumb" />
+
+        <div class="title-info">
+          <div class="post-title">
+            New Policy Reform Impacts Small Businesses Across the Nation
+          </div>
+
+          <div class="post-views">12.450 views</div>
+        </div>
+      </div>
+
+      <div class="col-category">
+        <span class="badge category">Economy</span>
+      </div>
+
+      <div class="col-status">
+        <span class="badge status">
+          <span class="dot"></span>
+          Published
+        </span>
+      </div>
+
+      <div class="col-author">Sarah Jenkins</div>
+
+      <div class="col-actions">
+        <button class="icon-btn"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>
   </div>
 </main>

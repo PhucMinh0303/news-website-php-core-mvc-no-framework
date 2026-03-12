@@ -32,6 +32,7 @@
       </div>
     </div>
   </div>
+  
 
   <!-- MAIN CONTENT -->
   <div class="container">
@@ -43,7 +44,11 @@
         <div class="date">8/11/2023</div>
       </div>
     </div>
-    <div class="message-list" id="archiveList" style="display: none"></div>
+    <div id="archiveEmpty" style="display:none;text-align:center;padding:60px;">
+      <h3>YOUR ARCHIVED IS EMPTY</h3>
+      <p>There are no messages to display here right now.</p>
+    </div>    
+    
     <div class="empty-panel" id="emptyPanel">
       Select a message to view the detailed reading pane.
     </div>

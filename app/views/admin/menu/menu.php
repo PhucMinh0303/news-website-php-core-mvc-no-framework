@@ -7,7 +7,7 @@
 <aside class="sidebar">
   <div class="logo">
     <div class="logo-icon">N</div>
-    <span>NovaNews</span>
+    <span>Capitals</span>
   </div>
 
   <ul class="menu-items">

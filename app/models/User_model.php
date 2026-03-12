@@ -21,3 +21,4 @@ class User extends Model
         return $stmt->fetch();
     }
 }
+
