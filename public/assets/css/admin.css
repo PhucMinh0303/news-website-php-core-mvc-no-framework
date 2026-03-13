@@ -407,18 +407,39 @@ body {
 }
 
 .editor-toolbar {
-  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px;
   background: #f1f5f9;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .editor-toolbar button {
-  margin-right: 6px;
-  padding: 6px 10px;
-  border: none;
+  border: 1px solid #d1d5db;
   background: white;
+  padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
+}
+.editor-toolbar button:hover {
+  background: #e5e7eb;
+}
+.editor-toolbar select {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+.editor-toolbar input[type="color"] {
+  width: 36px;
+  height: 30px;
+  border: none;
+  cursor: pointer;
+}
+.divider {
+  width: 1px;
+  background: #d1d5db;
+  margin: 0 6px;
 }
 
 .editor-area {

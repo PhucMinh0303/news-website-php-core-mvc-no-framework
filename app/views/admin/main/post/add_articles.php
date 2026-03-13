@@ -53,24 +53,55 @@
 
         <div class="editor-toolbar">
 
-          <button>B</button>
-          <button><i>I</i></button>
-          <button>U</button>
+          <!-- Font -->
+          <select id="fontFamily">
+            <option value="serif">Font: Serif</option>
+            <option value="Arial">Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+          </select>
 
-          <button>H1</button>
-          <button>H2</button>
+          <span class="divider"></span>
 
-          <button>🔗</button>
+          <!-- TEXT STYLE -->
+          <button data-cmd="bold"><b>B</b></button>
+          <button data-cmd="italic"><i>I</i></button>
+          <button data-cmd="underline"><u>U</u></button>
 
-          <button>🖼 Chèn hình ảnh</button>
-          <button>🎥 Chèn video</button>
+          <span class="divider"></span>
+
+          <!-- COLOR -->
+          <input type="color" id="textColor">
+
+          <span class="divider"></span>
+
+          <!-- HEADINGS -->
+          <button data-heading="h1">H1</button>
+          <button data-heading="h2">H2</button>
+
+          <span class="divider"></span>
+
+          <!-- QUOTE -->
+          <button data-cmd="formatBlock" data-value="blockquote">❝</button>
+
+          <!-- LINK -->
+          <button id="addLink">🔗</button>
+
+          <span class="divider"></span>
+
+          <!-- IMAGE -->
+          <button id="insertImage">🖼 Chèn hình ảnh</button>
+
+          <!-- VIDEO -->
+          <button id="insertVideo">🎥 Chèn video</button>
 
         </div>
 
-        <textarea class="editor-area"
+        <textarea id="editor" class="editor-area" contenteditable="true"
         placeholder="Đây là nội dung bài viết. Có thể gõ trực tiếp hoặc dán nội dung từ nguồn khác..."></textarea>
 
       </div>
+      <input type="file" id="imageUpload" accept="image/*" hidden>
 
     </div>
 

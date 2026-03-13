@@ -28,6 +28,7 @@ class AdminController extends Controller {
             'dashboard' => 'admin/main/dashboard_admin',
             'articles' => 'admin/main/articles_admin',
             'add-articles' => 'admin/main/post/add_articles',
+            'add-recruitment' => 'admin/main/post/add_recruitment',
             'recruitment' => 'admin/main/recruitment_admin',
             'contact' => 'admin/main/contact_admin',
             // Add other pages here as needed

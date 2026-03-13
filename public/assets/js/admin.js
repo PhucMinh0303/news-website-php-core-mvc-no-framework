@@ -179,4 +179,131 @@ function checkArchiveEmpty() {
     empty.style.display = "none";
   }
 }
-/*page to add*/
+/* JavaScript Editor (Word-like functions) */
+document.addEventListener("DOMContentLoaded", function () {
+  const editor = document.getElementById("editor");
+
+  /* ===== BASIC COMMANDS ===== */
+
+  document.querySelectorAll("[data-cmd]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const cmd = btn.dataset.cmd;
+      const value = btn.dataset.value || null;
+
+      document.execCommand(cmd, false, value);
+    });
+  });
+
+  /* ===== HEADINGS ===== */
+
+  document.querySelectorAll("[data-heading]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tag = btn.dataset.heading;
+
+      document.execCommand("formatBlock", false, tag);
+    });
+  });
+
+  /* ===== FONT FAMILY ===== */
+
+  document.getElementById("fontFamily").addEventListener("change", function () {
+    wrapSelection("span", { fontFamily: this.value });
+  });
+
+  /* ===== TEXT STYLE ===== */
+
+  document.querySelector('[data-cmd="bold"]').onclick = () => {
+    wrapSelection("b");
+  };
+
+  document.querySelector('[data-cmd="italic"]').onclick = () => {
+    wrapSelection("i");
+  };
+
+  document.querySelector('[data-cmd="underline"]').onclick = () => {
+    wrapSelection("span", { textDecoration: "underline" });
+  };
+
+  /* ===== TEXT COLOR ===== */
+
+  document.getElementById("textColor").addEventListener("input", function () {
+    wrapSelection("span", { color: this.value });
+  });
+
+  /* ===== ADD LINK ===== */
+
+  document.getElementById("addLink").addEventListener("click", function () {
+    const url = prompt("Nhập link:");
+
+    if (url) {
+      document.execCommand("createLink", false, url);
+    }
+  });
+
+  /* ===== INSERT IMAGE ===== */
+
+  document.getElementById("insertImage").onclick = () => {
+    document.getElementById("imageUpload").click();
+  };
+
+  document
+    .getElementById("imageUpload")
+    .addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const img = document.createElement("img");
+
+        img.src = e.target.result;
+        img.style.maxWidth = "100%";
+
+        const range = getSelectionRange();
+
+        if (range) {
+          range.insertNode(img);
+        } else {
+          editor.appendChild(img);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+  /* ===== INSERT VIDEO ===== */
+
+  document.getElementById("insertVideo").onclick = () => {
+    const url = prompt("Nhập link video");
+
+    if (!url) return;
+
+    let element;
+
+    if (url.includes("youtube")) {
+      const embed = url.replace("watch?v=", "embed/");
+
+      element = document.createElement("iframe");
+
+      element.src = embed;
+      element.width = "560";
+      element.height = "315";
+      element.allowFullscreen = true;
+    } else {
+      element = document.createElement("video");
+
+      element.src = url;
+      element.controls = true;
+      element.style.maxWidth = "100%";
+    }
+
+    const range = getSelectionRange();
+
+    if (range) {
+      range.insertNode(element);
+    } else {
+      editor.appendChild(element);
+    }
+  };
+});

@@ -35,7 +35,7 @@
   <!-- Topbar -->
   <div class="topbar">
     <input type="text" placeholder="Search recruitment..." />
-    <button class="btn-primary" data-page="addRecruitment">+ Post Job</button>
+    <button class="btn-primary" data-page="add-recruitment">+ Post Job</button>
   </div>
 
   <div class="posts-table">
