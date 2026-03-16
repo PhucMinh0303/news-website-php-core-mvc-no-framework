@@ -7,6 +7,8 @@
     </script>
 
     <!-- Load scripts -->
+    <!-- Load jQuery once (avoid conflicts from double-loading) -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="<?php echo View::asset('js/admin.js'); ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>

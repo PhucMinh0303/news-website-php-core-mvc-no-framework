@@ -4,7 +4,9 @@ async function loadHTML(url, containerId) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const html = await response.text();
-    document.getElementById(containerId).innerHTML = html;
+    const container = document.getElementById(containerId);
+    container.innerHTML = html;
+    initQuillEditor(container);
   } catch (error) {
     console.error("Lỗi tải file:", error);
     document.getElementById(containerId).innerHTML =
@@ -179,131 +181,192 @@ function checkArchiveEmpty() {
     empty.style.display = "none";
   }
 }
-/* JavaScript Editor (Word-like functions) */
-document.addEventListener("DOMContentLoaded", function () {
-  const editor = document.getElementById("editor");
+/* QUILL EDITOR (Word-like functions) */
 
-  /* ===== BASIC COMMANDS ===== */
+/**
+ * Initialize Quill-based editor tooling in a given DOM scope.
+ * This is called after dynamic HTML injection (AJAX) so it can
+ * attach to newly-loaded editor instances.
+ */
+function initQuillEditor(scope = document) {
+  const editorEl = scope.querySelector("#editor");
+  if (!editorEl) return;
 
-  document.querySelectorAll("[data-cmd]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const cmd = btn.dataset.cmd;
-      const value = btn.dataset.value || null;
+  // Prevent double initialization on the same element
+  if (editorEl.__quillInstance) return;
 
-      document.execCommand(cmd, false, value);
-    });
+  const quill = new Quill(editorEl, {
+    theme: "snow",
+    modules: {
+      toolbar: false,
+    },
   });
 
-  /* ===== HEADINGS ===== */
+  editorEl.__quillInstance = quill;
 
-  document.querySelectorAll("[data-heading]").forEach((btn) => {
+  const contentInput = scope.querySelector("#contentInput");
+  const syncContent = () => {
+    if (contentInput) {
+      contentInput.value = quill.root.innerHTML;
+    }
+  };
+
+  // Keep hidden input in sync with editor content
+  quill.on("text-change", syncContent);
+  syncContent();
+
+  // Basic formatting buttons (toggle on/off)
+  const applyFormat = (selector, format) => {
+    const button = scope.querySelector(selector);
+    if (!button) return;
+
+    button.addEventListener("click", () => {
+      const currentFormat = quill.getFormat();
+      const isActive = currentFormat[format] === true;
+
+      quill.format(format, !isActive);
+    });
+  };
+
+  applyFormat('[data-cmd="bold"]', "bold");
+  applyFormat('[data-cmd="italic"]', "italic");
+  applyFormat('[data-cmd="underline"]', "underline");
+
+  // Headings
+  scope.querySelectorAll("[data-heading]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const tag = btn.dataset.heading;
 
-      document.execCommand("formatBlock", false, tag);
+      const headerValue = tag.startsWith("h")
+        ? parseInt(tag.slice(1), 10)
+        : parseInt(tag, 10);
+
+      if (!Number.isFinite(headerValue)) return;
+
+      const currentFormat = quill.getFormat();
+      const isActive = currentFormat.header === headerValue;
+
+      // toggle heading
+      quill.format("header", isActive ? false : headerValue);
     });
   });
+  // Font family
+  const fontSelect = scope.querySelector("#fontFamily");
+  if (fontSelect) {
+    const Font = Quill.import("formats/font");
+    Font.whitelist = [
+      "serif",
+      "arial",
+      "times-new-roman",
+      "courier-new",
+      "roboto",
+      "monospace",
+    ];
+    Quill.register(Font, true);
 
-  /* ===== FONT FAMILY ===== */
+    fontSelect.addEventListener("change", function () {
+      quill.format("font", this.value);
+    });
+  }
 
-  document.getElementById("fontFamily").addEventListener("change", function () {
-    wrapSelection("span", { fontFamily: this.value });
-  });
+  // Text color
+  const colorInput = scope.querySelector("#textColor");
+  if (colorInput) {
+    colorInput.addEventListener("input", function () {
+      quill.format("color", this.value);
+    });
+  }
 
-  /* ===== TEXT STYLE ===== */
+  // Link
+  const addLinkBtn = scope.querySelector("#addLink");
+  if (addLinkBtn) {
+    addLinkBtn.addEventListener("click", () => {
+      const url = prompt("Nhập link:");
+      if (!url) return;
+      const range = quill.getSelection();
+      if (range) {
+        quill.format("link", url);
+      }
+    });
+  }
 
-  document.querySelector('[data-cmd="bold"]').onclick = () => {
-    wrapSelection("b");
-  };
-
-  document.querySelector('[data-cmd="italic"]').onclick = () => {
-    wrapSelection("i");
-  };
-
-  document.querySelector('[data-cmd="underline"]').onclick = () => {
-    wrapSelection("span", { textDecoration: "underline" });
-  };
-
-  /* ===== TEXT COLOR ===== */
-
-  document.getElementById("textColor").addEventListener("input", function () {
-    wrapSelection("span", { color: this.value });
-  });
-
-  /* ===== ADD LINK ===== */
-
-  document.getElementById("addLink").addEventListener("click", function () {
-    const url = prompt("Nhập link:");
-
-    if (url) {
-      document.execCommand("createLink", false, url);
+  // Image
+  const imageUpload = scope.querySelector("#imageUpload");
+  if (imageUpload) {
+    const insertImageBtn = scope.querySelector("#insertImage");
+    if (insertImageBtn) {
+      insertImageBtn.addEventListener("click", () => {
+        imageUpload.click();
+      });
     }
-  });
 
-  /* ===== INSERT IMAGE ===== */
-
-  document.getElementById("insertImage").onclick = () => {
-    document.getElementById("imageUpload").click();
-  };
-
-  document
-    .getElementById("imageUpload")
-    .addEventListener("change", function () {
+    imageUpload.addEventListener("change", function () {
       const file = this.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-
       reader.onload = function (e) {
-        const img = document.createElement("img");
-
-        img.src = e.target.result;
-        img.style.maxWidth = "100%";
-
-        const range = getSelectionRange();
-
-        if (range) {
-          range.insertNode(img);
-        } else {
-          editor.appendChild(img);
-        }
+        const range = quill.getSelection(true);
+        quill.insertEmbed(range.index, "image", e.target.result);
       };
-
       reader.readAsDataURL(file);
     });
+  }
 
-  /* ===== INSERT VIDEO ===== */
+  // Video
+  const insertVideoBtn = scope.querySelector("#insertVideo");
 
-  document.getElementById("insertVideo").onclick = () => {
-    const url = prompt("Nhập link video");
+  if (insertVideoBtn) {
+    insertVideoBtn.addEventListener("click", () => {
+      const url = prompt("Nhập link video:");
+      if (!url) return;
 
-    if (!url) return;
+      const embedUrl = getVideoEmbedUrl(url);
 
-    let element;
+      if (!embedUrl) {
+        alert("Link video không hợp lệ");
+        return;
+      }
 
-    if (url.includes("youtube")) {
-      const embed = url.replace("watch?v=", "embed/");
+      const range = quill.getSelection(true);
 
-      element = document.createElement("iframe");
+      const videoHTML = `
+      <div class="editor-video">
+        <iframe 
+          src="${embedUrl}" 
+          frameborder="0"
+          allowfullscreen>
+        </iframe>
+      </div>
+    `;
 
-      element.src = embed;
-      element.width = "560";
-      element.height = "315";
-      element.allowFullscreen = true;
-    } else {
-      element = document.createElement("video");
-
-      element.src = url;
-      element.controls = true;
-      element.style.maxWidth = "100%";
+      quill.clipboard.dangerouslyPasteHTML(range.index, videoHTML);
+    });
+  }
+  function getVideoEmbedUrl(url) {
+    // YouTube dạng: https://www.youtube.com/watch?v=xxxx
+    let match = url.match(/youtube\.com.*v=([^&]+)/);
+    if (match) {
+      return `https://www.youtube.com/embed/${match[1]}`;
     }
 
-    const range = getSelectionRange();
-
-    if (range) {
-      range.insertNode(element);
-    } else {
-      editor.appendChild(element);
+    // YouTube dạng: https://youtu.be/xxxx
+    match = url.match(/youtu\.be\/([^?]+)/);
+    if (match) {
+      return `https://www.youtube.com/embed/${match[1]}`;
     }
-  };
+
+    // Vimeo
+    match = url.match(/vimeo\.com\/(\d+)/);
+    if (match) {
+      return `https://player.vimeo.com/video/${match[1]}`;
+    }
+
+    return null;
+  }
+}
+
+// Initialize on full page load (cover cases where editor is in the initial DOM)
+document.addEventListener("DOMContentLoaded", () => {
+  initQuillEditor();
 });

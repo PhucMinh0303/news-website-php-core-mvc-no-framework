@@ -578,3 +578,11 @@ fetch("../../app/views/pages/include/header.php")
 // ========================================
 
 console.log("All scripts loaded successfully");
+
+// script.js makes API request
+fetch("/api/news")
+  .then((res) => res.json())
+  .then((data) => {
+    // Update DOM with response data
+    renderNews(data);
+  });

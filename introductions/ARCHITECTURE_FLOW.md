@@ -74,6 +74,46 @@ JavaScript (fetch) → public/api.php → app/bootstrap.php → API Router
 
 ---
 
+## 2.1 Structural conflict: PHP + Vanilla JS (Partial / AJAX rendering)
+
+In this project the **server-side PHP views produce full HTML pages** while some parts of the admin UI are built as **client-side partials** that are fetched and injected via Vanilla JS.
+
+This creates a structural conflict when the **same controller/action is executed multiple times**, or when the partials returned by the server include **extra HTML tags** that are not expected by the JS insertion point.
+
+### Root cause found in `index.php`
+
+The front controller (`index.php`) was executing the resolved controller action twice:
+
+- once inside the `try { ... }` block (correct)
+- a second time at the bottom of the file (incorrect)
+
+That second execution can cause duplicate HTML output (duplicate `<html>`, `<head>`, or view fragments), which breaks:
+
+- AJAX partial loads (e.g., admin menu/main loaded via `fetch()`)
+- DOM insertion logic (`innerHTML` receives unexpected extra markup)
+- Vanilla JS event wiring (elements are duplicated or not where expected)
+
+### Visual: What happens when output is duplicated
+
+```mermaid
+flowchart LR
+  A[Browser request] --> B[index.php]
+  B --> C[Controller action (first call)]
+  C --> D[Render view / output HTML]
+  D --> E[Browser receives HTML]
+  B --> F[Controller action (second call)]
+  F --> G[Render view / output HTML again]
+  G --> E
+```
+
+### What fixes this conflict
+
+1. Ensure `index.php` executes the controller action exactly once.
+2. Ensure routes that serve JS-injected partials (like `admin/menu`, `admin/main`) return only the expected fragment (no `<html>`/`<head>`/`<body>` wrappers).
+3. Avoid loading the same JS libraries multiple times (e.g., jQuery).
+
+---
+
 ## 3. Complete API Request Flow
 
 ```
@@ -328,29 +368,29 @@ fetch("../../app/views/pages/include/header.php")
 ```
 1. User visits homepage /
    ↓
-2. Router dispatches to HomeController@index
+2. Router dispatches (điều hướng) to HomeController@index
    ↓
-3. HomeController renders homepage.php view
+3. HomeController renders (hiển thị) homepage.php view
    ↓
-4. homepage.php includes sections/includes header
+4. homepage.php includes (bao gồm) sections/includes header
    ↓
 5. Browser loads script.js and config.js
    ↓
 6. script.js runs JavaScript initialization code
    ↓
-7. JavaScript executes: fetch('/api/news')
+7. JavaScript executes (thực thi): fetch('/api/news')
    ↓
-8. public/api.php routes to NewsApiController@index
+8. public/api.php routes (điều hướng) to NewsApiController@index
    ↓
-9. NewsApiController queries News Model
+9. NewsApiController queries (truy vấn) News Model
    ↓
-10. News Model returns data from database
+10. News Model returns data (trả dữ liệu) from database
     ↓
-11. NewsApiController returns JSON response
+11. NewsApiController returns (trả phản hồi) JSON response
     ↓
-12. JavaScript receives JSON data
+12. JavaScript receives (nhận) JSON data
     ↓
-13. JavaScript updates DOM with news articles
+13. JavaScript updates (cập nhật) DOM with news articles
     ↓
 14. User sees news articles on page
 ```
@@ -358,53 +398,53 @@ fetch("../../app/views/pages/include/header.php")
 ### **Example 2: Form Submission → API → Database**
 
 ```
-1. User fills contact form on page
+1. User fills contact form (điền vào biểu mẫu liên hệ) on page
    ↓
-2. script.js listens for form submit event
+2. script.js listens for form submit event (lắng nghe sự kiện gửi biểu mẫu)
    ↓
-3. JavaScript makes fetch POST request to /api/contact
+3. JavaScript makes fetch (thực hiện yêu cầu) POST request to /api/contact
    ↓
-4. Request includes: { name, email, message, ... }
+4. Request includes (bao gồm): { name, email, message, ... }
    ↓
-5. public/api.php routes to ContactApiController
+5. public/api.php routes to (chuyển hướng đến) ContactApiController
    ↓
-6. ContactApiController validates data
+6. ContactApiController validates data (xác thực dữ liệu)
    ↓
-7. ContactApiController saves to database via Model
+7. ContactApiController saves to database via (thông qua) Model
    ↓
-8. ContactApiController returns JSON response
+8. ContactApiController returns (trả về phản hồi) JSON response
    ↓
-9. JavaScript receives response
+9. JavaScript receives response (nhận phản hồi)
    ↓
-10. JavaScript displays success/error message to user
+10. JavaScript displays success/error message (hiển thị thông báo thành công/lỗi) to user
 ```
 
 ---
 
-## 8. Configuration Integration
+## 8. Configuration Integration (Tích hợp cấu hình)
 
 ### **App Configuration (app/config/config.php)**
 
-- Defines APP_PATH, VIEWS_PATH, MODELS_PATH
-- Database connection parameters
-- Base URL settings
+- Defines (Xác định) APP_PATH, VIEWS_PATH, MODELS_PATH
+- Database connection parameters (Tham số kết nối cơ sở dữ liệu)
+- Base URL settings (Cài đặt URL cơ sở)
 
 ### **JavaScript Configuration (public/assets/js/config.js)**
 
 - API_BASE: `/api`
 - BASE_URL: `window.location.origin`
-- Paths to various resources
+- Paths to various resources (Các đường dẫn đến các nguồn tài nguyên khác nhau)
 
 ---
 
-## 9. Request/Response Pattern
+## 9. Request/Response Pattern (Mô hình yêu cầu/phản hồi)
 
 ### **Web Request → HTML Response**
 
 ```
-Request:  GET /news
+Request (Yêu cầu):  GET /news
 ↓
-Routed to: NewsController@index
+Routed (chuyển hướng) to: NewsController@index
 ↓
 Response: HTML page with news list
 ```
@@ -430,10 +470,10 @@ Response: {
 
 ## 10. Best Practices for Future Development
 
-### **When Adding New Features:**
+### **When Adding New Features (Tính năng):**
 
 1. **Create API Endpoint** (if data is needed)
-   - Add route in `routes/api_routes.php`
+   - Add route (tuyến đường) in `routes/api_routes.php`
    - Create API Controller in `app/controllers/API_controllers/`
    - Create/Use Model in `app/models/`
 
@@ -443,23 +483,23 @@ Response: {
    - Create View in `app/views/`
 
 3. **Update JavaScript** (if client-side logic needed)
-   - Add functions in `public/assets/js/script.js` or create new file
+   - Add functions (hàm) in `public/assets/js/script.js` or create new file
    - Update `config.js` if new API endpoints are added
-   - Load scripts in view via `scripts-root.php`
+   - Load scripts (Tải tệp lệnh) in view via `scripts-root.php`
 
-4. **Link them together**
-   - Pass data from Controller to View via `setData()`
-   - Access data in View
+4. **Link (liên kết) them together**
+   - Pass data (Truyền dữ liệu) from Controller to View via `setData()`
+   - Access data (Truy cập dữ liệu) in View
    - Call API from JavaScript when needed
-   - Update DOM with API responses
+   - Update DOM with API responses (phản hồi)
 
 ---
 
-## 11. Current Routes References
+## 11. Current Routes References (Tài liệu tham khảo về các tuyến đường hiện tại)
 
 ### **Web Routes File Structure**
 
-- `routes/web_routes.php` - Defines web page routes
+- `routes/web_routes.php` - Defines (Định nghĩa) web page routes
 - Maps URLs to Controllers
 
 ### **API Routes File Structure**
@@ -473,13 +513,13 @@ Response: {
 
 ### Overview
 
-The connection between PHP views and JavaScript is established through three key mechanisms:
+The connection between PHP views and JavaScript is established (thiết lập) through three key mechanisms (cơ chế):
 
 1. **View Helper Function** (`View::asset()`)
 2. **Script Loading Pipeline** (scripts-root.php)
 3. **DOM-based JavaScript Initialization** (script.js)
 
-### Homepage Rendering Flow
+### Homepage Rendering (hiển thị) Flow (luồng)
 
 ```
 User visits / → Router → HomeController@index()
@@ -507,7 +547,7 @@ app/views/homepage/homepage.php LOADS
 <?php include VIEWS_PATH . 'pages/include/scripts-root.php'; ?> // SCRIPT LOADING
 ```
 
-DOM Containers Created:
+DOM Containers (vùng chứa) Created:
 
 - `<div id="header">Navigation</div>`
 - `<div id="section1">Hero Slider</div>`
@@ -540,7 +580,7 @@ public static function asset($path) {
 // Output: /public/assets/js/script.js
 ```
 
-### JavaScript Execution (script.js)
+### JavaScript Execution (Thực thi) (script.js)
 
 ```javascript
 // 1. Fetch content from PHP views
@@ -558,7 +598,7 @@ fetch("/introduce/section1")
   });
 ```
 
-### Critical Connection Points
+### Critical (Quan trọng) Connection (Kết nối) Points (Điểm)
 
 **Connection 1: View Helper to Asset**
 
@@ -580,7 +620,7 @@ JS queries: document.getElementById("section1")
 JS updates: .innerHTML = fetchedContent
 ```
 
-**Connection 3: Fetch Paths to Router to Views**
+**Connection 3: Fetch Paths (đường dẫn) to Router (định tuyến) to Views**
 
 ```
 JS: fetch("/introduce/section1")
@@ -592,7 +632,7 @@ Serves: app/views/pages/introduce/section1.php
 JS: Receives HTML and injects into DOM
 ```
 
-### Complete Initialization Sequence
+### Complete Initialization (Khởi tạo) Sequence (Trình tự)
 
 ```
 1. GET / HTTP/1.1

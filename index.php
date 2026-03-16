@@ -72,20 +72,12 @@ try {
         echo 'An error occurred. Please try again later.';
     }
 }
-if (!class_exists($controllerName)) {
-    $controllerName = 'NotFoundController';
-    $actionName = 'index';
-}
 
-$controller = new $controllerName();
+// NOTE: This file should only execute the controller action once.
+// The block that follows was causing the controller/action to run again,
+// which could lead to duplicate HTML output (especially for AJAX/partial
+// requests) and break the DOM structure for client-side scripts.
 
-if (!method_exists($controller, $actionName)) {
-    $actionName = 'index';
-}
-
-call_user_func_array(
-    [$controller, $actionName],
-    $params
-);
+exit;
 
 ?>

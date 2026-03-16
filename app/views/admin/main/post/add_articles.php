@@ -56,9 +56,11 @@
           <!-- Font -->
           <select id="fontFamily">
             <option value="serif">Font: Serif</option>
-            <option value="Arial">Arial</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Courier New">Courier New</option>
+            <option value="arial">Arial</option>
+            <option value="times-new-roman">Times New Roman</option>
+            <option value="courier-new">Courier New</option>
+            <option value="roboto">Roboto</option>
+            <option value="monospace">Monospace</option>
           </select>
 
           <span class="divider"></span>
@@ -76,8 +78,8 @@
           <span class="divider"></span>
 
           <!-- HEADINGS -->
-          <button data-heading="h1">H1</button>
-          <button data-heading="h2">H2</button>
+          <button data-heading="1">H1</button>
+          <button data-heading="2">H2</button>
 
           <span class="divider"></span>
 
@@ -85,23 +87,24 @@
           <button data-cmd="formatBlock" data-value="blockquote">❝</button>
 
           <!-- LINK -->
-          <button id="addLink">🔗</button>
+          <button id="addLink"><i class="fas fa-link"></i></button>
 
           <span class="divider"></span>
 
           <!-- IMAGE -->
-          <button id="insertImage">🖼 Chèn hình ảnh</button>
+          <button id="insertImage"><i class="fas fa-image"></i> Chèn hình ảnh</button>
 
           <!-- VIDEO -->
-          <button id="insertVideo">🎥 Chèn video</button>
+          <button id="insertVideo"><i class="fa-solid fa-video"></i> Chèn video</button>
 
         </div>
 
-        <textarea id="editor" class="editor-area" contenteditable="true"
-        placeholder="Đây là nội dung bài viết. Có thể gõ trực tiếp hoặc dán nội dung từ nguồn khác..."></textarea>
-
+        <div id="editor" class="editor-area" contenteditable="true"
+        placeholder="Đây là nội dung bài viết. Có thể gõ trực tiếp hoặc dán nội dung từ nguồn khác..."></div>
+        <input type="hidden" name="content" id="contentInput">
       </div>
       <input type="file" id="imageUpload" accept="image/*" hidden>
+      
 
     </div>
 

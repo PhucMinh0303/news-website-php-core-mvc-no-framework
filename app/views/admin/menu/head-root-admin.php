@@ -11,6 +11,10 @@
     <meta property="og:url" content="<?php echo BASE_URL; ?>" />
     <title><?php echo isset($view_page_title) ? View::escape($view_page_title) . ' - ' . View::escape(SITE_NAME) : View::escape(SITE_TITLE); ?></title>
 
+    <!-- Quill CSS library -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+
     <!-- CSS chính -->
     <link rel="stylesheet" href="<?php echo View::asset('css/admin.css'); ?>" />
     

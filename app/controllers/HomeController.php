@@ -22,21 +22,12 @@ class HomeController extends Controller {
             'duration' => 1000
         ]);
         
-        // Data for JavaScript
-        $animationData = [
-            'element' => '.some-element',
-            'animation' => 'fadeIn',
-            'duration' => 1000
-        ];
-        $this->setData('animation_data', $animationData);
+        
         
         $this->render('homepage/homepage');
         
         
     }
-    
-    
-    
     
 }
 
