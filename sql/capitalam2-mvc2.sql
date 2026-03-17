@@ -9,7 +9,7 @@ GRANT ALL PRIVILEGES ON quanly_tintuc.* TO 'admin_tintuc'@'localhost';
 FLUSH PRIVILEGES;
 
 -- Sử dụng database
-USE quanly_tintuc;
+USE capital2;
 
 -- Tạo bảng categories
 CREATE TABLE categories (
