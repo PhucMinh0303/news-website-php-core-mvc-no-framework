@@ -7,11 +7,16 @@
     </script>
 
     <!-- Load scripts -->
-    <!-- Load jQuery once (avoid conflicts from double-loading) -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="<?php echo View::asset('js/admin.js'); ?>"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    
 
     <?php
     if (isset($view_animation_data)) {

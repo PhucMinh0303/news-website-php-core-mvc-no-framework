@@ -81,106 +81,7 @@ function attachMenuEvents(mainBaseUrl) {
     await loadHTML(mainFile, "main-container");
   });
 }
-// Hàm xử lý contact (được gọi sau khi menu được tải)
-// ================= CONTACT SYSTEM =================
 
-let selectedMessage = null;
-
-/* OPEN MESSAGE */
-
-function openMessage(element) {
-  selectedMessage = element;
-
-  const detail = document.getElementById("detailPanel");
-  const empty = document.getElementById("emptyPanel");
-
-  if (detail) detail.style.display = "block";
-  if (empty) empty.style.display = "none";
-
-  document
-    .querySelectorAll(".message-item")
-    .forEach((item) => item.classList.remove("active"));
-
-  element.classList.add("active");
-}
-
-/* MOVE MESSAGE TO ARCHIVE */
-
-function moveToArchive() {
-  if (!selectedMessage) return;
-
-  const archiveList = document.getElementById("archiveList");
-
-  archiveList.appendChild(selectedMessage);
-
-  selectedMessage.classList.remove("active");
-  selectedMessage = null;
-
-  updateInboxCount();
-  checkArchiveEmpty();
-}
-
-/* CLICK BUTTON ARCHIVE */
-
-document.addEventListener("click", function (e) {
-  if (e.target.classList.contains("btn-archive")) {
-    moveToArchive();
-  }
-});
-
-/* TAB SWITCHING */
-
-document.addEventListener("click", function (e) {
-  if (!e.target.classList.contains("tab")) return;
-
-  const tabs = document.querySelectorAll(".tab");
-  tabs.forEach((t) => t.classList.remove("active"));
-
-  e.target.classList.add("active");
-
-  const inbox = document.getElementById("inboxList");
-  const archive = document.getElementById("archiveList");
-
-  if (!inbox || !archive) return;
-
-  if (e.target.id === "tabInbox") {
-    inbox.style.display = "block";
-    archive.style.display = "none";
-  }
-
-  if (e.target.id === "tabArchive") {
-    inbox.style.display = "none";
-    archive.style.display = "block";
-  }
-});
-
-/* UPDATE INBOX COUNT */
-
-function updateInboxCount() {
-  const inbox = document.getElementById("inboxList");
-  const count = inbox ? inbox.children.length : 0;
-
-  const inboxTab = document.getElementById("tabInbox");
-
-  if (inboxTab) {
-    inboxTab.innerText = "Inbox (" + count + ")";
-  }
-}
-
-/* CHECK ARCHIVE EMPTY */
-
-function checkArchiveEmpty() {
-  const archive = document.getElementById("archiveList");
-  const empty = document.getElementById("archiveEmpty");
-
-  if (!archive || !empty) return;
-
-  if (archive.children.length === 0) {
-    empty.style.display = "block";
-  } else {
-    empty.style.display = "none";
-  }
-}
 /* QUILL EDITOR (Word-like functions) */
 
 /**
@@ -370,3 +271,108 @@ function initQuillEditor(scope = document) {
 document.addEventListener("DOMContentLoaded", () => {
   initQuillEditor();
 });
+
+// Hàm xử lý contact (được gọi sau khi menu được tải)
+function contactManager() {
+  return {
+    tab: "inbox",
+    search: "",
+    selectedMessage: null,
+    newNote: "",
+
+    messages: [
+      {
+        id: 1,
+        name: "John Doe",
+        email: "john@example.com",
+        title: "Story Tip: Local Council Corruption",
+        date: "8/11/2023",
+        content: "Sensitive investigation...",
+        status: "inbox",
+      },
+    ],
+    //Filter message theo search + tab
+    get filtered() {
+      let list = this.messages.filter((m) => m.status === this.tab);
+
+      if (!this.search) return list;
+
+      return list.filter(
+        (m) =>
+          m.name.toLowerCase().includes(this.search.toLowerCase()) ||
+          m.title.toLowerCase().includes(this.search.toLowerCase()),
+      );
+    },
+    // Animation khi click message
+    openMessage(msg) {
+      this.selectedMessage = msg;
+
+      gsap.fromTo(
+        ".detail-panel",
+        { opacity: 0, x: 20 },
+        { opacity: 1, x: 0, duration: 0.3 },
+      );
+    },
+    // Animation khi move message
+    animateRemove() {
+      gsap.to(".detail-panel", {
+        opacity: 0,
+        y: 20,
+        duration: 0.2,
+      });
+    },
+    // Toast Notification
+    toast(text) {
+      Toastify({
+        text: text,
+        duration: 3000,
+        gravity: "bottom",
+        position: "center",
+      }).showToast();
+    },
+    //Archive (move to archive)
+    archiveMessage() {
+      if (!this.selectedMessage) return;
+
+      this.animateRemove();
+
+      setTimeout(() => {
+        this.selectedMessage.status = "archive";
+        this.toast("Moved to Archive");
+        this.autoSelect();
+      }, 200);
+    },
+    // Delete (move to trash)
+    deleteMessage() {
+      if (!this.selectedMessage) return;
+
+      this.animateRemove();
+
+      setTimeout(() => {
+        this.selectedMessage.status = "trash";
+        this.toast("Moved to Trash");
+        this.autoSelect();
+      }, 200);
+    },
+    // Restore (move back to inbox)
+    restoreMessage() {
+      if (!this.selectedMessage) return;
+
+      this.selectedMessage.status = "inbox";
+      this.toast("Restored to Inbox");
+      this.autoSelect();
+    },
+    // Auto select message (UX giống Gmail)
+    autoSelect() {
+      let list = this.filtered;
+      this.selectedMessage = list.length ? list[0] : null;
+    },
+
+    addNote() {
+      if (!this.newNote) return;
+
+      this.selectedMessage.note = this.newNote;
+      this.newNote = "";
+    },
+  };
+}
