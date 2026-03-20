@@ -65,14 +65,20 @@ class PageController extends Controller {
     
     public function financialInformation() {
         $this->setPageTitle('Thông tin tài chính');
-        $this->setData('page', 'financial-information');
+        $this->setData('pages', [
+            'product-service-section',
+            'financial-information'
+        ]);
         $this->render('pages/financial-information');
     }
     
     public function annualReport() {
         $this->setPageTitle('Báo cáo thường niên');
-        $this->setData('page', 'annual-report');
-        $this->render('pages/annual-report');
+        $this->setData('sections', [
+            'investor-relations-section',
+            'annual-report'
+        ]);
+        $this->render('investor-relations/annual-report');
     }
     
     public function informationDisclosure() {
