@@ -49,6 +49,55 @@ class ProductController extends Controller {
         ]);
         $this->render('product&service/M&A-and-corporate-restructuring');
     }
+    public function annualReport() {
+        $this->setPageTitle('Báo cáo thường niên');
+        $this->setData('sections', [
+            'product-service-section',
+            'annual-report'
+        ]);
+        $this->render('investor&relations/annual-report');
+    }
+    public function corporateGovernance() {
+        $this->setPageTitle('Quản trị doanh nghiệp');
+        $this->setData('sections', [
+            'product-service-section',
+            'corporate-governance'
+        ]);
+        $this->render('investor-relations/corporate-governance');
+    }
+    public function financialInformation() {
+        $this->setPageTitle('Thông tin tài chính');
+        $this->setData('sections', [
+            'product-service-section',
+            'financial-information'
+        ]);
+        $this->render('investor-relations/financial-information');
+    }
+    public function informationDisclosure() {
+        $this->setPageTitle('Thông tin cổ đông');
+        $this->setData('sections', [
+            'product-service-section',
+            'information-disclosure'
+        ]);
+        $this->render('investor-relations/information-disclosure');
+    }
+    public function investorRelations() {
+        $this->setPageTitle('Quan hệ nhà đầu tư');
+        $this->setData('sections', [
+            'product-service-section',
+            'investor-relations'
+        ]);
+        $this->render('investor-relations/investor-relations');
+    }
+    public function shareholderInformation() {
+        $this->setPageTitle('Thông tin cổ đông');
+        $this->setData('sections', [
+            'product-service-section',
+            'shareholder-information'
+        ]);
+        $this->render('investor-relations/shareholder-information');    
+    }
+    
 }
 
 ?>

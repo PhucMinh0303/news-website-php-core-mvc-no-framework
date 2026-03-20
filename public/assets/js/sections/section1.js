@@ -1,217 +1,172 @@
-// Load SECTION1
-
-fetch(window.APP_CONFIG.BASE_URL + "pages/Introduce/section1")
-  .then((res) => {
-    if (!res.ok) {
-      throw new Error(`Failed to load section1.php: ${res.status}`);
-    }
-    return res.text();
-  })
+// section1.js
+fetch("introduce/section1.html")
+  .then((res) => res.text())
   .then((data) => {
-    const section1Container = document.getElementById("section1");
-    if (!section1Container) {
-      console.error("Section 1: Container element #section1 not found in DOM");
-      return;
+    document.getElementById("section1").innerHTML = data;
+    const backgroundImages = [
+      "../assets/img/section1/slide/slide-01-4-png-20251117085601MjdQzhHBq.png",
+      "../assets/img/section1/slide/slide-02-2-jpg-20251117085606kn0MGhh9lp.jpg",
+      "../assets/img/section1/slide/slide-03-2-jpg-20251117085611Ry7YCiuXjs.jpg",
+    ];
+
+    // Biến toàn cục để lưu Swiper instance
+    let heroSwiperInstance = null;
+
+    // Hàm chọn ngẫu nhiên một hình ảnh từ mảng
+    function getRandomBackground() {
+      if (backgroundImages.length === 0) return "";
+
+      const randomIndex = Math.floor(Math.random() * backgroundImages.length);
+      return backgroundImages[randomIndex];
     }
-    section1Container.innerHTML = data;
 
-    // Khởi tạo section 1 events sau khi content tải xong
-    // Delay để đảm bảo DOM fully rendered
-    setTimeout(() => {
-      initSection1Events();
-    }, 100);
-  })
-  .catch((error) => {
-    console.error("Error loading section1.php:", error);
-  });
+    // Hàm thay đổi background cho slide
+    function changeSlideBackground() {
+      const slides = document.querySelectorAll(".hero-slide1");
 
-// Hàm khởi tạo events cho Section 1
-function initSection1Events() {
-  // Chọn phần tử section1 được load từ fetch
-  const section1 = document.getElementById("section1");
-  const slides = document.querySelectorAll(".hero-slide1");
-  const paginationBullets = document.querySelectorAll(
-    ".swiper-pagination-bullet",
-  );
+      slides.forEach((slide) => {
+        // Lấy hình ảnh ngẫu nhiên khác nhau cho mỗi slide
+        const randomImage = getRandomBackground();
 
-  // Kiểm tra xem elements có tồn tại không
-  if (!section1 || !slides.length) {
-    console.warn(
-      "Section 1 elements not found. Section1:",
-      section1,
-      "Slides:",
-      slides.length,
-    );
-    return;
-  }
-
-  // Warning nếu không tìm thấy pagination bullets
-  if (!paginationBullets.length) {
-    console.warn(
-      "Section 1: No pagination bullets found. Swiper pagination may not work",
-    );
-  }
-  const ASSET = window.APP_CONFIG.ASSET_URL;
-  if (document.querySelector(".hero-swiper1.swiper-initialized")) {
-    return;
-  }
-
-  const backgroundImages = [
-    ASSET + "img/section1/slide/slide-01-4-png-20251117085601MjdQzhHBq.png",
-    ASSET + "img/section1/slide/slide-02-2-jpg-20251117085606kn0MGhh9lp.jpg",
-    ASSET + "img/section1/slide/slide-03-2-jpg-20251117085611Ry7YCiuXjs.jpg",
-  ];
-  let heroSwiperInstance = null;
-  let currentSlideIndex = 0;
-
-  // Hàm chọn ngẫu nhiên một hình ảnh từ mảng
-  function getRandomBackground() {
-    if (backgroundImages.length === 0) return "";
-    const randomIndex = Math.floor(Math.random() * backgroundImages.length);
-    return backgroundImages[randomIndex];
-  }
-
-  // Hàm thay đổi background cho slide
-  function changeSlideBackground() {
-    slides.forEach((slide) => {
-      const randomImage = getRandomBackground();
-      if (randomImage) {
-        slide.style.backgroundImage = `url('${randomImage}')`;
-      }
-    });
-  }
-
-  // Hàm cập nhật active state
-  function updatePaginationActive(index) {
-    paginationBullets.forEach((bullet, idx) => {
-      if (idx === index) {
-        bullet.classList.add("swiper-pagination-bullet-active");
-      } else {
-        bullet.classList.remove("swiper-pagination-bullet-active");
-      }
-    });
-  }
-
-  // Hàm cập nhật thời gian chuyển slide
-  function updateSlideTransitionTime(delayTime = 2000, speed = 500) {
-    if (heroSwiperInstance) {
-      heroSwiperInstance.params.autoplay.delay = delayTime;
-      heroSwiperInstance.params.speed = speed;
-
-      if (heroSwiperInstance.autoplay.running) {
-        heroSwiperInstance.autoplay.stop();
-        heroSwiperInstance.autoplay.start();
-      }
-
-      console.log(
-        `Section 1: Cập nhật thời gian chuyển slide: ${delayTime}ms delay, ${speed}ms speed`,
-      );
+        if (randomImage) {
+          // Thay đổi background-image
+          slide.style.backgroundImage = `url('${randomImage}')`;
+        }
+      });
     }
-  }
 
-  // Hàm khởi tạo Swiper với thời gian tùy chỉnh
-  function initSwiperWithCustomTime(delayTime = 2000, speed = 500) {
-    if (heroSwiperInstance) {
-      updateSlideTransitionTime(delayTime, speed);
+    // Hàm cập nhật thời gian chuyển slide
+    function updateSlideTransitionTime(delayTime = 2000, speed = 500) {
+      if (heroSwiperInstance) {
+        // Cập nhật thời gian autoplay
+        heroSwiperInstance.params.autoplay.delay = delayTime;
+        heroSwiperInstance.params.speed = speed;
+
+        // Nếu autoplay đang chạy, cần khởi động lại
+        if (heroSwiperInstance.autoplay.running) {
+          heroSwiperInstance.autoplay.stop();
+          heroSwiperInstance.autoplay.start();
+        }
+
+        console.log(
+          `Đã cập nhật thời gian chuyển slide: ${delayTime}ms delay, ${speed}ms speed`,
+        );
+      }
+    }
+
+    // Hàm khởi tạo Swiper với thời gian tùy chỉnh
+    function initSwiperWithCustomTime(delayTime = 2000, speed = 500) {
+      // Kiểm tra xem Swiper đã được khởi tạo chưa
+      if (heroSwiperInstance) {
+        updateSlideTransitionTime(delayTime, speed);
+        return heroSwiperInstance;
+      }
+
+      // Nếu chưa, khởi tạo mới
+      heroSwiperInstance = new Swiper(".hero-swiper1", {
+        loop: true,
+        speed: speed, // Thời gian chuyển động giữa các slide (ms)
+        autoplay: {
+          delay: delayTime, // Thời gian delay giữa các slide (ms)
+          disableOnInteraction: false,
+        },
+        pagination: {
+          el: ".swiper-pagination",
+          clickable: true,
+        },
+        on: {
+          // Có thể thêm sự kiện khi chuyển slide nếu muốn
+          slideChange: function () {
+            console.log("Slide changed to: ", this.activeIndex);
+            // Có thể thay đổi background khi chuyển slide
+            // changeSlideBackground(); // Tắt để tránh xung đột với setInterval
+          },
+        },
+      });
+
       return heroSwiperInstance;
     }
 
-    heroSwiperInstance = new Swiper(".hero-swiper1", {
-      loop: true,
-      speed: speed,
-      autoplay: {
-        delay: delayTime,
-        disableOnInteraction: false,
+    // Hàm khởi tạo - chạy khi DOM đã tải xong
+    function initRandomBackground() {
+      // Kiểm tra xem có phần tử slider không
+      const sliderExists = document.querySelector(".hero-slide1");
+
+      if (sliderExists) {
+        // Thay đổi background ngay khi trang tải
+        changeSlideBackground();
+
+        // Khởi tạo Swiper với thời gian mặc định (5 giây)
+        initSwiperWithCustomTime(1500, 800);
+
+        // Thay đổi background tự động mỗi 10 giây (không phụ thuộc vào slide change)
+        setInterval(changeSlideBackground, 10000);
+
+        console.log(
+          "Slider đã được khởi tạo với thời gian chuyển slide 5 giây và background thay đổi tự động mỗi 10 giây",
+        );
+      }
+    }
+
+    // Chờ DOM tải xong
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initRandomBackground);
+    } else {
+      initRandomBackground();
+    }
+
+    // API để điều khiển từ bên ngoài
+    window.randomBackground = {
+      // Thay đổi background
+      changeBackground: changeSlideBackground,
+
+      // Lấy hình ảnh ngẫu nhiên
+      getRandomBackground: getRandomBackground,
+
+      // Danh sách hình ảnh
+      backgroundImages: backgroundImages,
+
+      // Cập nhật thời gian chuyển slide
+      setSlideTime: function (delayTime, speed = 500) {
+        updateSlideTransitionTime(delayTime, speed);
       },
-      pagination: {
-        el: ".swiper-pagination",
-        clickable: true,
+
+      // Khởi tạo lại với thời gian mới
+      initWithTime: function (delayTime = 2000, speed = 500) {
+        initSwiperWithCustomTime(delayTime, speed);
       },
-      on: {
-        slideChange: function () {
-          currentSlideIndex = this.realIndex;
-          updatePaginationActive(currentSlideIndex);
-          console.log("Section 1: Slide changed to:", currentSlideIndex);
-        },
-        init: function () {
-          updatePaginationActive(0);
-          console.log(
-            "Section 1: Swiper initialized with",
-            this.slides.length,
-            "slides",
-          );
-        },
-        error: function (swiper, error) {
-          console.error("Section 1: Swiper error:", error);
-        },
+
+      // Dừng autoplay
+      stopAutoplay: function () {
+        if (heroSwiperInstance) {
+          heroSwiperInstance.autoplay.stop();
+        }
       },
-    });
 
-    return heroSwiperInstance;
-  }
+      // Bắt đầu autoplay
+      startAutoplay: function () {
+        if (heroSwiperInstance) {
+          heroSwiperInstance.autoplay.start();
+        }
+      },
 
-  // Hàm khởi tạo
-  function initRandomBackground() {
-    // Thay đổi background ngay khi trang tải
-    changeSlideBackground();
+      // Chuyển đến slide cụ thể
+      goToSlide: function (index) {
+        if (heroSwiperInstance) {
+          heroSwiperInstance.slideTo(index);
+        }
+      },
+    };
 
-    // Khởi tạo Swiper với thời gian mặc định
-    initSwiperWithCustomTime(1500, 800);
-
-    // Thay đổi background tự động mỗi 10 giây
-    setInterval(changeSlideBackground, 10000);
-
-    console.log("Section 1: Initialized with random backgrounds and Swiper");
-  }
-
-  // Đợi Swiper library tải xong nếu chưa có
-  if (typeof Swiper !== "undefined") {
-    initRandomBackground();
-  } else {
-    console.warn("Section 1: Swiper library not loaded yet");
-    // Thử lại sau 500ms
-    setTimeout(() => {
-      if (typeof Swiper !== "undefined") {
-        initRandomBackground();
-      } else {
-        console.error("Section 1: Swiper library failed to load after retry");
+    // Hàm tiện ích để thay đổi thời gian từ console
+    function changeSlideDelay(milliseconds) {
+      if (window.randomBackground) {
+        window.randomBackground.setSlideTime(milliseconds);
+        alert(
+          `Đã đổi thời gian chuyển slide thành ${milliseconds}ms (${
+            milliseconds / 1000
+          } giây)`,
+        );
       }
-    }, 500);
-  }
-
-  // API để điều khiển từ bên ngoài
-  window.section1Slider = {
-    changeBackground: changeSlideBackground,
-    getRandomBackground: getRandomBackground,
-    backgroundImages: backgroundImages,
-    setSlideTime: function (delayTime, speed = 500) {
-      updateSlideTransitionTime(delayTime, speed);
-    },
-    initWithTime: function (delayTime = 2000, speed = 500) {
-      initSwiperWithCustomTime(delayTime, speed);
-    },
-    stopAutoplay: function () {
-      if (heroSwiperInstance) {
-        heroSwiperInstance.autoplay.stop();
-      }
-    },
-    startAutoplay: function () {
-      if (heroSwiperInstance) {
-        heroSwiperInstance.autoplay.start();
-      }
-    },
-    goToSlide: function (index) {
-      if (heroSwiperInstance) {
-        heroSwiperInstance.slideTo(index);
-      }
-    },
-    getCurrentIndex: function () {
-      return currentSlideIndex;
-    },
-  };
-
-  console.log(
-    "Section 1 events initialized successfully. Slides count:",
-    slides.length,
-  );
-}
+    }
+  });

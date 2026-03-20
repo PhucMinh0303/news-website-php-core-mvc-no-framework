@@ -63,60 +63,10 @@ fetch("../../app/views/pages/include/header.php")
 
 // Load SECTION1
 
-fetch("/introduce/section1")
-  .then((res) => {
-    if (!res.ok) {
-      throw new Error(`Failed to load section1.php: ${res.status}`);
-    }
-    return res.text();
-  })
-  .then((html) => {
-    document.getElementById("section1").innerHTML = html;
-  })
-  .then((data) => {
-    const section1Container = document.getElementById("section1");
-    if (!section1Container) {
-      console.error("Section 1: Container element #section1 not found in DOM");
-      return;
-    }
-    section1Container.innerHTML = data;
-
-    // Khởi tạo section 1 events sau khi content tải xong
-    // Delay để đảm bảo DOM fully rendered
-    setTimeout(() => {
-      initSection1Events();
-    }, 100);
-  })
-  .catch((error) => {
-    console.error("Error loading section1.php:", error);
-  });
-
-// Hàm khởi tạo events cho Section 1
-function initSection1Events() {
-  // Chọn phần tử section1 được load từ fetch
-  const section1 = document.getElementById("section1");
-  const slides = document.querySelectorAll(".hero-slide1");
-  const paginationBullets = document.querySelectorAll(
-    ".swiper-pagination-bullet",
-  );
-
-  // Kiểm tra xem elements có tồn tại không
-  if (!section1 || !slides.length) {
-    console.warn(
-      "Section 1 elements not found. Section1:",
-      section1,
-      "Slides:",
-      slides.length,
-    );
-    return;
-  }
-
-  // Warning nếu không tìm thấy pagination bullets
-  if (!paginationBullets.length) {
-    console.warn(
-      "Section 1: No pagination bullets found. Swiper pagination may not work",
-    );
-  }
+// section1.js (jQuery version)
+$.get("introduce/section1.html", function (data) {
+  // Chèn nội dung vào phần tử có id="section1"
+  $("#section1").html(data);
 
   const backgroundImages = [
     "../assets/img/section1/slide/slide-01-4-png-20251117085601MjdQzhHBq.png",
@@ -124,8 +74,8 @@ function initSection1Events() {
     "../assets/img/section1/slide/slide-03-2-jpg-20251117085611Ry7YCiuXjs.jpg",
   ];
 
+  // Biến toàn cục để lưu Swiper instance
   let heroSwiperInstance = null;
-  let currentSlideIndex = 0;
 
   // Hàm chọn ngẫu nhiên một hình ảnh từ mảng
   function getRandomBackground() {
@@ -136,21 +86,10 @@ function initSection1Events() {
 
   // Hàm thay đổi background cho slide
   function changeSlideBackground() {
-    slides.forEach((slide) => {
+    $(".hero-slide1").each(function () {
       const randomImage = getRandomBackground();
       if (randomImage) {
-        slide.style.backgroundImage = `url('${randomImage}')`;
-      }
-    });
-  }
-
-  // Hàm cập nhật active state
-  function updatePaginationActive(index) {
-    paginationBullets.forEach((bullet, idx) => {
-      if (idx === index) {
-        bullet.classList.add("swiper-pagination-bullet-active");
-      } else {
-        bullet.classList.remove("swiper-pagination-bullet-active");
+        $(this).css("background-image", `url('${randomImage}')`);
       }
     });
   }
@@ -167,7 +106,7 @@ function initSection1Events() {
       }
 
       console.log(
-        `Section 1: Cập nhật thời gian chuyển slide: ${delayTime}ms delay, ${speed}ms speed`,
+        `Đã cập nhật thời gian chuyển slide: ${delayTime}ms delay, ${speed}ms speed`,
       );
     }
   }
@@ -192,20 +131,7 @@ function initSection1Events() {
       },
       on: {
         slideChange: function () {
-          currentSlideIndex = this.realIndex;
-          updatePaginationActive(currentSlideIndex);
-          console.log("Section 1: Slide changed to:", currentSlideIndex);
-        },
-        init: function () {
-          updatePaginationActive(0);
-          console.log(
-            "Section 1: Swiper initialized with",
-            this.slides.length,
-            "slides",
-          );
-        },
-        error: function (swiper, error) {
-          console.error("Section 1: Swiper error:", error);
+          console.log("Slide changed to: ", this.activeIndex);
         },
       },
     });
@@ -213,37 +139,28 @@ function initSection1Events() {
     return heroSwiperInstance;
   }
 
-  // Hàm khởi tạo
+  // Hàm khởi tạo - chạy sau khi nội dung đã được chèn
   function initRandomBackground() {
-    // Thay đổi background ngay khi trang tải
-    changeSlideBackground();
+    if ($(".hero-slide1").length > 0) {
+      changeSlideBackground();
 
-    // Khởi tạo Swiper với thời gian mặc định
-    initSwiperWithCustomTime(1500, 800);
+      // Khởi tạo Swiper với thời gian mặc định
+      initSwiperWithCustomTime(1500, 800);
 
-    // Thay đổi background tự động mỗi 10 giây
-    setInterval(changeSlideBackground, 10000);
+      // Thay đổi background tự động mỗi 10 giây
+      setInterval(changeSlideBackground, 10000);
 
-    console.log("Section 1: Initialized with random backgrounds and Swiper");
+      console.log(
+        "Slider đã được khởi tạo với thời gian chuyển slide 1.5 giây và background thay đổi tự động mỗi 10 giây",
+      );
+    }
   }
 
-  // Đợi Swiper library tải xong nếu chưa có
-  if (typeof Swiper !== "undefined") {
-    initRandomBackground();
-  } else {
-    console.warn("Section 1: Swiper library not loaded yet");
-    // Thử lại sau 500ms
-    setTimeout(() => {
-      if (typeof Swiper !== "undefined") {
-        initRandomBackground();
-      } else {
-        console.error("Section 1: Swiper library failed to load after retry");
-      }
-    }, 500);
-  }
+  // Gọi hàm khởi tạo ngay sau khi chèn HTML
+  initRandomBackground();
 
   // API để điều khiển từ bên ngoài
-  window.section1Slider = {
+  window.randomBackground = {
     changeBackground: changeSlideBackground,
     getRandomBackground: getRandomBackground,
     backgroundImages: backgroundImages,
@@ -268,122 +185,59 @@ function initSection1Events() {
         heroSwiperInstance.slideTo(index);
       }
     },
-    getCurrentIndex: function () {
-      return currentSlideIndex;
-    },
   };
 
-  console.log(
-    "Section 1 events initialized successfully. Slides count:",
-    slides.length,
-  );
-}
+  // Hàm tiện ích để thay đổi thời gian từ console
+  window.changeSlideDelay = function (milliseconds) {
+    if (window.randomBackground) {
+      window.randomBackground.setSlideTime(milliseconds);
+      alert(
+        `Đã đổi thời gian chuyển slide thành ${milliseconds}ms (${milliseconds / 1000} giây)`,
+      );
+    }
+  };
+});
 // Load SECTION2
-fetch("../../app/views/pages/introduce/section2.php")
+fetch("introduce/section2.php")
   .then((res) => res.text())
   .then((data) => {
     document.getElementById("section2").innerHTML = data;
   });
 // Load SECTION3
-fetch("/introduce/section3-2")
-  .then((res) => {
-    if (!res.ok) {
-      throw new Error(`Failed to load section3-2.php: ${res.status}`);
-    }
-    return res.text();
-  })
-  .then((data) => {
-    const section3Container = document.getElementById("section3");
-    if (!section3Container) {
-      console.error("Section 3: Container element #section3 not found in DOM");
-      return;
-    }
-    section3Container.innerHTML = data;
+$.get("introduce/section3-2.php", function (data) {
+  // Chèn nội dung vào phần tử có id="section3"
+  $("#section3").html(data);
 
-    // Khởi tạo section 3 events sau khi content tải xong
-    // Delay để đảm bảo DOM fully rendered
-    setTimeout(() => {
-      initSection3Events();
-    }, 100);
-  })
-  .catch((error) => {
-    console.error("Error loading section3-2.php:", error);
-  });
+  // Lấy danh sách các mục và lớp nền
+  var $items = $(".list_rh_2 > li");
+  var $bgLayer = $(".bg_rh_2");
 
-// Hàm khởi tạo events cho Section 3
-function initSection3Events() {
-  // Chọn phần tử section3 được load từ fetch
-  const section3 = document.getElementById("section3");
-  const items = document.querySelectorAll(".list_rh_2 > li");
-  const bgLayer = document.querySelector(".bg_rh_2");
+  // Kiểm tra sự tồn tại của các phần tử cần thiết
+  if ($items.length === 0 || $bgLayer.length === 0) return;
 
-  // Kiểm tra xem elements có tồn tại không
-  if (!section3 || !items.length || !bgLayer) {
-    console.warn(
-      "Section 3 elements not found. Section3:",
-      section3,
-      "Items:",
-      items.length,
-      "BgLayer:",
-      bgLayer,
-    );
-    return;
-  }
-
+  // Hàm kích hoạt một mục
   function activateItem(li) {
-    // 1. Xóa class active của tất cả các item khác
-    items.forEach((item) => {
-      item.classList.remove("active");
-    });
+    // 1. Xóa class 'active' khỏi tất cả các mục
+    $items.removeClass("active");
 
-    // 2. Thêm class active cho item hiện tại
-    li.classList.add("active");
+    // 2. Thêm class 'active' vào mục hiện tại
+    $(li).addClass("active");
 
-    // 3. Thay đổi Background Image của container chính
-    const newBg = li.getAttribute("data-bg");
+    // 3. Thay đổi ảnh nền
+    var newBg = $(li).data("bg"); // hoặc .attr("data-bg")
     if (newBg) {
-      bgLayer.style.backgroundImage = `url('${newBg}')`;
-      console.log("Section 3: Background changed to:", newBg);
+      $bgLayer.css("background-image", "url('" + newBg + "')");
     }
   }
 
-  // Khởi tạo item đầu tiên là active
-  if (items.length > 0) {
-    activateItem(items[0]);
-  }
+  // Kích hoạt mục đầu tiên
+  activateItem($items[0]);
 
-  // Lắng nghe sự kiện hover (mouseenter để active)
-  items.forEach((li) => {
-    li.addEventListener("mouseenter", function () {
-      activateItem(this);
-    });
-
-    // Touch support cho mobile - activate on touch
-    li.addEventListener(
-      "touchstart",
-      function (e) {
-        // Không cần preventDefault vì không phải link
-        activateItem(this);
-      },
-      { passive: true },
-    );
-
-    // Click support cho mobile devices
-    li.addEventListener("click", function (e) {
-      // Nếu là link, cho phép navigation
-      const link = this.querySelector("a");
-      if (link && e.target.closest("a")) {
-        activateItem(this);
-        // Link sẽ auto navigate
-      }
-    });
+  // Gắn sự kiện hover (mouseenter) cho từng mục
+  $items.on("mouseenter", function () {
+    activateItem(this);
   });
-
-  console.log(
-    "Section 3 events initialized successfully. Items count:",
-    items.length,
-  );
-}
+});
 // Load SECTION4
 fetch("../../app/views/pages/introduce/section4.php")
   .then((res) => {

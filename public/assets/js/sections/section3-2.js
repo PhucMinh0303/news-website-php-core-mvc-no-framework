@@ -1,37 +1,24 @@
-// Load SECTION3
-fetch("../../app/views/pages/introduce/section3-2.php")
-  .then((res) => {
-    if (!res.ok) {
-      throw new Error(`Failed to load section3-2.php: ${res.status}`);
-    }
-    return res.text();
-  })
+// section3-2.js - gsap animation for section 3-2
+fetch("introduce/section3-2.html")
+  .then((res) => res.text())
   .then((data) => {
-    const section3Container = document.getElementById("section3");
-    if (!section3Container) {
-      console.error("Section 3: Container element #section3 not found in DOM");
-      return;
-    }
-    section3Container.innerHTML = data;
+    document.getElementById("section3").innerHTML = data;
 
     // Khởi tạo section 3 events sau khi content tải xong
     // Delay để đảm bảo DOM fully rendered
     setTimeout(() => {
-      initSection3Events();
+      initSection3WithGsap();
     }, 100);
   })
   .catch((error) => {
-    console.error("Error loading section3-2.php:", error);
+    console.error("Error loading section3-2.html:", error);
   });
 
-// Hàm khởi tạo events cho Section 3
-function initSection3Events() {
-  // Chọn phần tử section3 được load từ fetch
+function initSection3WithGsap() {
   const section3 = document.getElementById("section3");
-  const items = document.querySelectorAll(".list_rh_2 > li");
-  const bgLayer = document.querySelector(".bg_rh_2");
+  const items = section3 ? section3.querySelectorAll(".list_rh_2 > li") : [];
+  const bgLayer = section3 ? section3.querySelector(".bg_rh_2") : null;
 
-  // Kiểm tra xem elements có tồn tại không
   if (!section3 || !items.length || !bgLayer) {
     console.warn(
       "Section 3 elements not found. Section3:",
@@ -44,57 +31,68 @@ function initSection3Events() {
     return;
   }
 
-  function activateItem(li) {
-    // 1. Xóa class active của tất cả các item khác
-    items.forEach((item) => {
-      item.classList.remove("active");
-    });
+  // Utility: fade the background image using GSAP for smoother transitions
+  function fadeBgTo(url) {
+    if (!url) return;
+    const currentOpacity = parseFloat(getComputedStyle(bgLayer).opacity) || 1;
 
-    // 2. Thêm class active cho item hiện tại
-    li.classList.add("active");
-
-    // 3. Thay đổi Background Image của container chính
-    const newBg = li.getAttribute("data-bg");
-    if (newBg) {
-      bgLayer.style.backgroundImage = `url('${newBg}')`;
-      console.log("Section 3: Background changed to:", newBg);
+    // If GSAP is available, animate fade-out / swap / fade-in
+    if (window.gsap) {
+      gsap.to(bgLayer, {
+        opacity: 0,
+        duration: 0.25,
+        ease: "power1.out",
+        onComplete() {
+          bgLayer.style.backgroundImage = `url('${url}')`;
+          gsap.to(bgLayer, { opacity: 1, duration: 0.25, ease: "power1.in" });
+        },
+      });
+      return;
     }
+
+    // Fallback: instant swap
+    bgLayer.style.backgroundImage = `url('${url}')`;
   }
 
-  // Khởi tạo item đầu tiên là active
-  if (items.length > 0) {
-    activateItem(items[0]);
+  let activeItem = null;
+
+  function setActiveItem(li) {
+    if (!li || li === activeItem) return;
+
+    if (activeItem) {
+      activeItem.classList.remove("active");
+      if (window.gsap) {
+        gsap.to(activeItem, { scale: 1, duration: 0.25, ease: "power1.out" });
+      }
+    }
+
+    activeItem = li;
+    activeItem.classList.add("active");
+
+    if (window.gsap) {
+      gsap.to(activeItem, { scale: 1.04, duration: 0.25, ease: "power1.out" });
+    }
+
+    const newBg = activeItem.getAttribute("data-bg");
+    fadeBgTo(newBg);
   }
 
-  // Lắng nghe sự kiện hover (mouseenter để active)
+  // Initialize the first item as active
+  setActiveItem(items[0]);
+
   items.forEach((li) => {
-    li.addEventListener("mouseenter", function () {
-      activateItem(this);
+    li.addEventListener("mouseenter", () => setActiveItem(li));
+
+    li.addEventListener("touchstart", () => setActiveItem(li), {
+      passive: true,
     });
 
-    // Touch support cho mobile - activate on touch
-    li.addEventListener(
-      "touchstart",
-      function (e) {
-        // Không cần preventDefault vì không phải link
-        activateItem(this);
-      },
-      { passive: true },
-    );
-
-    // Click support cho mobile devices
-    li.addEventListener("click", function (e) {
-      // Nếu là link, cho phép navigation
-      const link = this.querySelector("a");
-      if (link && e.target.closest("a")) {
-        activateItem(this);
-        // Link sẽ auto navigate
+    li.addEventListener("click", (event) => {
+      // Keep link navigation while still animating
+      const link = li.querySelector("a");
+      if (link && event.target.closest("a")) {
+        setActiveItem(li);
       }
     });
   });
-
-  console.log(
-    "Section 3 events initialized successfully. Items count:",
-    items.length,
-  );
 }

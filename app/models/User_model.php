@@ -1,24 +1,24 @@
 <?php
-namespace App\Models;
 
-use App\Core\Model;
+require_once __DIR__ . '/../core/Database.php';
 
-class User extends Model
-{
-    protected $table = 'users';
-    
-    public function getActiveUsers()
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE status = 'active'";
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll();
+class User {
+    private $db;
+
+    public function __construct() {
+        $database = new Database();
+        $this->db = $database->getConnection();
     }
-    
-    public function findByEmail($email)
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE email = ?";
-        $stmt = $this->db->query($sql, [$email]);
-        return $stmt->fetch();
+
+    // Lấy tất cả user
+    public function getAll() {
+        $stmt = $this->db->query("SELECT * FROM users");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Thêm user
+    public function create($name, $email) {
+        $stmt = $this->db->prepare("INSERT INTO users (name, email) VALUES (?, ?)");
+        return $stmt->execute([$name, $email]);
     }
 }
-
