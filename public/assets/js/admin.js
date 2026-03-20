@@ -273,106 +273,127 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Hàm xử lý contact (được gọi sau khi menu được tải)
-function contactManager() {
-  return {
-    tab: "inbox",
-    search: "",
-    selectedMessage: null,
-    newNote: "",
+$(document).ready(function () {
+  // =========================
+  // 1. SWITCH TAB
+  // =========================
+  $(".tab").click(function () {
+    $(".tab").removeClass("active");
+    $(this).addClass("active");
 
-    messages: [
-      {
-        id: 1,
-        name: "John Doe",
-        email: "john@example.com",
-        title: "Story Tip: Local Council Corruption",
-        date: "8/11/2023",
-        content: "Sensitive investigation...",
-        status: "inbox",
-      },
-    ],
-    //Filter message theo search + tab
-    get filtered() {
-      let list = this.messages.filter((m) => m.status === this.tab);
+    let tabId = $(this).attr("id");
 
-      if (!this.search) return list;
+    if (tabId === "tabInbox") {
+      $("#inboxList").show();
+      $("#archiveEmpty").hide();
+    }
 
-      return list.filter(
-        (m) =>
-          m.name.toLowerCase().includes(this.search.toLowerCase()) ||
-          m.title.toLowerCase().includes(this.search.toLowerCase()),
-      );
-    },
-    // Animation khi click message
-    openMessage(msg) {
-      this.selectedMessage = msg;
+    if (tabId === "tabArchive") {
+      $("#inboxList").hide();
+      $("#archiveEmpty").show();
+    }
 
-      gsap.fromTo(
-        ".detail-panel",
-        { opacity: 0, x: 20 },
-        { opacity: 1, x: 0, duration: 0.3 },
-      );
-    },
-    // Animation khi move message
-    animateRemove() {
-      gsap.to(".detail-panel", {
-        opacity: 0,
-        y: 20,
-        duration: 0.2,
-      });
-    },
-    // Toast Notification
-    toast(text) {
-      Toastify({
-        text: text,
-        duration: 3000,
-        gravity: "bottom",
-        position: "center",
-      }).showToast();
-    },
-    //Archive (move to archive)
-    archiveMessage() {
-      if (!this.selectedMessage) return;
+    if (tabId === "tabDelete") {
+      $("#inboxList").hide();
+      $("#archiveEmpty").html("<h3>Recycle Bin Empty</h3>").show();
+    }
 
-      this.animateRemove();
+    $("#detailPanel").hide();
+    $("#emptyPanel").show();
+  });
 
-      setTimeout(() => {
-        this.selectedMessage.status = "archive";
-        this.toast("Moved to Archive");
-        this.autoSelect();
-      }, 200);
-    },
-    // Delete (move to trash)
-    deleteMessage() {
-      if (!this.selectedMessage) return;
+  // =========================
+  // 2. OPEN MESSAGE
+  // =========================
+  $(".message-item").click(function () {
+    $(".message-item").removeClass("active");
+    $(this).addClass("active");
 
-      this.animateRemove();
+    $("#emptyPanel").hide();
+    $("#detailPanel").show();
+  });
 
-      setTimeout(() => {
-        this.selectedMessage.status = "trash";
-        this.toast("Moved to Trash");
-        this.autoSelect();
-      }, 200);
-    },
-    // Restore (move back to inbox)
-    restoreMessage() {
-      if (!this.selectedMessage) return;
+  // =========================
+  // 3. ARCHIVE BUTTON (TOP)
+  // =========================
+  $(".btn-archive").click(function () {
+    let activeMsg = $(".message-item.active");
 
-      this.selectedMessage.status = "inbox";
-      this.toast("Restored to Inbox");
-      this.autoSelect();
-    },
-    // Auto select message (UX giống Gmail)
-    autoSelect() {
-      let list = this.filtered;
-      this.selectedMessage = list.length ? list[0] : null;
-    },
+    if (activeMsg.length) {
+      activeMsg.remove();
 
-    addNote() {
-      if (!this.newNote) return;
+      alert("Moved to Archive");
 
-      this.selectedMessage.note = this.newNote;
-      this.newNote = "";
-    },
-  };
-}
+      $("#detailPanel").hide();
+      $("#emptyPanel").show();
+    } else {
+      alert("Please select a message");
+    }
+  });
+
+  // =========================
+  // 4. ARCHIVE ICON (RIGHT PANEL)
+  // =========================
+  $(".fa-box-archive").click(function () {
+    let activeMsg = $(".message-item.active");
+
+    if (activeMsg.length) {
+      activeMsg.remove();
+
+      alert("Archived successfully");
+
+      $("#detailPanel").hide();
+      $("#emptyPanel").show();
+    }
+  });
+
+  // =========================
+  // 5. DELETE MESSAGE
+  // =========================
+  $(".fa-trash").click(function () {
+    let activeMsg = $(".message-item.active");
+
+    if (activeMsg.length) {
+      activeMsg.remove();
+
+      alert("Deleted successfully");
+
+      $("#detailPanel").hide();
+      $("#emptyPanel").show();
+    }
+  });
+
+  // =========================
+  // 6. ADD NOTE
+  // =========================
+  $(".add-note button").click(function () {
+    let input = $(".add-note input");
+    let text = input.val().trim();
+
+    if (text === "") return;
+
+    let time = new Date().toLocaleString();
+
+    let noteHtml = `
+      <div class="note-box">
+        <strong>You</strong> — ${time} <br />
+        ${text}
+      </div>
+    `;
+
+    $(".notes-section").append(noteHtml);
+
+    input.val("");
+  });
+
+  // =========================
+  // 7. SEARCH (basic)
+  // =========================
+  $(".search-box input").on("keyup", function () {
+    let value = $(this).val().toLowerCase();
+
+    $(".message-item").filter(function () {
+      $(this).toggle($(this).text().toLowerCase().includes(value));
+    });
+  });
+});
