@@ -13,7 +13,7 @@
 
     <!-- Quill CSS library -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
     <!-- CSS chính -->
     <link rel="stylesheet" href="<?php echo View::asset('css/admin.css'); ?>" />

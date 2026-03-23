@@ -1055,3 +1055,173 @@ WHERE link_type = 'internal'
 AND is_active = 1
 AND url NOT LIKE '%admin%'
 ORDER BY priority DESC, lastmod DESC;
+
+-- Tạo bảng news_title (chi tiết tin tức)
+CREATE TABLE IF NOT EXISTS news_title (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    news_id INT NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    slug VARCHAR(500) UNIQUE NOT NULL,
+    description TEXT,
+    content LONGTEXT,
+    meta_title VARCHAR(255),
+    meta_description TEXT,
+    meta_keywords VARCHAR(500),
+    featured_image VARCHAR(500),
+    featured_image_caption VARCHAR(255),
+    video_url VARCHAR(500),
+    audio_url VARCHAR(500),
+    gallery_images JSON,
+    source VARCHAR(255),
+    source_url VARCHAR(500),
+    author_note TEXT,
+    reading_time INT DEFAULT 0,
+    is_featured BOOLEAN DEFAULT FALSE,
+    is_breaking BOOLEAN DEFAULT FALSE,
+    is_hot BOOLEAN DEFAULT FALSE,
+    views INT DEFAULT 0,
+    share_count INT DEFAULT 0,
+    like_count INT DEFAULT 0,
+    comment_count INT DEFAULT 0,
+    status ENUM('draft', 'published', 'scheduled', 'archived') DEFAULT 'draft',
+    published_at TIMESTAMP NULL,
+    scheduled_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (news_id) REFERENCES news(id) ON DELETE CASCADE,
+    INDEX idx_news_title_slug (slug),
+    INDEX idx_news_title_status (status),
+    INDEX idx_news_title_published (published_at),
+    INDEX idx_news_title_featured (is_featured),
+    INDEX idx_news_title_breaking (is_breaking),
+    INDEX idx_news_title_hot (is_hot),
+    FULLTEXT INDEX idx_news_title_search (title, description, content)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tạo bảng news_tags
+CREATE TABLE IF NOT EXISTS news_tags (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    -- Tạo bảng news_tag_relations
+CREATE TABLE IF NOT EXISTS news_tag_relations (
+    news_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (news_id, tag_id),
+    FOREIGN KEY (news_id) REFERENCES news(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES news_tags(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tạo bảng news_comments
+CREATE TABLE IF NOT EXISTS news_comments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    news_id INT NOT NULL,
+    parent_id INT DEFAULT NULL,
+    author_name VARCHAR(100) NOT NULL,
+    author_email VARCHAR(100),
+    author_website VARCHAR(255),
+    author_ip VARCHAR(45),
+    content TEXT NOT NULL,
+    is_approved BOOLEAN DEFAULT FALSE,
+    like_count INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (news_id) REFERENCES news(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES news_comments(id) ON DELETE CASCADE,
+    INDEX idx_comments_news (news_id),
+    INDEX idx_comments_approved (is_approved),
+    INDEX idx_comments_created (created_at DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tạo bảng news_views_stats
+CREATE TABLE IF NOT EXISTS news_views_stats (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    news_id INT NOT NULL,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    referrer VARCHAR(500),
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (news_id) REFERENCES news(id) ON DELETE CASCADE,
+    INDEX idx_views_news (news_id),
+    INDEX idx_views_ip (ip_address),
+    INDEX idx_views_date (viewed_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tạo bảng news_related
+CREATE TABLE IF NOT EXISTS news_related (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    news_id INT NOT NULL,
+    related_news_id INT NOT NULL,
+    relationship_type ENUM('related', 'similar', 'series', 'recommended') DEFAULT 'related',
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (news_id) REFERENCES news(id) ON DELETE CASCADE,
+    FOREIGN KEY (related_news_id) REFERENCES news(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_related (news_id, related_news_id),
+    INDEX idx_related_news (news_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Thêm dữ liệu vào bảng news_title
+INSERT INTO news_title (
+    news_id, title, slug, description, content,
+    featured_image, meta_title, meta_description,
+    is_featured, is_breaking, is_hot, status, published_at
+) VALUES (
+             1,
+             'Đầu tư tài chính với số vốn nhỏ - Nên hay không?',
+             'dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong',
+             'Trên thị trường hiện có nhiều hình thức đầu tư giúp gia tăng số tiền nhanh chóng. Tuy nhiên, để có được lợi nhuận cao thường đòi hỏi việc đầu tư, kinh doanh số vốn khá lớn. Do đó, rất nhiều người đặt ra câu hỏi "Có thể đầu tư tài chính với số vốn nhỏ không?"',
+             '<p>Trên thị trường hiện có nhiều hình thức đầu tư giúp gia tăng số tiền nhanh chóng. Tuy nhiên, để có được lợi nhuận cao thường đòi hỏi việc đầu tư, kinh doanh số vốn khá lớn. Do đó, rất nhiều người đặt ra câu hỏi "Có thể đầu tư tài chính với số vốn nhỏ không?"</p>
+
+         <ol>
+             <li><b>Có nên đầu tư tài chính với số vốn nhỏ không?</b></li>
+         </ol>
+
+         <p>Bất kỳ nhà đầu tư tên tuổi nào đều khởi đầu bằng việc đầu tư với số vốn khiêm tốn. Đây là những bước đầu tiên để họ học hỏi kinh nghiệm, tiếp thu kiến thức đầu tư trước khi tiến xa hơn trên con đường đầu tư tài chính với những khoản đầu tư lớn hơn.</p>
+
+         <p>Hãy ghi nhớ, hiệu quả của đầu tư sẽ không bị ảnh hưởng quá nhiều bởi khoản vốn bạn bỏ ra, nó sẽ phụ thuộc vào thời gian bạn dành cho việc đầu tư, lĩnh vực bạn quan tâm và tỷ lệ lợi nhuận bạn có thể đạt được…</p>
+
+         <p>Việc đầu tư tài chính với số vốn nhỏ mang đến nhiều lợi ích cho nhà đầu tư:</p>
+
+         <ul>
+             <li>Có nhiều ngành nghề, lĩnh vực để nhà đầu tư vốn nhỏ có thể cân nhắc: gửi tiết kiệm, bảo hiểm đầu tư, cổ phiếu, trái phiếu hay</li>
+             <li>Giảm thiểu rủi ro khi thị trường biến động</li>
+             <li>Có thể đa dạng hóa danh mục đầu tư</li>
+             <li>Dễ dàng rút vốn khi cần thiết</li>
+         </ul>',
+             'https://demo29.escovietnam.vn/capitalAM/uploads/noidung/images/baiviet/unnamed-18.png',
+             'Đầu tư tài chính với số vốn nhỏ - Nên hay không?',
+             'Tìm hiểu về các hình thức đầu tư tài chính với số vốn nhỏ, lợi ích và rủi ro khi đầu tư',
+             1, 0, 1, 'published', NOW()
+         );
+
+-- Thêm tags
+INSERT INTO news_tags (name, slug, description) VALUES
+                                                    ('Đầu tư', 'dau-tu', 'Các bài viết về đầu tư tài chính'),
+                                                    ('Tài chính', 'tai-chinh', 'Tin tức tài chính'),
+                                                    ('Vốn nhỏ', 'von-nho', 'Đầu tư với số vốn nhỏ'),
+                                                    ('Kinh nghiệm', 'kinh-nghiem', 'Kinh nghiệm đầu tư');
+
+-- Gán tags cho bài viết
+INSERT INTO news_tag_relations (news_id, tag_id) VALUES
+                                                     (1, 1), (1, 2), (1, 3), (1, 4);
+
+-- Thêm comments mẫu
+INSERT INTO news_comments (news_id, author_name, author_email, content, is_approved) VALUES
+                                                                                         (1, 'Nguyễn Văn An', 'nguyenvanan@email.com', 'Bài viết rất hữu ích! Cảm ơn tác giả.', 1),
+                                                                                         (1, 'Trần Thị Bình', 'tranbinh@email.com', 'Tôi cũng đang tìm hiểu về đầu tư vốn nhỏ, bài viết giúp ích rất nhiều.', 1),
+                                                                                         (1, 'Lê Hoàng', 'lehoang@email.com', 'Có nên đầu tư vào vàng không ạ?', 0);
+
+-- Thêm bài viết liên quan
+INSERT INTO news_related (news_id, related_news_id, relationship_type, sort_order) VALUES
+                                                                                       (1, 2, 'related', 1),
+                                                                                       (1, 3, 'related', 2);

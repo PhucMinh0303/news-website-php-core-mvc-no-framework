@@ -1,11 +1,14 @@
 <?php
-namespace App\Config;
-
-class Database
-{
-    const HOST = 'localhost';
-    const USER = 'root';
-    const PASSWORD = '123456';
-    const DB_NAME = 'capitalam2';
-    const CHARSET = 'utf8mb4';
-}
+// config/database.php
+return [
+    'host' => 'localhost',
+    'dbname' => 'capital2',
+    'username' => 'capital2',
+    'password' => '123456',
+    'charset' => 'utf8mb4',
+    'options' => [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ]
+];

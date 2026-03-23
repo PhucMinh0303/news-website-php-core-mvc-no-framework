@@ -1,6 +1,1 @@
-{
-  "php.version": "8.5",
-  "files.associations": {
-    "*.sql": "sql"
-  }
-}
+{ "files.associations": { "*.sql": "sql" }, "editor.formatOnSave": true }

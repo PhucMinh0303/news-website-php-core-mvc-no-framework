@@ -1,42 +1,102 @@
 <?php
-/**
- * News Model - Handles news data
- */
+// models/NewsModel.php
+require_once __DIR__ . '/../core/Model.php';
 
-namespace App\Controllers\Api;
+class NewsModel extends Model
+{
+    protected $table = 'news';
 
-use App\Core\Database;
+    public function getPublishedNews($limit = 10)
+    {
+        $sql = "SELECT n.*, c.name as category_name, c.slug as category_slug 
+                FROM news n
+                LEFT JOIN categories c ON n.category_id = c.id
+                WHERE n.status = 'published'
+                ORDER BY n.publish_date DESC
+                LIMIT ?";
 
+        return $this->db->fetchAll($sql, [$limit]);
+    }
 
-class News extends Model {
-    
-    protected static $data = [
-        [
-            'id' => 1,
-            'title' => 'Capital AM mở rộng dịch vụ',
-            'slug' => 'capital-am-mo-rong-dich-vu',
-            'excerpt' => 'Thông báo mở rộng dịch vụ...',
-            'content' => 'Nội dung đầy đủ...',
-            'date' => '2026-01-09',
-            'author' => 'Admin',
-        ],
-        [
-            'id' => 2,
-            'title' => 'Thành công trong M&A',
-            'slug' => 'thanh-cong-trong-ma',
-            'excerpt' => 'Chúng tôi vừa hoàn thành...',
-            'content' => 'Nội dung đầy đủ...',
-            'date' => '2026-01-08',
-            'author' => 'Admin',
-        ],
-    ];
-    
-    /**
-     * Get recent news
-     */
-    public static function getRecent($limit = 5) {
-        return array_slice(static::$data, 0, $limit);
+    public function getNewsByCategory($categoryId, $limit = 10)
+    {
+        $sql = "SELECT n.*, c.name as category_name 
+                FROM news n
+                LEFT JOIN categories c ON n.category_id = c.id
+                WHERE n.category_id = ? AND n.status = 'published'
+                ORDER BY n.publish_date DESC
+                LIMIT ?";
+
+        return $this->db->fetchAll($sql, [$categoryId, $limit]);
+    }
+
+    public function getNewsBySlug($slug)
+    {
+        $sql = "SELECT n.*, c.name as category_name, a.full_name as author_name
+                FROM news n
+                LEFT JOIN categories c ON n.category_id = c.id
+                LEFT JOIN authors a ON n.author_id = a.id
+                WHERE n.slug = ? AND n.status = 'published'";
+
+        $news = $this->db->fetchOne($sql, [$slug]);
+
+        if ($news) {
+            // Increment view count
+            $this->incrementViews($news['id']);
+        }
+
+        return $news;
+    }
+
+    public function incrementViews($id)
+    {
+        $sql = "UPDATE news SET views = views + 1 WHERE id = ?";
+        $this->db->query($sql, [$id]);
+    }
+
+    public function searchNews($keyword, $limit = 20)
+    {
+        $sql = "SELECT n.*, c.name as category_name
+                FROM news n
+                LEFT JOIN categories c ON n.category_id = c.id
+                WHERE (n.title LIKE ? OR n.content LIKE ?)
+                AND n.status = 'published'
+                ORDER BY n.publish_date DESC
+                LIMIT ?";
+
+        $searchTerm = "%{$keyword}%";
+        return $this->db->fetchAll($sql, [$searchTerm, $searchTerm, $limit]);
+    }
+
+    public function getRelatedNews($newsId, $categoryId, $limit = 5)
+    {
+        $sql = "SELECT n.*, c.name as category_name
+                FROM news n
+                LEFT JOIN categories c ON n.category_id = c.id
+                WHERE n.category_id = ? 
+                AND n.id != ?
+                AND n.status = 'published'
+                ORDER BY n.publish_date DESC
+                LIMIT ?";
+
+        return $this->db->fetchAll($sql, [$categoryId, $newsId, $limit]);
+    }
+
+    public function getNewsByDateRange($startDate, $endDate)
+    {
+        $sql = "SELECT n.*, c.name as category_name
+                FROM news n
+                LEFT JOIN categories c ON n.category_id = c.id
+                WHERE n.publish_date BETWEEN ? AND ?
+                AND n.status = 'published'
+                ORDER BY n.publish_date DESC";
+
+        return $this->db->fetchAll($sql, [$startDate, $endDate]);
+    }
+
+    public function getNewsWithLinks($id)
+    {
+        $sql = "SELECT * FROM vw_news_links WHERE news_id = ?";
+        return $this->db->fetchAll($sql, [$id]);
     }
 }
-
-?>

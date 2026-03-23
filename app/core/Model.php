@@ -1,62 +1,103 @@
 <?php
-namespace App\Core;
 
+// core/Model.php
 abstract class Model
 {
-    protected $table;
     protected $db;
-    
+    protected $table;
+
     public function __construct()
     {
         $this->db = Database::getInstance();
     }
-    
-    public function all()
+
+    public function findAll($conditions = [], $orderBy = null, $limit = null)
     {
         $sql = "SELECT * FROM {$this->table}";
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll();
+        $params = [];
+
+        if (!empty($conditions)) {
+            $where = [];
+            foreach ($conditions as $field => $value) {
+                $where[] = "$field = ?";
+                $params[] = $value;
+            }
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+
+        if ($orderBy) {
+            $sql .= " ORDER BY $orderBy";
+        }
+
+        if ($limit) {
+            $sql .= " LIMIT $limit";
+        }
+
+        return $this->db->fetchAll($sql, $params);
     }
-    
-    public function find($id)
+
+    public function findById($id)
     {
         $sql = "SELECT * FROM {$this->table} WHERE id = ?";
-        $stmt = $this->db->query($sql, [$id]);
-        return $stmt->fetch();
+        return $this->db->fetchOne($sql, [$id]);
     }
-    
+
     public function create($data)
     {
-        $columns = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
-        
-        $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
-        $this->db->query($sql, array_values($data));
-        
-        return $this->db->lastInsertId();
+        return $this->db->insert($this->table, $data);
     }
-    
-    public function update($id, $data)
+
+    public function updateById($id, $data)
     {
-        $setClause = implode(' = ?, ', array_keys($data)) . ' = ?';
-        $values = array_values($data);
-        $values[] = $id;
-        
-        $sql = "UPDATE {$this->table} SET {$setClause} WHERE id = ?";
-        return $this->db->query($sql, $values)->rowCount();
+        return $this->db->update($this->table, $data, "id = ?", [$id]);
     }
-    
-    public function delete($id)
+
+    public function deleteById($id)
     {
         $sql = "DELETE FROM {$this->table} WHERE id = ?";
         return $this->db->query($sql, [$id])->rowCount();
     }
-    
-    public function where($conditions, $params = [])
+
+    public function paginate($page = 1, $perPage = 10, $conditions = [])
     {
-        $whereClause = implode(' AND ', $conditions);
-        $sql = "SELECT * FROM {$this->table} WHERE {$whereClause}";
-        $stmt = $this->db->query($sql, $params);
-        return $stmt->fetchAll();
+        $offset = ($page - 1) * $perPage;
+
+        // Get total count
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table}";
+        $params = [];
+
+        if (!empty($conditions)) {
+            $where = [];
+            foreach ($conditions as $field => $value) {
+                $where[] = "$field = ?";
+                $params[] = $value;
+            }
+            $countSql .= " WHERE " . implode(' AND ', $where);
+        }
+
+        $total = $this->db->fetchOne($countSql, $params)['total'];
+
+        // Get paginated data
+        $dataSql = "SELECT * FROM {$this->table}";
+        if (!empty($conditions)) {
+            $where = [];
+            foreach ($conditions as $field => $value) {
+                $where[] = "$field = ?";
+            }
+            $dataSql .= " WHERE " . implode(' AND ', $where);
+        }
+        $dataSql .= " LIMIT ? OFFSET ?";
+        $params[] = $perPage;
+        $params[] = $offset;
+
+        $data = $this->db->fetchAll($dataSql, $params);
+
+        return [
+            'data' => $data,
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => ceil($total / $perPage)
+        ];
     }
 }

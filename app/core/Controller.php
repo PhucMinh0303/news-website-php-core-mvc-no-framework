@@ -4,85 +4,95 @@
  * All controllers inherit from this class
  */
 
-class Controller {
+// core/Controller.php
+
+class Controller
+{
     /**
      * @var array View data
      */
     protected $data = [];
-    
+
     /**
      * @var string View name to render
      */
     protected $view;
-    
+
     /**
      * @var string Layout to use
      */
     protected $layout = 'main';
-    
+
     /**
      * Set page title
      */
-    protected function setPageTitle($title) {
+    protected function setPageTitle($title)
+    {
         $this->data['page_title'] = $title;
     }
-    
+
     /**
      * Set view data
      */
-    protected function setData($key, $value) {
+    protected function setData($key, $value)
+    {
         $this->data[$key] = $value;
         return $this;
     }
-    
+
     /**
      * Set multiple view data
      */
-    protected function setDataArray($data) {
+    protected function setDataArray($data)
+    {
         $this->data = array_merge($this->data, $data);
         return $this;
     }
-    
+
     /**
      * Get view data value
      */
-    protected function getData($key, $default = null) {
+    protected function getData($key, $default = null)
+    {
         return isset($this->data[$key]) ? $this->data[$key] : $default;
     }
-    
+
     /**
      * Render a view file
      */
-    protected function render($view, $layout = null) {
+    protected function render($view, $layout = null)
+    {
         $this->view = $view;
-        
+
         if ($layout !== null) {
             $this->layout = $layout;
         }
-        
+
         return $this;
     }
-    
+
     /**
      * Render a view without layout
      */
-    protected function renderPartial($view) {
+    protected function renderPartial($view)
+    {
         return $this->render($view, false);
     }
-    
+
     /**
      * Output the view (called after action method)
      */
-    public function output() {
+    public function output()
+    {
         $viewFile = APP_PATH . 'views/' . $this->view . '.php';
-        
+
         if (!file_exists($viewFile)) {
             die("View not found: {$viewFile}");
         }
-        
+
         // Extract data into view scope
         extract($this->data, EXTR_PREFIX_ALL, 'view');
-        
+
         if ($this->layout === false) {
             // Render view only, no layout
             include $viewFile;
@@ -91,7 +101,7 @@ class Controller {
             ob_start();
             include $viewFile;
             $content = ob_get_clean();
-            
+
             $layoutFile = APP_PATH . 'views/layouts/' . $this->layout . '.php';
             if (file_exists($layoutFile)) {
                 $body = $content;
@@ -101,65 +111,73 @@ class Controller {
             }
         }
     }
-    
+
     /**
      * Redirect to another route
      */
-    protected function redirect($path) {
+    protected function redirect($path)
+    {
         Router::redirect($path);
+
     }
-    
+
     /**
      * Generate URL
      */
-    protected function url($action, $params = []) {
+    protected function url($action, $params = [])
+    {
         return Router::url($action, $params);
     }
-    
+
     /**
      * Check if POST request
      */
-    protected function isPost() {
+    protected function isPost()
+    {
         return $_SERVER['REQUEST_METHOD'] === 'POST';
     }
-    
+
     /**
      * Check if AJAX request
      */
-    protected function isAjax() {
-        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-               $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
+    protected function isAjax()
+    {
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
     }
-    
+
     /**
      * Get POST data
      */
-    protected function post($key = null, $default = null) {
+    protected function post($key = null, $default = null)
+    {
         if ($key === null) {
             return $_POST;
         }
         return isset($_POST[$key]) ? $_POST[$key] : $default;
     }
-    
+
     /**
      * Get GET data
      */
-    protected function get($key = null, $default = null) {
+    protected function get($key = null, $default = null)
+    {
         if ($key === null) {
             return $_GET;
         }
         return isset($_GET[$key]) ? $_GET[$key] : $default;
     }
-    
+
     /**
      * Sanitize input
      */
-    protected function sanitize($input, $type = 'string') {
+    protected function sanitize($input, $type = 'string')
+    {
         switch ($type) {
             case 'int':
-                return (int) filter_var($input, FILTER_SANITIZE_NUMBER_INT);
+                return (int)filter_var($input, FILTER_SANITIZE_NUMBER_INT);
             case 'float':
-                return (float) filter_var($input, FILTER_SANITIZE_NUMBER_FLOAT);
+                return (float)filter_var($input, FILTER_SANITIZE_NUMBER_FLOAT);
             case 'email':
                 return filter_var($input, FILTER_SANITIZE_EMAIL);
             case 'url':
@@ -169,29 +187,67 @@ class Controller {
                 return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
         }
     }
-    
+
     /**
      * Validate email
      */
-    protected function validateEmail($email) {
+    protected function validateEmail($email)
+    {
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
+
     public function model($model)
     {
         require_once '../app/models/' . $model . '.php';
         return new $model;
     }
 
-    public function view($view, $data = [])
+    protected function view($view, $data = [])
     {
-        require_once '../app/views/' . $view . '.php';
+        extract($data);
+
+        $viewFile = __DIR__ . "/../views/{$view}.php";
+
+        if (file_exists($viewFile)) {
+            require_once $viewFile;
+        } else {
+            die("View {$view} not found");
+        }
     }
-    protected function json(array $data)
+
+    protected function json($data, $statusCode = 200)
     {
+        http_response_code($statusCode);
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
     }
+
+    protected function getPostData()
+    {
+        return json_decode(file_get_contents('php://input'), true) ?? $_POST;
+    }
+
+    protected function validateRequired($data, $fields)
+    {
+        $errors = [];
+        foreach ($fields as $field) {
+            if (empty($data[$field])) {
+                $errors[$field] = "The {$field} field is required";
+            }
+        }
+        return $errors;
+    }
+
+    protected function sanitizeInput($data)
+    {
+        if (is_array($data)) {
+            return array_map([$this, 'sanitizeInput'], $data);
+        }
+        return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+    }
+
+
 }
 
 ?>
