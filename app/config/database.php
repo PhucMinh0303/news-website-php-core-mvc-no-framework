@@ -2,9 +2,9 @@
 // config/database.php
 return [
     'host' => 'localhost',
-    'dbname' => 'capital2',
-    'username' => 'capital2',
-    'password' => '123456',
+    'dbname' => 'capitalam2',
+    'username' => 'capitalam21',
+    'password' => '123456789',
     'charset' => 'utf8mb4',
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
