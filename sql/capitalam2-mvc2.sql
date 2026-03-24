@@ -4,12 +4,12 @@ DEFAULT CHARACTER SET utf8mb4
 DEFAULT COLLATE utf8mb4_unicode_ci;
 
 -- Tạo user (thay đổi username và password theo nhu cầu)
-CREATE USER 'admin_tintuc'@'localhost' IDENTIFIED BY 'YourSecurePassword123!';
-GRANT ALL PRIVILEGES ON quanly_tintuc.* TO 'admin_tintuc'@'localhost';
+CREATE USER 'capitalam2'@'localhost' IDENTIFIED BY '123456';
+GRANT ALL PRIVILEGES ON quanly_tintuc.* TO 'capitalam2'@'localhost';
 FLUSH PRIVILEGES;
 
 -- Sử dụng database
-USE capital2;
+USE capitalam2;
 
 -- Tạo bảng categories
 CREATE TABLE categories (
@@ -20,6 +20,19 @@ CREATE TABLE categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Thêm dữ liệu mẫu cho categories
+INSERT INTO categories (name, slug, description) VALUES
+('Thời sự', 'thoi-su', 'Tin tức thời sự trong nước và quốc tế'),
+('Kinh tế', 'kinh-te', 'Tin tức kinh tế, tài chính'),
+('Công nghệ', 'cong-nghe', 'Tin công nghệ, khoa học kỹ thuật'),
+('Bất động sản', 'bat-dong-san', 'Tin bất động sản, khoa học kỹ thuật'),
+('Doanh nghiệp', 'doanh-nghiep', 'Tin doanh nghiệp, doanh nghiệp');
+('Tài chính quốc tế', 'tai-chinh-quoc-te', 'Tin tài chính quốc tế, tài chính');
+('Vĩ mô', 'vi-mo', 'Tin vĩ mô, vĩ mô');
+('Chứng khoán', 'chung-khoan', 'Tin chứng khoán, chứng khoán');
+('Ngân hàng', 'ngan-hang', 'Tin Ngân hàng, Ngân hàng');
+
 
 -- Tạo bảng authors (phiên bản đầy đủ với đăng nhập)
 CREATE TABLE authors (
@@ -43,6 +56,13 @@ CREATE TABLE authors (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Thêm dữ liệu mẫu cho authors (users)
+INSERT INTO authors (username, password_hash, full_name, email, role) VALUES
+('nguyenvana', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Nguyễn Văn A', 'nguyenvana@example.com', 'admin'),
+('tranthib', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Trần Thị B', 'tranthib@example.com', 'editor'),
+('phamvanc', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Phạm Văn C', 'phamvanc@example.com', 'author'),
+('hoangthid', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Hoàng Thị D', 'hoangthid@example.com', 'recruiter');
+
 -- Tạo bảng news
 CREATE TABLE news (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -58,10 +78,98 @@ CREATE TABLE news (
     status ENUM('draft', 'published', 'archived') DEFAULT 'draft',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
     FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Thêm dữ liệu mẫu cho news
+INSERT INTO news (id, title, slug, category_id, author, publish_date, image, content, status, views)
+VALUES
+    (
+        1,
+        'NÂNG HẠNG - KHỞI ĐẦU CHO CÁC QUYẾT SÁCH, CẢI CÁCH MẠNH MẼ HƠN, CHUẨN MỰC HƠN VÀ KỶ LUẬT HƠN',
+        'nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon',
+        3,
+        'Nguyễn Văn A',
+        '2025-12-21',
+        'img/section5/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272692-veex8.webp',
+        '<p>Nội dung chi tiết về nâng hạng và cải cách...</p>',
+        'published',
+        0
+    ),
+    (
+        2,
+        'Nâng hạng - khởi đầu cho các quyết sách, cải cách mạnh mẽ hơn, chuẩn mực hơn và kỷ luật hơn',
+        'nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-2',
+        3,
+        'Nguyễn Văn A',
+        '2025-12-21',
+        'img/section5/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272625-jr69f.webp',
+        '<p>Nội dung chi tiết về nâng hạng và cải cách (bài viết thứ 2)...</p>',
+        'published',
+        0
+    ),
+    (
+        3,
+        'Đầu tư tài chính với số vốn nhỏ - Nên hay không?',
+        'dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong',
+        3,
+        'Nguyễn Văn A',
+        '2025-11-17',
+        'img/news/dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong-1763350202-indak.webp',
+        '<p>Trên thị trường hiện có nhiều hình thức đầu tư giúp gia tăng số tiền nhanh chóng. Tuy nhiên, để có được lợi nhuận cao thường đòi hỏi việc đầu tư, kinh doanh số vốn khá lớn. Do đó, rất nhiều người đặt ra câu hỏi "Có thể đầu tư tài chính với số vốn nhỏ không?"</p>',
+        'published',
+        0
+    ),
+    (
+        4,
+        'Đầu tư tài chính 4.0 - Nhà đầu tư cần cẩn trọng với những chiêu trò lừa đảo!',
+        'dau-tu-tai-chinh-4-0-nha-dau-tu-can-can-trong-voi-nhung-chieu-tro-lua-dao',
+        3,
+        'Nguyễn Văn A',
+        '2025-11-17',
+        'img/news/dau-tu-tai-chinh-4-0-nha-dau-tu-can-can-trong-voi-nhung-chieu-tro-lua-dao-1763350121-7qbwc.webp',
+        '<p>Đầu tư tài chính là một lĩnh vực hấp dẫn và tiềm năng cho những ai muốn gia tăng thu nhập, khao khát đạt được tự do tài chính. Tuy nhiên, với sự phát triển của công nghệ và xu hướng đầu tư tài chính 4.0, cũng có nhiều trường hợp nhà đầu tư bị lừa đảo đầu tư tài chính thông qua những hình thức đầu tư online.</p>',
+        'published',
+        0
+    ),
+    (
+        5,
+        'Các App đầu tư chứng khoán uy tín nhất trên thị trường năm 2025',
+        'cac-app-dau-tu-chung-khoan-uy-tin-nhat-tren-thi-truong-nam-2025',
+        3,
+        'Nguyễn Văn A',
+        '2025-11-17',
+        'img/news/cac-app-dau-tu-chung-khoan-uy-tin-nhat-tren-thi-truong-nam-2025-1763349359-ctajx.webp',
+        '<p>Với sự phát triển của thị trường chứng khoán Việt Nam, nhiều app đầu tư chứng khoán được phát triển giúp nhà đầu tư thuận tiện hơn trong việc giao dịch cổ phiếu trên điện thoại. Cùng Anfin điểm danh 9 app đầu tư chứng khoán uy tín hàng đầu trên thị trường Việt Nam, giúp nhà đầu tư yên tâm giao dịch.</p>',
+        'published',
+        0
+    ),
+    (
+        6,
+        'Top 5 các diễn đàn đầu tư tài chính uy tín nhất hiện nay',
+        'top-5-cac-dien-dan-dau-tu-tai-chinh-uy-tin-nhat-hien-nay',
+        3,
+        'Nguyễn Văn A',
+        '2025-11-17',
+        'img/news/top-5-cac-dien-dan-dau-tu-tai-chinh-uy-tin-nhat-hien-nay-1763349148-h1mp8.webp',
+        '<p>Trên thị trường hiện nay có rất nhiều những diễn đàn đầu tư tài chính, tuy nhiên không phải nhà đầu tư nào cũng tìm được cho mình một diễn đàn đầu tư uy tín và chất lượng. Trong bài viết dưới đây, EMIR sẽ mang đến những thông tin hữu ích giúp quý nhà đầu tư có thể hiểu rõ hơn về diễn đàn đầu tư tài chính cũng như tìm được diễn đàn phù hợp nhất, hỗ trợ cho mình trong quá trình đầu tư.</p>',
+        'published',
+        0
+    ),
+    (
+        7,
+        'Quản lý tài sản cá nhân - Nên bắt đầu từ đâu',
+        'quan-ly-tai-san-ca-nhan-nen-bat-dau-tu-dau',
+        3,
+        'Nguyễn Văn A',
+        '2025-11-17',
+        'img/news/quan-ly-tai-san-ca-nhan-nen-bat-dau-tu-dau-1763348797-0ws4a.webp',
+        '<p>Quản lý tài sản giúp cá nhân và tổ chức đảm bảo rằng họ sử dụng tài sản một cách hiệu quả và đạt được mục tiêu tài chính của mình. Song, việc quản lý tài sản là công việc tốn khá nhiều thời gian và đòi hỏi người quản lý phải có kiến thức cũng như kinh nghiệm. Nếu bạn chưa biết bắt đầu quản lý tài sản cá nhân như thế nào, tham khảo ngay bài viết dưới đây nhé!</p>',
+        'published',
+        0
+    );
 
 -- Tạo bảng recruitments
 CREATE TABLE recruitments (
@@ -85,6 +193,34 @@ CREATE TABLE recruitments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Thêm dữ liệu mẫu cho recruitments
+INSERT INTO recruitments (
+    recruitment_title,
+    slug,
+    job_description,
+    job_requirements,
+    job_benefits,
+    image,
+    salary_range,
+    location,
+    deadline,
+    position,
+    status
+) VALUES (
+'Tuyển dụng Lập trình viên PHP',
+'tuyen-dung-lap-trinh-vien-php',
+'<p>Mô tả công việc chi tiết...</p>',
+'<ul><li>Kinh nghiệm PHP 2+ năm</li><li>Biết Laravel framework</li></ul>',
+'<ul><li>Lương cạnh tranh</li><li>Bảo hiểm đầy đủ</li></ul>',
+'recruitment-image.jpg',
+'15-25 triệu',
+'Hà Nội',
+'2024-02-28',
+'Lập trình viên',
+'open'
+);
+
 
 -- Tạo bảng login_logs
 CREATE TABLE login_logs (
@@ -142,6 +278,16 @@ CREATE TABLE contacts (
     FOREIGN KEY (response_by) REFERENCES authors(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Thêm dữ liệu mẫu cho contacts
+INSERT INTO contacts (
+customer_name, phone, email, content, contact_type, category_id, source, status, priority
+) VALUES
+('Nguyễn Văn A', '0909123456', 'nguyena@gmail.com', 'Tôi cần hỗ trợ về sản phẩm X', 'support', 2, 'website', 'new', 'medium'),
+('Trần Thị B', '0918234567', 'tranthib@yahoo.com', 'Ứng tuyển vị trí lập trình viên', 'recruitment', 3, 'website', 'new', 'high'),
+('Lê Văn C', '0987654321', 'levanc@gmail.com', 'Website bị lỗi không đăng nhập được', 'support', 1, 'mobile', 'processing', 'urgent'),
+('Phạm Thị D', '0978123456', NULL, 'Đề xuất hợp tác kinh doanh', 'partnership', 4, 'email', 'read', 'low'),
+('Hoàng Văn E', '0967890123', 'hoange@gmail.com', 'Khiếu nại về chất lượng dịch vụ', 'complaint', 6, 'website', 'replied', 'high');
+
 -- Tạo bảng contact_categories
 CREATE TABLE contact_categories (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -157,6 +303,16 @@ CREATE TABLE contact_categories (
     
     FOREIGN KEY (default_assignee) REFERENCES authors(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Thêm dữ liệu mẫu cho contact_categories
+INSERT INTO contact_categories (name, slug, description) VALUES
+('Hỗ trợ kỹ thuật', 'ho-tro-ky-thuat', 'Các vấn đề về kỹ thuật website'),
+('Thắc mắc sản phẩm', 'thac-mac-san-pham', 'Câu hỏi về sản phẩm/dịch vụ'),
+('Tuyển dụng', 'tuyen-dung', 'Liên hệ về tuyển dụng'),
+('Hợp tác', 'hop-tac', 'Đề xuất hợp tác kinh doanh'),
+('Phản hồi', 'phan-hoi', 'Ý kiến phản hồi từ khách hàng'),
+('Khiếu nại', 'khieu-nai', 'Khiếu nại về dịch vụ'),
+('Khác', 'khac', 'Các liên hệ khác');
 
 -- Tạo bảng contact_attachments
 CREATE TABLE contact_attachments (
@@ -240,66 +396,11 @@ CREATE INDEX idx_attachments_contact ON contact_attachments(contact_id);
 CREATE INDEX idx_histories_contact ON contact_histories(contact_id);
 CREATE INDEX idx_histories_created_at ON contact_histories(created_at DESC);
 
--- Thêm dữ liệu mẫu cho categories
-INSERT INTO categories (name, slug, description) VALUES
-('Thời sự', 'thoi-su', 'Tin tức thời sự trong nước và quốc tế'),
-('Kinh tế', 'kinh-te', 'Tin tức kinh tế, tài chính'),
-('Công nghệ', 'cong-nghe', 'Tin công nghệ, khoa học kỹ thuật'),
-('Bất động sản', 'bat-dong-san', 'Tin bất động sản, khoa học kỹ thuật'),
-('Doanh nghiệp', 'doanh-nghiep', 'Tin doanh nghiệp, doanh nghiệp');
-('Tài chính quốc tế', 'tai-chinh-quoc-te', 'Tin tài chính quốc tế, tài chính');
-('Vĩ mô', 'vi-mo', 'Tin vĩ mô, vĩ mô');
-('Chứng khoán', 'chung-khoan', 'Tin chứng khoán, chứng khoán');
-('Ngân hàng', 'ngan-hang', 'Tin Ngân hàng, Ngân hàng');
 
 
 
--- Thêm dữ liệu mẫu cho authors (users)
-INSERT INTO authors (username, password_hash, full_name, email, role) VALUES
-('nguyenvana', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Nguyễn Văn A', 'nguyenvana@example.com', 'admin'),
-('tranthib', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Trần Thị B', 'tranthib@example.com', 'editor'),
-('phamvanc', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Phạm Văn C', 'phamvanc@example.com', 'author'),
-('hoangthid', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Hoàng Thị D', 'hoangthid@example.com', 'recruiter');
 
--- Thêm dữ liệu mẫu cho news
-INSERT INTO news (title, slug, category_id, author, publish_date, image, content, status) 
-VALUES (
-    'Tin tức công nghệ mới nhất 2024',
-    'tin-tuc-cong-nghe-moi-nhat-2024',
-    3,
-    'Nguyễn Văn A',
-    '2024-01-15',
-    'news-image.jpg',
-    '<p>Nội dung chi tiết của tin tức công nghệ...</p>',
-    'published'
-);
 
--- Thêm dữ liệu mẫu cho recruitments
-INSERT INTO recruitments (
-    recruitment_title,
-    slug,
-    job_description,
-    job_requirements,
-    job_benefits,
-    image,
-    salary_range,
-    location,
-    deadline,
-    position,
-    status
-) VALUES (
-    'Tuyển dụng Lập trình viên PHP',
-    'tuyen-dung-lap-trinh-vien-php',
-    '<p>Mô tả công việc chi tiết...</p>',
-    '<ul><li>Kinh nghiệm PHP 2+ năm</li><li>Biết Laravel framework</li></ul>',
-    '<ul><li>Lương cạnh tranh</li><li>Bảo hiểm đầy đủ</li></ul>',
-    'recruitment-image.jpg',
-    '15-25 triệu',
-    'Hà Nội',
-    '2024-02-28',
-    'Lập trình viên',
-    'open'
-);
 
 -- Thêm dữ liệu mẫu cho permissions
 INSERT INTO permissions (name, description) VALUES
@@ -321,30 +422,14 @@ INSERT INTO role_permissions (role, permission_id) VALUES
 ('author', 1), ('author', 2),
 ('recruiter', 5), ('recruiter', 6);
 
--- Thêm dữ liệu mẫu cho contact_categories
-INSERT INTO contact_categories (name, slug, description) VALUES
-('Hỗ trợ kỹ thuật', 'ho-tro-ky-thuat', 'Các vấn đề về kỹ thuật website'),
-('Thắc mắc sản phẩm', 'thac-mac-san-pham', 'Câu hỏi về sản phẩm/dịch vụ'),
-('Tuyển dụng', 'tuyen-dung', 'Liên hệ về tuyển dụng'),
-('Hợp tác', 'hop-tac', 'Đề xuất hợp tác kinh doanh'),
-('Phản hồi', 'phan-hoi', 'Ý kiến phản hồi từ khách hàng'),
-('Khiếu nại', 'khieu-nai', 'Khiếu nại về dịch vụ'),
-('Khác', 'khac', 'Các liên hệ khác');
+
 
 -- Thêm dữ liệu mẫu cho response_templates
 INSERT INTO response_templates (title, slug, subject, content, category_id) VALUES
 ('Xác nhận tiếp nhận', 'xac-nhan-tiep-nhan', 'Đã nhận được liên hệ của bạn', 'Kính gửi {customer_name},\n\nChúng tôi đã nhận được thông tin liên hệ của bạn và sẽ phản hồi trong thời gian sớm nhất.\n\nTrân trọng,\nĐội ngũ hỗ trợ', 1),
 ('Phản hồi tuyển dụng', 'phan-hoi-tuyen-dung', 'Thông tin tuyển dụng', 'Kính gửi {customer_name},\n\nCảm ơn bạn đã quan tâm đến vị trí tuyển dụng. Chúng tôi sẽ xem xét hồ sơ của bạn và liên hệ trong thời gian tới.\n\nTrân trọng,\nPhòng Nhân sự', 3);
 
--- Thêm dữ liệu mẫu cho contacts
-INSERT INTO contacts (
-    customer_name, phone, email, content, contact_type, category_id, source, status, priority
-) VALUES 
-('Nguyễn Văn A', '0909123456', 'nguyena@gmail.com', 'Tôi cần hỗ trợ về sản phẩm X', 'support', 2, 'website', 'new', 'medium'),
-('Trần Thị B', '0918234567', 'tranthib@yahoo.com', 'Ứng tuyển vị trí lập trình viên', 'recruitment', 3, 'website', 'new', 'high'),
-('Lê Văn C', '0987654321', 'levanc@gmail.com', 'Website bị lỗi không đăng nhập được', 'support', 1, 'mobile', 'processing', 'urgent'),
-('Phạm Thị D', '0978123456', NULL, 'Đề xuất hợp tác kinh doanh', 'partnership', 4, 'email', 'read', 'low'),
-('Hoàng Văn E', '0967890123', 'hoange@gmail.com', 'Khiếu nại về chất lượng dịch vụ', 'complaint', 6, 'website', 'replied', 'high');
+
 
 -- Thêm dữ liệu mẫu cho contact_histories
 INSERT INTO contact_histories (contact_id, action, note) VALUES
@@ -1171,57 +1256,93 @@ CREATE TABLE IF NOT EXISTS news_related (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Thêm dữ liệu vào bảng news_title
-INSERT INTO news_title (
+INSERT IGNORE INTO news_title (
     news_id, title, slug, description, content,
     featured_image, meta_title, meta_description,
     is_featured, is_breaking, is_hot, status, published_at
 ) VALUES (
-             1,
-             'Đầu tư tài chính với số vốn nhỏ - Nên hay không?',
-             'dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong',
-             'Trên thị trường hiện có nhiều hình thức đầu tư giúp gia tăng số tiền nhanh chóng. Tuy nhiên, để có được lợi nhuận cao thường đòi hỏi việc đầu tư, kinh doanh số vốn khá lớn. Do đó, rất nhiều người đặt ra câu hỏi "Có thể đầu tư tài chính với số vốn nhỏ không?"',
-             '<p>Trên thị trường hiện có nhiều hình thức đầu tư giúp gia tăng số tiền nhanh chóng. Tuy nhiên, để có được lợi nhuận cao thường đòi hỏi việc đầu tư, kinh doanh số vốn khá lớn. Do đó, rất nhiều người đặt ra câu hỏi "Có thể đầu tư tài chính với số vốn nhỏ không?"</p>
+    1,
+    'Đầu tư tài chính với số vốn nhỏ - Nên hay không?',
+    'dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong',
+    'Trên thị trường hiện có nhiều hình thức đầu tư giúp gia tăng số tiền nhanh chóng. Tuy nhiên, để có được lợi nhuận cao thường đòi hỏi việc đầu tư, kinh doanh số vốn khá lớn. Do đó, rất nhiều người đặt ra câu hỏi "Có thể đầu tư tài chính với số vốn nhỏ không?"',
+    '<p>Trên thị trường hiện có nhiều hình thức đầu tư giúp gia tăng số tiền nhanh chóng. Tuy nhiên, để có được lợi nhuận cao thường đòi hỏi việc đầu tư, kinh doanh số vốn khá lớn. Do đó, rất nhiều người đặt ra câu hỏi "Có thể đầu tư tài chính với số vốn nhỏ không?"</p>
 
-         <ol>
-             <li><b>Có nên đầu tư tài chính với số vốn nhỏ không?</b></li>
-         </ol>
+    <ol>
+        <li><b>Có nên đầu tư tài chính với số vốn nhỏ không?</b></li>
+    </ol>
 
-         <p>Bất kỳ nhà đầu tư tên tuổi nào đều khởi đầu bằng việc đầu tư với số vốn khiêm tốn. Đây là những bước đầu tiên để họ học hỏi kinh nghiệm, tiếp thu kiến thức đầu tư trước khi tiến xa hơn trên con đường đầu tư tài chính với những khoản đầu tư lớn hơn.</p>
+    <p>Bất kỳ nhà đầu tư tên tuổi nào đều khởi đầu bằng việc đầu tư với số vốn khiêm tốn. Đây là những bước đầu tiên để họ học hỏi kinh nghiệm, tiếp thu kiến thức đầu tư trước khi tiến xa hơn trên con đường đầu tư tài chính với những khoản đầu tư lớn hơn.</p>
 
-         <p>Hãy ghi nhớ, hiệu quả của đầu tư sẽ không bị ảnh hưởng quá nhiều bởi khoản vốn bạn bỏ ra, nó sẽ phụ thuộc vào thời gian bạn dành cho việc đầu tư, lĩnh vực bạn quan tâm và tỷ lệ lợi nhuận bạn có thể đạt được…</p>
+    <p>Hãy ghi nhớ, hiệu quả của đầu tư sẽ không bị ảnh hưởng quá nhiều bởi khoản vốn bạn bỏ ra, nó sẽ phụ thuộc vào thời gian bạn dành cho việc đầu tư, lĩnh vực bạn quan tâm và tỷ lệ lợi nhuận bạn có thể đạt được…</p>
 
-         <p>Việc đầu tư tài chính với số vốn nhỏ mang đến nhiều lợi ích cho nhà đầu tư:</p>
+    <p>Việc đầu tư tài chính với số vốn nhỏ mang đến nhiều lợi ích cho nhà đầu tư:</p>
 
-         <ul>
-             <li>Có nhiều ngành nghề, lĩnh vực để nhà đầu tư vốn nhỏ có thể cân nhắc: gửi tiết kiệm, bảo hiểm đầu tư, cổ phiếu, trái phiếu hay</li>
-             <li>Giảm thiểu rủi ro khi thị trường biến động</li>
-             <li>Có thể đa dạng hóa danh mục đầu tư</li>
-             <li>Dễ dàng rút vốn khi cần thiết</li>
-         </ul>',
-             'https://demo29.escovietnam.vn/capitalAM/uploads/noidung/images/baiviet/unnamed-18.png',
-             'Đầu tư tài chính với số vốn nhỏ - Nên hay không?',
-             'Tìm hiểu về các hình thức đầu tư tài chính với số vốn nhỏ, lợi ích và rủi ro khi đầu tư',
-             1, 0, 1, 'published', NOW()
-         );
+    <ul>
+        <li>Có nhiều ngành nghề, lĩnh vực để nhà đầu tư vốn nhỏ có thể cân nhắc: gửi tiết kiệm, bảo hiểm đầu tư, cổ phiếu, trái phiếu hay</li>
+        <li>Giảm thiểu rủi ro khi thị trường biến động</li>
+        <li>Có thể đa dạng hóa danh mục đầu tư</li>
+        <li>Dễ dàng rút vốn khi cần thiết</li>
+    </ul>',
+        'https://demo29.escovietnam.vn/capitalAM/uploads/noidung/images/baiviet/unnamed-18.png',
+        'Đầu tư tài chính với số vốn nhỏ - Nên hay không?',
+        'Tìm hiểu về các hình thức đầu tư tài chính với số vốn nhỏ, lợi ích và rủi ro khi đầu tư',
+        1, 0, 1, 'published', NOW()
 
--- Thêm tags
-INSERT INTO news_tags (name, slug, description) VALUES
-                                                    ('Đầu tư', 'dau-tu', 'Các bài viết về đầu tư tài chính'),
-                                                    ('Tài chính', 'tai-chinh', 'Tin tức tài chính'),
-                                                    ('Vốn nhỏ', 'von-nho', 'Đầu tư với số vốn nhỏ'),
-                                                    ('Kinh nghiệm', 'kinh-nghiem', 'Kinh nghiệm đầu tư');
+    )ON DUPLICATE KEY UPDATE
+        news_id = VALUES(news_id),
+        title = VALUES(title),
+        description = VALUES(description),
+        content = VALUES(content),
+        featured_image = VALUES(featured_image),
+        meta_title = VALUES(meta_title),
+        meta_description = VALUES(meta_description),
+        is_featured = VALUES(is_featured),
+        is_breaking = VALUES(is_breaking),
+        is_hot = VALUES(is_hot),
+        status = VALUES(status),
+        published_at = VALUES(published_at),
+        updated_at = NOW();
+    );
 
--- Gán tags cho bài viết
-INSERT INTO news_tag_relations (news_id, tag_id) VALUES
-                                                     (1, 1), (1, 2), (1, 3), (1, 4);
+-- Tạo hàm kiểm tra slug duy nhất
+DELIMITER $$
+CREATE FUNCTION generate_unique_slug(p_slug VARCHAR(500), p_table VARCHAR(100))
+    RETURNS VARCHAR(500)
+    DETERMINISTIC
+BEGIN
+    DECLARE v_new_slug VARCHAR(500);
+    DECLARE v_counter INT DEFAULT 1;
 
--- Thêm comments mẫu
+    SET v_new_slug = p_slug;
+
+    -- Kiểm tra slug đã tồn tại chưa
+    WHILE EXISTS (
+        SELECT 1 FROM news_title WHERE slug = v_new_slug
+    ) DO
+        SET v_counter = v_counter + 1;
+        SET v_new_slug = CONCAT(p_slug, '-', v_counter);
+END WHILE;
+
+RETURN v_new_slug;
+END$$
+DELIMITER ;
+
+-- Thêm tags (kiểm tra trùng lặp)
+INSERT IGNORE INTO news_tags (name, slug, description) VALUES
+    ('Đầu tư', 'dau-tu', 'Các bài viết về đầu tư tài chính'),
+    ('Tài chính', 'tai-chinh', 'Tin tức tài chính'),
+    ('Vốn nhỏ', 'von-nho', 'Đầu tư với số vốn nhỏ'),
+    ('Kinh nghiệm', 'kinh-nghiem', 'Kinh nghiệm đầu tư');
+
+-- Gán tags cho bài viết (kiểm tra trùng lặp)
+INSERT IGNORE INTO news_tag_relations (news_id, tag_id)
+SELECT 1, id FROM news_tags WHERE slug IN ('dau-tu', 'tai-chinh', 'von-nho', 'kinh-nghiem');
+
+-- Thêm comments mẫu (không cần kiểm tra trùng)
 INSERT INTO news_comments (news_id, author_name, author_email, content, is_approved) VALUES
-                                                                                         (1, 'Nguyễn Văn An', 'nguyenvanan@email.com', 'Bài viết rất hữu ích! Cảm ơn tác giả.', 1),
-                                                                                         (1, 'Trần Thị Bình', 'tranbinh@email.com', 'Tôi cũng đang tìm hiểu về đầu tư vốn nhỏ, bài viết giúp ích rất nhiều.', 1),
-                                                                                         (1, 'Lê Hoàng', 'lehoang@email.com', 'Có nên đầu tư vào vàng không ạ?', 0);
-
--- Thêm bài viết liên quan
-INSERT INTO news_related (news_id, related_news_id, relationship_type, sort_order) VALUES
-                                                                                       (1, 2, 'related', 1),
-                                                                                       (1, 3, 'related', 2);
+(1, 'Nguyễn Văn An', 'nguyenvanan@email.com', 'Bài viết rất hữu ích! Cảm ơn tác giả.', 1),
+(1, 'Trần Thị Bình', 'tranbinh@email.com', 'Tôi cũng đang tìm hiểu về đầu tư vốn nhỏ, bài viết giúp ích rất nhiều.', 1),
+(1, 'Lê Hoàng', 'lehoang@email.com', 'Có nên đầu tư vào vàng không ạ?', 0);
+-- Thêm bài viết liên quan (kiểm tra tồn tại của related_news_id)
+INSERT IGNORE INTO news_related (news_id, related_news_id, relationship_type, sort_order)
+SELECT 1, id, 'related', 1 FROM news WHERE id != 1 AND status = 'published' LIMIT 2;
