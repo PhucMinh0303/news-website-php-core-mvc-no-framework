@@ -1,9 +1,9 @@
 <?php
 // controllers/NewsController.php
 require_once __DIR__ . '/../core/Controller.php';
-require_once __DIR__ . '/../models/News_model.php';
-require_once __DIR__ . '/../models/News_title_model.php';
-require_once __DIR__ . '/../models/Category_model.php';
+require_once __DIR__ . '/../models/NewsModel.php';
+require_once __DIR__ . '/../models/NewsTitleModel.php';
+require_once __DIR__ . '/../models/CategoryModel.php';
 
 
 class NewsController extends Controller
