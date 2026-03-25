@@ -1,103 +1,114 @@
 <?php
+// app/core/Model.php
+require_once __DIR__ . '/../config/database.php';
 
-// core/Model.php
-abstract class Model
+class Model
 {
-    protected $db;
     protected $table;
+    protected $primaryKey = 'id';
+    protected $db;
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        $database = Database::getInstance();
+        $this->db = $database->getConnection();
     }
 
-    public function findAll($conditions = [], $orderBy = null, $limit = null)
+    /**
+     * Execute query and return results
+     */
+    protected function query($sql, $params = [])
     {
-        $sql = "SELECT * FROM {$this->table}";
-        $params = [];
-
-        if (!empty($conditions)) {
-            $where = [];
-            foreach ($conditions as $field => $value) {
-                $where[] = "$field = ?";
-                $params[] = $value;
-            }
-            $sql .= " WHERE " . implode(' AND ', $where);
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Query error: " . $e->getMessage());
+            return false;
         }
-
-        if ($orderBy) {
-            $sql .= " ORDER BY $orderBy";
-        }
-
-        if ($limit) {
-            $sql .= " LIMIT $limit";
-        }
-
-        return $this->db->fetchAll($sql, $params);
     }
 
-    public function findById($id)
+    /**
+     * Execute query without returning results
+     */
+    protected function execute($sql, $params = [])
     {
-        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
-        return $this->db->fetchOne($sql, [$id]);
+        try {
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute($params);
+        } catch (PDOException $e) {
+            error_log("Execute error: " . $e->getMessage());
+            return false;
+        }
     }
 
+    /**
+     * Get single record by ID
+     */
+    public function find($id)
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE {$this->primaryKey} = ?";
+        $result = $this->query($sql, [$id]);
+        return $result ? $result[0] : null;
+    }
+
+    /**
+     * Get all records
+     */
+    public function all()
+    {
+        $sql = "SELECT * FROM {$this->table} ORDER BY created_at DESC";
+        return $this->query($sql);
+    }
+
+    /**
+     * Create new record
+     */
     public function create($data)
     {
-        return $this->db->insert($this->table, $data);
+        $fields = array_keys($data);
+        $placeholders = array_fill(0, count($fields), '?');
+
+        $sql = "INSERT INTO {$this->table} (" . implode(', ', $fields) . ") 
+                VALUES (" . implode(', ', $placeholders) . ")";
+
+        $values = array_values($data);
+
+        if ($this->execute($sql, $values)) {
+            return $this->db->lastInsertId();
+        }
+        return false;
     }
 
-    public function updateById($id, $data)
+    /**
+     * Update record
+     */
+    public function update($id, $data)
     {
-        return $this->db->update($this->table, $data, "id = ?", [$id]);
-    }
+        $fields = [];
+        $values = [];
 
-    public function deleteById($id)
-    {
-        $sql = "DELETE FROM {$this->table} WHERE id = ?";
-        return $this->db->query($sql, [$id])->rowCount();
-    }
-
-    public function paginate($page = 1, $perPage = 10, $conditions = [])
-    {
-        $offset = ($page - 1) * $perPage;
-
-        // Get total count
-        $countSql = "SELECT COUNT(*) as total FROM {$this->table}";
-        $params = [];
-
-        if (!empty($conditions)) {
-            $where = [];
-            foreach ($conditions as $field => $value) {
-                $where[] = "$field = ?";
-                $params[] = $value;
-            }
-            $countSql .= " WHERE " . implode(' AND ', $where);
+        foreach ($data as $field => $value) {
+            $fields[] = "{$field} = ?";
+            $values[] = $value;
         }
 
-        $total = $this->db->fetchOne($countSql, $params)['total'];
+        $values[] = $id;
+        $sql = "UPDATE {$this->table} SET " . implode(', ', $fields) . " 
+                WHERE {$this->primaryKey} = ?";
 
-        // Get paginated data
-        $dataSql = "SELECT * FROM {$this->table}";
-        if (!empty($conditions)) {
-            $where = [];
-            foreach ($conditions as $field => $value) {
-                $where[] = "$field = ?";
-            }
-            $dataSql .= " WHERE " . implode(' AND ', $where);
-        }
-        $dataSql .= " LIMIT ? OFFSET ?";
-        $params[] = $perPage;
-        $params[] = $offset;
+        return $this->execute($sql, $values);
+    }
 
-        $data = $this->db->fetchAll($dataSql, $params);
-
-        return [
-            'data' => $data,
-            'total' => $total,
-            'page' => $page,
-            'perPage' => $perPage,
-            'totalPages' => ceil($total / $perPage)
-        ];
+    /**
+     * Delete record
+     */
+    public function delete($id)
+    {
+        $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = ?";
+        return $this->execute($sql, [$id]);
     }
 }
+
+?>
