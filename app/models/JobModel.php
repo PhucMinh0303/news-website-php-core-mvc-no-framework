@@ -3,8 +3,9 @@
  * Job Model - Handles job listing data
  */
 
-class Job extends Model {
-    
+class JobModel extends Model
+{
+
     protected static $data = [
         [
             'id' => 1,
@@ -34,11 +35,12 @@ class Job extends Model {
             'description' => 'Expert financial consultation...',
         ],
     ];
-    
+
     /**
      * Get jobs by department
      */
-    public static function getByDepartment($department) {
+    public static function getByDepartment($department)
+    {
         return static::getBy('department', $department);
     }
 }

@@ -1,125 +1,73 @@
 <?php
 // app/models/Recruitment.php
+require_once __DIR__ . '/../core/Model.php';
 
-class Recruitment_model
+class Recruitment extends Model
 {
-    private $db;
-
-    public function __construct($database)
-    {
-        $this->db = $database;
-    }
+    protected $table = 'recruitments';
+    protected $primaryKey = 'id';
 
     /**
-     * Lấy tất cả tuyển dụng (chỉ lấy những job đang mở)
+     * Get all open recruitments
      */
-    public function getAll()
+    public function getAllOpen()
     {
-        $sql = "SELECT * FROM recruitments 
+        $sql = "SELECT * FROM {$this->table} 
                 WHERE status = 'open' 
+                AND deadline >= CURDATE() 
                 ORDER BY created_at DESC";
-        $result = $this->db->query($sql);
-        return $result->fetch_all(MYSQLI_ASSOC);
+        return $this->query($sql);
     }
 
     /**
-     * Lấy tuyển dụng theo slug
+     * Get recruitment by slug
      */
     public function getBySlug($slug)
     {
-        $sql = "SELECT * FROM recruitments WHERE slug = ? AND status = 'open'";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("s", $slug);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        // Tăng views
-        if ($row = $result->fetch_assoc()) {
-            $this->increaseViews($row['id']);
-            return $row;
-        }
-        return null;
+        $sql = "SELECT * FROM {$this->table} WHERE slug = ?";
+        $result = $this->query($sql, [$slug]);
+        return $result ? $result[0] : null;
     }
 
     /**
-     * Lấy tuyển dụng theo ID
+     * Get recruitment by ID
      */
     public function getById($id)
     {
-        $sql = "SELECT * FROM recruitments WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
+        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
+        $result = $this->query($sql, [$id]);
+        return $result ? $result[0] : null;
     }
 
     /**
-     * Lấy tuyển dụng liên quan (khác với job hiện tại)
+     * Increment view count
      */
-    public function getRelated($currentId, $limit = 4)
+    public function incrementViews($id)
     {
-        $sql = "SELECT * FROM recruitments 
-                WHERE id != ? AND status = 'open' 
-                ORDER BY created_at DESC 
-                LIMIT ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("ii", $currentId, $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC);
+        $sql = "UPDATE {$this->table} SET views = views + 1 WHERE id = ?";
+        return $this->execute($sql, [$id]);
     }
 
     /**
-     * Tăng lượt xem
+     * Get recruitments by status
      */
-    private function increaseViews($id)
+    public function getByStatus($status)
     {
-        $sql = "UPDATE recruitments SET views = views + 1 WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
+        $sql = "SELECT * FROM {$this->table} WHERE status = ? ORDER BY created_at DESC";
+        return $this->query($sql, [$status]);
     }
 
     /**
-     * Lọc tuyển dụng theo điều kiện
+     * Search recruitments
      */
-    public function filter($conditions = [])
+    public function search($keyword)
     {
-        $sql = "SELECT * FROM recruitments WHERE status = 'open'";
-        $params = [];
-        $types = "";
-
-        if (!empty($conditions['location'])) {
-            $sql .= " AND location LIKE ?";
-            $params[] = "%" . $conditions['location'] . "%";
-            $types .= "s";
-        }
-
-        if (!empty($conditions['position'])) {
-            $sql .= " AND position LIKE ?";
-            $params[] = "%" . $conditions['position'] . "%";
-            $types .= "s";
-        }
-
-        if (!empty($conditions['job_type'])) {
-            $sql .= " AND job_type = ?";
-            $params[] = $conditions['job_type'];
-            $types .= "s";
-        }
-
-        $sql .= " ORDER BY created_at DESC";
-
-        if (!empty($params)) {
-            $stmt = $this->db->prepare($sql);
-            $stmt->bind_param($types, ...$params);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            return $result->fetch_all(MYSQLI_ASSOC);
-        }
-
-        $result = $this->db->query($sql);
-        return $result->fetch_all(MYSQLI_ASSOC);
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE (recruitment_title LIKE ? OR job_description LIKE ?) 
+                AND status = 'open' 
+                ORDER BY created_at DESC";
+        $searchTerm = "%{$keyword}%";
+        return $this->query($sql, [$searchTerm, $searchTerm]);
     }
 }
 
