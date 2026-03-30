@@ -1,228 +1,172 @@
 <?php
-// app/controllers/RecruitmentController.php
-require_once __DIR__ . '/../core/Controller.php';
-require_once __DIR__ . '/../models/Recruitment.php';
+// controllers/RecruitmentController.php
+
+require_once '../core/Controller.php';
+require_once '../models/RecruitmentTitleModel.php';
+require_once '../models/ApplicationModel.php';
 
 class RecruitmentController extends Controller
 {
-    private $recruitmentModel;
+    private $recruitmentTitleModel;
+    private $applicationModel;
 
     public function __construct()
     {
-        $this->recruitmentModel = new Recruitment();
+        $this->recruitmentTitleModel = new RecruitmentTitleModel();
+        $this->applicationModel = new ApplicationModel();
     }
 
     /**
-     * Index page - List all recruitments
+     * Trang danh sách tuyển dụng
      */
     public function index()
     {
-        $recruitments = $this->recruitmentModel->getAllOpen();
+        // Lấy danh sách tuyển dụng đang mở
+        $recruitments = $this->recruitmentTitleModel->getActiveRecruitments();
 
         $data = [
             'recruitments' => $recruitments,
-            'pageTitle' => 'Tuyển dụng - Các vị trí đang tuyển'
+            'title' => 'Tuyển dụng - EMIR'
         ];
 
-        $this->view('Recruitment/recruitment', $data);
+        $this->view('recruitment/recruitment', $data);
     }
 
     /**
-     * Show recruitment detail
+     * Chi tiết tuyển dụng
      */
-    public function show($slug)
+    public function detail($slug)
     {
-        $recruitment = $this->recruitmentModel->getBySlug($slug);
+        // Lấy chi tiết từ bảng recruitment_title
+        $recruitment = $this->recruitmentTitleModel->getDetail($slug);
 
         if (!$recruitment) {
-            // Redirect to 404 page
             header('HTTP/1.0 404 Not Found');
             $this->view('errors/404');
             return;
         }
 
-        // Increment view count
-        $this->recruitmentModel->incrementViews($recruitment['id']);
+        // Tăng lượt xem
+        $this->recruitmentTitleModel->incrementViews($recruitment['id']);
+
+        // Lấy tuyển dụng liên quan
+        $relatedRecruitments = $this->recruitmentTitleModel->getFeaturedRecruitments(4);
+
+        // Current URL for sharing
+        $currentUrl = $this->getCurrentUrl();
 
         $data = [
             'recruitment' => $recruitment,
-            'pageTitle' => $recruitment['recruitment_title']
+            'relatedRecruitments' => $relatedRecruitments,
+            'currentUrl' => $currentUrl,
+            'title' => $recruitment['title'] . ' - EMIR'
         ];
 
-        $this->view('Recruitment/recruitment_title2', $data);
+        $this->view('recruitment/recruitment-title', $data);
     }
 
     /**
-     * Search recruitments
+     * Ứng tuyển
      */
-    public function search()
+    public function apply()
     {
-        $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
-
-        if (empty($keyword)) {
-            header('Location: ' . $this->url('recruitment'));
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /recruitment');
             return;
         }
 
-        $recruitments = $this->recruitmentModel->search($keyword);
+        $recruitmentId = isset($_POST['recruitment_id']) ? (int)$_POST['recruitment_id'] : 0;
+        $fullname = trim($_POST['ten'] ?? '');
+        $phone = trim($_POST['dt'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $content = trim($_POST['noidung'] ?? '');
+        $slug = trim($_POST['slug'] ?? '');
 
-        $data = [
-            'recruitments' => $recruitments,
-            'keyword' => $keyword,
-            'pageTitle' => "Tìm kiếm tuyển dụng: {$keyword}"
-        ];
+        // Validation
+        $errors = [];
 
-        $this->view('Recruitment/search', $data);
-    }
-
-    /**
-     * Admin: List all recruitments
-     */
-    public function adminList()
-    {
-        $recruitments = $this->recruitmentModel->all();
-
-        $data = [
-            'recruitments' => $recruitments,
-            'pageTitle' => 'Quản lý tuyển dụng'
-        ];
-
-        $this->view('admin/recruitment/list', $data);
-    }
-
-    /**
-     * Admin: Create recruitment
-     */
-    public function create()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $this->sanitizeRecruitmentData($_POST);
-
-            // Handle image upload
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $imagePath = $this->uploadImage($_FILES['image']);
-                if ($imagePath) {
-                    $data['image'] = $imagePath;
-                }
-            }
-
-            $id = $this->recruitmentModel->create($data);
-
-            if ($id) {
-                $_SESSION['success'] = 'Thêm tin tuyển dụng thành công';
-                header('Location: ' . $this->url('admin/recruitment'));
-                return;
-            } else {
-                $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại';
-            }
+        if (empty($fullname)) {
+            $errors[] = 'Vui lòng nhập họ tên';
         }
 
-        $this->view('admin/recruitment/create');
-    }
+        if (empty($phone)) {
+            $errors[] = 'Vui lòng nhập số điện thoại';
+        } elseif (!preg_match('/^[0-9]{10,11}$/', $phone)) {
+            $errors[] = 'Số điện thoại không hợp lệ';
+        }
 
-    /**
-     * Admin: Edit recruitment
-     */
-    public function edit($id)
-    {
-        $recruitment = $this->recruitmentModel->find($id);
+        if (empty($email)) {
+            $errors[] = 'Vui lòng nhập email';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Email không hợp lệ';
+        }
 
-        if (!$recruitment) {
-            $_SESSION['error'] = 'Không tìm thấy tin tuyển dụng';
-            header('Location: ' . $this->url('admin/recruitment'));
+        // Xử lý upload CV
+        $cvFile = null;
+        if (isset($_FILES['filechon']) && $_FILES['filechon']['error'] === UPLOAD_ERR_OK) {
+            $allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            $fileType = $_FILES['filechon']['type'];
+
+            if (in_array($fileType, $allowedTypes)) {
+                $uploadDir = 'uploads/cv/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $fileExt = pathinfo($_FILES['filechon']['name'], PATHINFO_EXTENSION);
+                $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9]/', '_', $fullname) . '.' . $fileExt;
+                $cvFile = $uploadDir . $fileName;
+
+                if (!move_uploaded_file($_FILES['filechon']['tmp_name'], $cvFile)) {
+                    $errors[] = 'Không thể upload CV. Vui lòng thử lại.';
+                    $cvFile = null;
+                }
+            } else {
+                $errors[] = 'CV phải là file PDF hoặc Word';
+            }
+        } else {
+            $errors[] = 'Vui lòng upload CV của bạn';
+        }
+
+        // Kiểm tra đã ứng tuyển chưa
+        $ipAddress = $_SERVER['REMOTE_ADDR'];
+        if (empty($errors) && $this->applicationModel->hasApplied($recruitmentId, $email, $ipAddress)) {
+            $errors[] = 'Bạn đã ứng tuyển vị trí này rồi. Vui lòng chờ phản hồi từ chúng tôi.';
+        }
+
+        if (!empty($errors)) {
+            $_SESSION['apply_errors'] = $errors;
+            $_SESSION['apply_data'] = $_POST;
+            header('Location: /recruitment/' . $slug);
             return;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $this->sanitizeRecruitmentData($_POST);
-
-            // Handle image upload
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $imagePath = $this->uploadImage($_FILES['image']);
-                if ($imagePath) {
-                    $data['image'] = $imagePath;
-                }
-            }
-
-            if ($this->recruitmentModel->update($id, $data)) {
-                $_SESSION['success'] = 'Cập nhật tin tuyển dụng thành công';
-                header('Location: ' . $this->url('admin/recruitment'));
-                return;
-            } else {
-                $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại';
-            }
-        }
-
+        // Lưu đơn ứng tuyển
         $data = [
-            'recruitment' => $recruitment,
-            'pageTitle' => 'Chỉnh sửa tin tuyển dụng'
+            'recruitment_id' => $recruitmentId,
+            'fullname' => $fullname,
+            'phone' => $phone,
+            'email' => $email,
+            'content' => $content,
+            'cv_file' => $cvFile,
+            'ip_address' => $ipAddress
         ];
 
-        $this->view('admin/recruitment/edit', $data);
-    }
-
-    /**
-     * Sanitize recruitment data
-     */
-    private function sanitizeRecruitmentData($data)
-    {
-        return [
-            'recruitment_title' => htmlspecialchars($data['recruitment_title']),
-            'slug' => $this->createSlug($data['recruitment_title']),
-            'job_description' => $data['job_description'],
-            'job_requirements' => $data['job_requirements'],
-            'job_benefits' => isset($data['job_benefits']) ? $data['job_benefits'] : null,
-            'location' => htmlspecialchars($data['location']),
-            'deadline' => $data['deadline'],
-            'quantity' => (int)$data['quantity'],
-            'position' => htmlspecialchars($data['position']),
-            'education' => htmlspecialchars($data['education']),
-            'salary_range' => isset($data['salary_range']) ? $data['salary_range'] : null,
-            'experience' => isset($data['experience']) ? $data['experience'] : null,
-            'job_type' => isset($data['job_type']) ? $data['job_type'] : 'fulltime',
-            'status' => isset($data['status']) ? $data['status'] : 'draft'
-        ];
-    }
-
-    /**
-     * Create slug from title
-     */
-    private function createSlug($title)
-    {
-        $slug = preg_replace('/[^a-z0-9]+/i', '-', strtolower($title));
-        $slug = trim($slug, '-');
-        return $slug;
-    }
-
-    /**
-     * Upload image
-     */
-    private function uploadImage($file)
-    {
-        $targetDir = __DIR__ . '/../../public/uploads/recruitment/';
-
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
+        if ($this->applicationModel->save($data)) {
+            $_SESSION['apply_success'] = 'Cảm ơn bạn đã ứng tuyển. Chúng tôi sẽ liên hệ lại sớm nhất!';
+        } else {
+            $_SESSION['apply_error'] = 'Có lỗi xảy ra. Vui lòng thử lại sau.';
         }
 
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $fileName = time() . '-' . uniqid() . '.' . $extension;
-        $targetFile = $targetDir . $fileName;
-
-        if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-            return 'uploads/recruitment/' . $fileName;
-        }
-
-        return false;
+        header('Location: /recruitment/' . $slug);
     }
 
     /**
-     * Generate URL
+     * Lấy URL hiện tại
      */
-    private function url($path)
+    private function getCurrentUrl()
     {
-        return '/' . ltrim($path, '/');
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+        return $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     }
 }
-
-?>

@@ -1,10 +1,10 @@
 <?php
 // controllers/NewsController.php
-require_once __DIR__ . '/../core/Controller.php';
-require_once __DIR__ . '/../models/NewsModel.php';
-require_once __DIR__ . '/../models/NewsTitleModel.php';
-require_once __DIR__ . '/../models/CategoryModel.php';
 
+require_once '../core/Controller.php';
+require_once '../models/NewsModel.php';
+require_once '../models/NewsTitleModel.php';
+require_once '../models/CategoryModel.php';
 
 class NewsController extends Controller
 {
@@ -19,199 +19,85 @@ class NewsController extends Controller
         $this->categoryModel = new CategoryModel();
     }
 
-    public function index()
+    /**
+     * Trang danh sách bài viết
+     */
+    public function index($page = 1)
     {
-        $page = $_GET['page'] ?? 1;
-        $perPage = 10;
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
 
-        $result = $this->newsModel->paginate($page, $perPage, ['status' => 'published']);
+        // Lấy danh sách bài viết
+        $featuredNews = $this->newsModel->getFeaturedNews(2); // 2 bài featured đầu
+        $latestNews = $this->newsModel->getPublishedNews($limit, $offset);
+        $totalNews = count($this->newsModel->getPublishedNews());
+        $totalPages = ceil($totalNews / $limit);
 
-        $this->view('News/News', [
-            'news' => $result['data'],
+        // Lấy danh sách category cho sidebar
+        $categories = $this->categoryModel->getWithNewsCount();
+
+        $data = [
+            'featuredNews' => $featuredNews,
+            'latestNews' => $latestNews,
+            'categories' => $categories,
             'currentPage' => $page,
-            'totalPages' => $result['totalPages'],
-            'total' => $result['total']
-        ]);
+            'totalPages' => $totalPages,
+            'title' => 'Tin tức - EMIR',
+            'description' => 'Cập nhật tin tức tài chính mới nhất'
+        ];
+
+        $this->view('news/news', $data);
     }
 
     /**
-     * Hiển thị chi tiết tin tức
-     * @param string $slug - Slug của bài viết
+     * Chi tiết bài viết
      */
-    public function show($slug)
+    public function detail($slug)
     {
-        // Lấy chi tiết bài viết từ slug
-        $news = $this->newsTitleModel->getNewsDetailBySlug($slug);
+        // Lấy chi tiết bài viết từ news_title
+        $news = $this->newsTitleModel->getNewsDetail($slug);
 
-        // Kiểm tra bài viết tồn tại
         if (!$news) {
+            header('HTTP/1.0 404 Not Found');
             $this->view('errors/404');
             return;
         }
 
-        // Lấy tags của bài viết
+        // Tăng lượt xem
+        $this->newsModel->incrementViews($news['news_id']);
+        $this->newsTitleModel->incrementViews($news['id']);
+
+        // Lấy tags cho bài viết (nếu có)
         $tags = $this->newsTitleModel->getTagsByNewsId($news['news_id']);
 
-        // Lấy comments
-        $comments = $this->newsTitleModel->getCommentsByNewsId($news['news_id'], true);
-
         // Lấy bài viết liên quan
-        $relatedNews = $this->newsTitleModel->getRelatedNews($news['news_id'], 5);
+        $relatedNews = $this->newsTitleModel->getRelatedNews(
+            $news['news_id'],
+            $news['category_id'],
+            5
+        );
 
-        // Lấy bài viết phổ biến
-        $popularNews = $this->newsTitleModel->getPopularNews(5);
+        // Current URL for sharing
+        $currentUrl = $this->getCurrentUrl();
 
-        // Lấy bài viết trước và sau
-        $previousNews = $this->newsTitleModel->getPreviousNews($news['news_id'], $news['publish_date']);
-        $nextNews = $this->newsTitleModel->getNextNews($news['news_id'], $news['publish_date']);
-
-        // Xử lý share count (nếu có share từ URL)
-        if (isset($_GET['shared']) && $_GET['shared'] == 1) {
-            $this->newsTitleModel->updateShareCount($news['news_id']);
-        }
-
-        // Xử lý like (nếu có like từ AJAX)
-        if (isset($_POST['action']) && $_POST['action'] == 'like') {
-            $this->handleLike();
-            return;
-        }
-
-        // Render view
-        $this->view('News/News-title', [
+        $data = [
             'news' => $news,
             'tags' => $tags,
-            'comments' => $comments,
             'relatedNews' => $relatedNews,
-            'popularNews' => $popularNews,
-            'previousNews' => $previousNews,
-            'nextNews' => $nextNews,
-            'baseUrl' => BASE_URL,
-            'currentUrl' => BASE_URL . 'news/' . $slug
-        ]);
+            'currentUrl' => $currentUrl,
+            'title' => $news['meta_title'] ?? $news['title'],
+            'description' => $news['meta_description'] ?? $news['description']
+        ];
+
+        $this->view('news/news-title', $data);
     }
 
     /**
-     * Xử lý like bài viết (AJAX)
+     * Lấy URL hiện tại
      */
-    private function handleLike()
+    private function getCurrentUrl()
     {
-        $newsId = $_POST['news_id'] ?? null;
-        $action = $_POST['like_action'] ?? 'increment';
-
-        if ($newsId) {
-            $result = $this->newsTitleModel->updateLikeCount($newsId, $action === 'increment');
-            echo json_encode(['success' => true]);
-        } else {
-            echo json_encode(['success' => false]);
-        }
-        exit;
-    }
-
-    /**
-     * Xử lý comment
-     */
-    public function comment()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/');
-            return;
-        }
-
-        $data = $this->sanitizeInput($_POST);
-        $newsId = $data['news_id'] ?? null;
-
-        // Validate
-        $errors = $this->validateRequired($data, ['author_name', 'content']);
-
-        if (!empty($errors)) {
-            $_SESSION['comment_errors'] = $errors;
-            $_SESSION['old_comment'] = $data;
-            $this->redirect('/news/' . $data['slug']);
-            return;
-        }
-
-        // Save comment
-        $commentId = $this->newsTitleModel->addComment($newsId, $data);
-
-        if ($commentId) {
-            $_SESSION['comment_success'] = 'Bình luận của bạn đã được gửi và đang chờ duyệt!';
-        } else {
-            $_SESSION['comment_error'] = 'Có lỗi xảy ra. Vui lòng thử lại sau.';
-        }
-
-        $this->redirect('/news/' . $data['slug']);
-    }
-
-    public function category($slug)
-    {
-        $category = $this->categoryModel->getCategoryBySlug($slug);
-
-        if (!$category) {
-            $this->view('errors/404');
-            return;
-        }
-
-        $page = $_GET['page'] ?? 1;
-        $perPage = 10;
-
-        $result = $this->newsModel->paginate($page, $perPage, [
-            'category_id' => $category['id'],
-            'status' => 'published'
-        ]);
-
-        $this->view('news/category', [
-            'category' => $category,
-            'news' => $result['data'],
-            'currentPage' => $page,
-            'totalPages' => $result['totalPages']
-        ]);
-    }
-
-    public function search()
-    {
-        $keyword = $_GET['q'] ?? '';
-
-        if (empty($keyword)) {
-            $this->redirect('/');
-            return;
-        }
-
-        $news = $this->newsModel->searchNews($keyword);
-
-        $this->view('news/search', [
-            'keyword' => $keyword,
-            'news' => $news
-        ]);
-    }
-
-    public function tag($slug)
-    {
-        $tag = $this->newsTitleModel->getTagBySlug($slug);
-
-        if (!$tag) {
-            $this->view('errors/404');
-            return;
-        }
-
-        $page = $_GET['page'] ?? 1;
-        $perPage = 10;
-        $offset = ($page - 1) * $perPage;
-
-        $sql = "SELECT nt.*, n.publish_date 
-                FROM news_title nt
-                INNER JOIN news n ON nt.news_id = n.id
-                INNER JOIN news_tag_relations tr ON n.id = tr.news_id
-                WHERE tr.tag_id = ? AND nt.status = 'published'
-                ORDER BY n.publish_date DESC
-                LIMIT ? OFFSET ?";
-
-        $news = $this->db->fetchAll($sql, [$tag['id'], $perPage, $offset]);
-
-        $this->view('news/tag', [
-            'tag' => $tag,
-            'news' => $news,
-            'currentPage' => $page,
-            'perPage' => $perPage
-        ]);
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+        return $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     }
 }
