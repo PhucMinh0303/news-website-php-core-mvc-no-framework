@@ -1,97 +1,31 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
 
-// core/Database.php
 class Database
 {
-    private static $instance = null;
-    private $connection;
+    private $host = DB_HOST;
+    private $db_name = DB_NAME;
+    private $username = DB_USER;
+    private $password = DB_PASS;
+    public $conn;
 
-    private function __construct()
+    public function connect()
     {
-        $config = require __DIR__ . '/../config/database.php';
+        $this->conn = null;
 
         try {
-            $dsn = sprintf(
-                "mysql:host=%s;dbname=%s;charset=%s",
-                $config['host'],
-                $config['dbname'],
-                $config['charset']
+            $this->conn = new PDO(
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                $this->username,
+                $this->password
             );
 
-            $this->connection = new PDO(
-                $dsn,
-                $config['username'],
-                $config['password'],
-                $config['options']
-            );
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         } catch (PDOException $e) {
-            die("❌ Kết nối thất bại: " . $e->getMessage());
-        }
-    }
-
-    public static function getInstance()
-    {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
-
-    public function getConnection()
-    {
-        return $this->connection;
-    }
-
-    public function query($sql, $params = [])
-    {
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute($params);
-        return $stmt;
-    }
-
-    public function fetchAll($sql, $params = [])
-    {
-        $stmt = $this->query($sql, $params);
-        return $stmt->fetchAll();
-    }
-
-    public function fetchOne($sql, $params = [])
-    {
-        $stmt = $this->query($sql, $params);
-        return $stmt->fetch();
-    }
-
-    public function insert($table, $data)
-    {
-        $fields = array_keys($data);
-        $placeholders = array_fill(0, count($fields), '?');
-
-        $sql = sprintf(
-            "INSERT INTO %s (%s) VALUES (%s)",
-            $table,
-            implode(', ', $fields),
-            implode(', ', $placeholders)
-        );
-
-        $this->query($sql, array_values($data));
-        return $this->connection->lastInsertId();
-    }
-
-    public function update($table, $data, $where, $whereParams = [])
-    {
-        $set = [];
-        foreach ($data as $field => $value) {
-            $set[] = "$field = ?";
+            echo "Connection Error: " . $e->getMessage();
         }
 
-        $sql = sprintf(
-            "UPDATE %s SET %s WHERE %s",
-            $table,
-            implode(', ', $set),
-            $where
-        );
-
-        $params = array_merge(array_values($data), $whereParams);
-        return $this->query($sql, $params)->rowCount();
+        return $this->conn;
     }
 }
