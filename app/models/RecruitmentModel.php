@@ -1,74 +1,89 @@
 <?php
-// app/models/Recruitment.php
-require_once __DIR__ . '/../core/Model.php';
+// models/RecruitmentModel.php
 
-class Recruitment extends Model
+require_once '../core/Model.php';
+
+class RecruitmentModel extends Model
 {
     protected $table = 'recruitments';
-    protected $primaryKey = 'id';
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
     /**
-     * Get all open recruitments
+     * Lấy danh sách tin tuyển dụng đang mở
      */
-    public function getAllOpen()
+    public function getOpenRecruitments($limit = null)
     {
-        $sql = "SELECT * FROM {$this->table} 
+        $sql = "SELECT * FROM recruitments 
                 WHERE status = 'open' 
                 AND deadline >= CURDATE() 
                 ORDER BY created_at DESC";
-        return $this->query($sql);
+
+        if ($limit) {
+            $sql .= " LIMIT :limit";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        } else {
+            $stmt = $this->db->prepare($sql);
+        }
+
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     /**
-     * Get recruitment by slug
+     * Lấy chi tiết tin tuyển dụng
      */
-    public function getBySlug($slug)
+    public function getRecruitmentDetail($slug)
     {
-        $sql = "SELECT * FROM {$this->table} WHERE slug = ?";
-        $result = $this->query($sql, [$slug]);
-        return $result ? $result[0] : null;
+        $sql = "SELECT * FROM recruitments WHERE slug = :slug";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['slug' => $slug]);
+        return $stmt->fetch();
     }
 
     /**
-     * Get recruitment by ID
-     */
-    public function getById($id)
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
-        $result = $this->query($sql, [$id]);
-        return $result ? $result[0] : null;
-    }
-
-    /**
-     * Increment view count
+     * Tăng lượt xem
      */
     public function incrementViews($id)
     {
-        $sql = "UPDATE {$this->table} SET views = views + 1 WHERE id = ?";
-        return $this->execute($sql, [$id]);
+        $sql = "UPDATE recruitments SET views = views + 1 WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute(['id' => $id]);
     }
 
     /**
-     * Get recruitments by status
-     */
-    public function getByStatus($status)
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE status = ? ORDER BY created_at DESC";
-        return $this->query($sql, [$status]);
-    }
-
-    /**
-     * Search recruitments
+     * Tìm kiếm tuyển dụng
      */
     public function search($keyword)
     {
-        $sql = "SELECT * FROM {$this->table} 
-                WHERE (recruitment_title LIKE ? OR job_description LIKE ?) 
-                AND status = 'open' 
+        $sql = "SELECT * FROM recruitments 
+                WHERE status = 'open' 
+                AND (recruitment_title LIKE :keyword 
+                     OR position LIKE :keyword 
+                     OR location LIKE :keyword)
                 ORDER BY created_at DESC";
-        $searchTerm = "%{$keyword}%";
-        return $this->query($sql, [$searchTerm, $searchTerm]);
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['keyword' => "%{$keyword}%"]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Lọc theo vị trí
+     */
+    public function filterByPosition($position)
+    {
+        $sql = "SELECT * FROM recruitments 
+                WHERE status = 'open' 
+                AND position = :position 
+                ORDER BY created_at DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['position' => $position]);
+        return $stmt->fetchAll();
     }
 }
-
-?>

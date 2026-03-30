@@ -3,8 +3,9 @@
  * Product Model - Handles product data
  */
 
-class Product extends Model {
-    
+class ProductModel extends Model
+{
+
     protected static $data = [
         [
             'id' => 1,
@@ -37,11 +38,12 @@ class Product extends Model {
             'description' => 'Tư vấn chuyên sâu về dự án M&A',
         ],
     ];
-    
+
     /**
      * Get product by slug
      */
-    public static function getBySlug($slug) {
+    public static function getBySlug($slug)
+    {
         return static::getBy('slug', $slug);
     }
 }

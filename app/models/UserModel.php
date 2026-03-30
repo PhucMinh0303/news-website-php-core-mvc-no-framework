@@ -13,9 +13,12 @@ class UserModel
     }
 
     // Lấy tất cả user
-    public function getAll()
+    public function getUsers()
     {
-        $stmt = $this->db->query("SELECT * FROM users");
+        $query = "SELECT * FROM users";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
