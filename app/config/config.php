@@ -3,6 +3,12 @@
  * Application Configuration
  */
 
+// Database Configuration
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'quanly_tintuc');
+define('DB_USER', 'capitalam');
+define('DB_PASS', '123456');
+
 // Define application paths
 define('ROOT_PATH', dirname(dirname(dirname(__FILE__))) . '/');
 define('APP_PATH', ROOT_PATH . 'app/');
