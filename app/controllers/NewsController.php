@@ -1,103 +1,36 @@
 <?php
-// controllers/NewsController.php
+/**
+ * News Controller - Handles news pages
+ */
 
-require_once '../core/Controller.php';
-require_once '../models/NewsModel.php';
-require_once '../models/NewsTitleModel.php';
-require_once '../models/CategoryModel.php';
+require_once __DIR__ . '/../core/Controller.php';
+require_once __DIR__ . '/../models/NewsModel.php';
+require_once __DIR__ . '/../models/NewsTitleModel.php';
+require_once __DIR__ . '/../models/CategoryModel.php';
+
 
 class NewsController extends Controller
 {
-    private $newsModel;
-    private $newsTitleModel;
-    private $categoryModel;
-
-    public function __construct()
+    public function index()
     {
-        $this->newsModel = new NewsModel();
-        $this->newsTitleModel = new NewsTitleModel();
-        $this->categoryModel = new CategoryModel();
+        $this->setPageTitle('Tin tức');
+
+        // In a real app, would load from database via NewsModel
+        $this->setData('newsItems', [
+            ['id' => 1, 'title' => 'Tin tức 1'],
+            ['id' => 2, 'title' => 'Tin tức 2'],
+        ]);
+
+        $this->view('News/News');
     }
 
-    /**
-     * Trang danh sách bài viết
-     */
-    public function index($page = 1)
+    public function show($id)
     {
-        $limit = 10;
-        $offset = ($page - 1) * $limit;
-
-        // Lấy danh sách bài viết
-        $featuredNews = $this->newsModel->getFeaturedNews(2); // 2 bài featured đầu
-        $latestNews = $this->newsModel->getPublishedNews($limit, $offset);
-        $totalNews = count($this->newsModel->getPublishedNews());
-        $totalPages = ceil($totalNews / $limit);
-
-        // Lấy danh sách category cho sidebar
-        $categories = $this->categoryModel->getWithNewsCount();
-
-        $data = [
-            'featuredNews' => $featuredNews,
-            'latestNews' => $latestNews,
-            'categories' => $categories,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'title' => 'Tin tức - EMIR',
-            'description' => 'Cập nhật tin tức tài chính mới nhất'
-        ];
-
-        $this->view('news/news', $data);
-    }
-
-    /**
-     * Chi tiết bài viết
-     */
-    public function detail($slug)
-    {
-        // Lấy chi tiết bài viết từ news_title
-        $news = $this->newsTitleModel->getNewsDetail($slug);
-
-        if (!$news) {
-            header('HTTP/1.0 404 Not Found');
-            $this->view('errors/404');
-            return;
-        }
-
-        // Tăng lượt xem
-        $this->newsModel->incrementViews($news['news_id']);
-        $this->newsTitleModel->incrementViews($news['id']);
-
-        // Lấy tags cho bài viết (nếu có)
-        $tags = $this->newsTitleModel->getTagsByNewsId($news['news_id']);
-
-        // Lấy bài viết liên quan
-        $relatedNews = $this->newsTitleModel->getRelatedNews(
-            $news['news_id'],
-            $news['category_id'],
-            5
-        );
-
-        // Current URL for sharing
-        $currentUrl = $this->getCurrentUrl();
-
-        $data = [
-            'news' => $news,
-            'tags' => $tags,
-            'relatedNews' => $relatedNews,
-            'currentUrl' => $currentUrl,
-            'title' => $news['meta_title'] ?? $news['title'],
-            'description' => $news['meta_description'] ?? $news['description']
-        ];
-
-        $this->view('news/news-title', $data);
-    }
-
-    /**
-     * Lấy URL hiện tại
-     */
-    private function getCurrentUrl()
-    {
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        return $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        // Load specific news item
+        $this->setPageTitle('Chi tiết tin tức');
+        $this->setData('newsId', $id);
+        $this->render('News/News-title');
     }
 }
+
+?>

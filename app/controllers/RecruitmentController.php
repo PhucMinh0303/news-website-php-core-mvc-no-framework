@@ -1,9 +1,9 @@
 <?php
 // controllers/RecruitmentController.php
 
-require_once '../core/Controller.php';
-require_once '../models/RecruitmentTitleModel.php';
-require_once '../models/ApplicationModel.php';
+require_once __DIR__ . '/../core/Controller.php';
+require_once __DIR__ . '/../models/RecruitmentTitleModel.php';
+require_once __DIR__ . '/../models/ApplicationModel.php';
 
 class RecruitmentController extends Controller
 {
