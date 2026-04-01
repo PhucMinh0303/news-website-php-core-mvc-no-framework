@@ -1,29 +1,8 @@
 <?php
-// config/database.php
 
-class Database
-{
-    private $host = 'localhost';
-    private $dbname = 'quanly_tintuc';
-    private $username = 'capitalam';
-    private $password = '123456';
-    private $charset = 'utf8mb4';
-    private $conn;
-
-    public function __construct()
-    {
-        try {
-            $dsn = "mysql:host={$this->host};dbname={$this->dbname};charset={$this->charset}";
-            $this->conn = new PDO($dsn, $this->username, $this->password);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            die("Connection failed: " . $e->getMessage());
-        }
-    }
-
-    public function getConnection()
-    {
-        return $this->conn;
-    }
-}
+// Cấu hình kết nối database
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'quanly_tintuc'); // Tên database trong phpMyAdmin
+define('DB_USER', 'capitalam');               // Username MySQL
+define('DB_PASS', '123456');                   // Password MySQL
+define('DB_CHARSET', 'utf8mb4');
