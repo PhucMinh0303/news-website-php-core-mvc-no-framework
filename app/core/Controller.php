@@ -200,7 +200,7 @@ class Controller
     {
         require_once '../app/models/' . $model . '.php';
         return new $model;
-        
+
     }
 
     protected function view($view, $data = [])
