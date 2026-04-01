@@ -1,162 +1,71 @@
 <?php
-namespace App\Models;
+require_once __DIR__ . '/../config/Database.php';
 
-use App\Core\Database;
-use PDO;
-
-abstract class BaseModel
+class BaseModel
 {
-    protected $table;
-    protected $primaryKey = 'id';
     protected $db;
-    
+    protected $connection;
+
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        $this->db = new Database();
+        $this->connection = $this->db->getConnection();
     }
-    
-    // CRUD Operations
-    public function all($columns = ['*'])
+
+    public function __destruct()
     {
-        $columns = implode(', ', $columns);
-        $sql = "SELECT {$columns} FROM {$this->table}";
-        return $this->db->select($sql);
+        $this->db->closeConnection();
     }
-    
-    public function find($id)
+
+    // Phương thức lấy dữ liệu (SELECT)
+    protected function select($sql, $params = [], $types = "")
     {
-        $sql = "SELECT * FROM {$this->table} WHERE {$this->primaryKey} = :id";
-        return $this->db->selectOne($sql, ['id' => $id]);
-    }
-    
-    public function findBy($column, $value)
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE {$column} = :value";
-        return $this->db->selectOne($sql, ['value' => $value]);
-    }
-    
-    public function create(array $data)
-    {
-        return $this->db->insert($this->table, $data);
-    }
-    
-    public function update($id, array $data)
-    {
-        $where = "{$this->primaryKey} = :id";
-        return $this->db->update($this->table, $data, $where, ['id' => $id]);
-    }
-    
-    public function delete($id)
-    {
-        $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id";
-        return $this->db->query($sql, ['id' => $id]);
-    }
-    
-    // Query Builder Methods
-    public function where($column, $operator, $value = null)
-    {
-        if (func_num_args() === 2) {
-            $value = $operator;
-            $operator = '=';
+        $stmt = $this->connection->prepare($sql);
+
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
         }
-        
-        $this->whereClauses[] = [
-            'column' => $column,
-            'operator' => $operator,
-            'value' => $value,
-            'type' => 'AND'
-        ];
-        
-        return $this;
-    }
-    
-    public function orWhere($column, $operator, $value = null)
-    {
-        if (func_num_args() === 2) {
-            $value = $operator;
-            $operator = '=';
+
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $data = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;
         }
-        
-        $this->whereClauses[] = [
-            'column' => $column,
-            'operator' => $operator,
-            'value' => $value,
-            'type' => 'OR'
-        ];
-        
-        return $this;
+
+        $stmt->close();
+        return $data;
     }
-    
-    public function get($columns = ['*'])
+
+    // Phương thức lấy 1 dòng duy nhất
+    protected function selectOne($sql, $params = [], $types = "")
     {
-        $columns = implode(', ', $columns);
-        $sql = "SELECT {$columns} FROM {$this->table}";
-        
-        if (!empty($this->whereClauses)) {
-            $sql .= " WHERE ";
-            $whereParts = [];
-            
-            foreach ($this->whereClauses as $index => $where) {
-                if ($index === 0) {
-                    $whereParts[] = "{$where['column']} {$where['operator']} :where_{$index}";
-                } else {
-                    $whereParts[] = "{$where['type']} {$where['column']} {$where['operator']} :where_{$index}";
-                }
-                $params["where_{$index}"] = $where['value'];
-            }
-            
-            $sql .= implode(' ', $whereParts);
-            $result = $this->db->select($sql, $params);
-        } else {
-            $result = $this->db->select($sql);
-        }
-        
-        // Reset clauses
-        $this->whereClauses = [];
-        
-        return $result;
+        $result = $this->select($sql, $params, $types);
+        return $result[0] ?? null;
     }
-    
-    // Pagination
-    public function paginate($perPage = 15, $currentPage = null)
+
+    // Phương thức thực thi (INSERT, UPDATE, DELETE)
+    protected function execute($sql, $params = [], $types = "")
     {
-        $currentPage = $currentPage ?: ($_GET['page'] ?? 1);
-        $offset = ($currentPage - 1) * $perPage;
-        
-        // Get total count
-        $total = $this->count();
-        
-        // Get paginated results
-        $sql = "SELECT * FROM {$this->table}";
-        
-        if (!empty($this->whereClauses)) {
-            $sql .= " WHERE ";
-            // ... build where clauses
+        $stmt = $this->connection->prepare($sql);
+
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
         }
-        
-        $sql .= " LIMIT {$perPage} OFFSET {$offset}";
-        
-        $items = $this->db->select($sql);
-        
+
+        $result = $stmt->execute();
+        $insertId = $stmt->insert_id;
+        $affectedRows = $stmt->affected_rows;
+
+        $stmt->close();
+
         return [
-            'data' => $items,
-            'current_page' => (int)$currentPage,
-            'per_page' => $perPage,
-            'total' => $total,
-            'last_page' => ceil($total / $perPage)
+            'success' => $result,
+            'insert_id' => $insertId,
+            'affected_rows' => $affectedRows
         ];
-    }
-    
-    public function count()
-    {
-        $sql = "SELECT COUNT(*) as count FROM {$this->table}";
-        
-        if (!empty($this->whereClauses)) {
-            $sql .= " WHERE ";
-            // ... build where clauses
-        }
-        
-        $result = $this->db->selectOne($sql);
-        return (int)$result['count'];
     }
 }
+
+?>

@@ -1,89 +1,82 @@
 <?php
-// models/RecruitmentModel.php
+require_once __DIR__ . '/BaseModel.php';
 
-require_once '../core/Model.php';
-
-class RecruitmentModel extends Model
+class RecruitmentModel extends BaseModel
 {
-    protected $table = 'recruitments';
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
-     * Lấy danh sách tin tuyển dụng đang mở
-     */
-    public function getOpenRecruitments($limit = null)
+    // Lấy tất cả tuyển dụng đang mở
+    public function getAllOpenRecruitments($limit = 10, $offset = 0)
     {
         $sql = "SELECT * FROM recruitments 
                 WHERE status = 'open' 
-                AND deadline >= CURDATE() 
-                ORDER BY created_at DESC";
+                ORDER BY created_at DESC
+                LIMIT ? OFFSET ?";
 
-        if ($limit) {
-            $sql .= " LIMIT :limit";
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        } else {
-            $stmt = $this->db->prepare($sql);
-        }
-
-        $stmt->execute();
-        return $stmt->fetchAll();
+        return $this->select($sql, [$limit, $offset], "ii");
     }
 
-    /**
-     * Lấy chi tiết tin tuyển dụng
-     */
-    public function getRecruitmentDetail($slug)
+    // Lấy chi tiết tuyển dụng theo slug
+    public function getRecruitmentBySlug($slug)
     {
-        $sql = "SELECT * FROM recruitments WHERE slug = :slug";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['slug' => $slug]);
-        return $stmt->fetch();
+        $sql = "SELECT * FROM recruitments WHERE slug = ?";
+        return $this->selectOne($sql, [$slug], "s");
     }
 
-    /**
-     * Tăng lượt xem
-     */
-    public function incrementViews($id)
+    // Lấy chi tiết tuyển dụng theo slug từ bảng recruitment_title
+    public function getRecruitmentTitleBySlug($slug)
     {
-        $sql = "UPDATE recruitments SET views = views + 1 WHERE id = :id";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute(['id' => $id]);
+        $sql = "SELECT * FROM recruitment_title WHERE slug = ? AND status = 1";
+        return $this->selectOne($sql, [$slug], "s");
     }
 
-    /**
-     * Tìm kiếm tuyển dụng
-     */
-    public function search($keyword)
+    // Lấy tuyển dụng nổi bật
+    public function getFeaturedRecruitments($limit = 5)
     {
-        $sql = "SELECT * FROM recruitments 
-                WHERE status = 'open' 
-                AND (recruitment_title LIKE :keyword 
-                     OR position LIKE :keyword 
-                     OR location LIKE :keyword)
-                ORDER BY created_at DESC";
+        $sql = "SELECT * FROM recruitment_title 
+                WHERE status = 1 AND featured = 1
+                ORDER BY created_at DESC
+                LIMIT ?";
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['keyword' => "%{$keyword}%"]);
-        return $stmt->fetchAll();
+        return $this->select($sql, [$limit], "i");
     }
 
-    /**
-     * Lọc theo vị trí
-     */
-    public function filterByPosition($position)
+    // Tăng lượt xem tuyển dụng
+    public function incrementViews($recruitmentId, $table = 'recruitments')
+    {
+        $sql = "UPDATE {$table} SET views = views + 1 WHERE id = ?";
+        return $this->execute($sql, [$recruitmentId], "i");
+    }
+
+    // Lọc tuyển dụng theo vị trí
+    public function getRecruitmentsByPosition($position, $limit = 10)
     {
         $sql = "SELECT * FROM recruitments 
-                WHERE status = 'open' 
-                AND position = :position 
-                ORDER BY created_at DESC";
+                WHERE status = 'open' AND position LIKE ?
+                ORDER BY created_at DESC
+                LIMIT ?";
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['position' => $position]);
-        return $stmt->fetchAll();
+        $position = "%{$position}%";
+        return $this->select($sql, [$position, $limit], "si");
+    }
+
+    // Lọc tuyển dụng theo địa điểm
+    public function getRecruitmentsByLocation($location, $limit = 10)
+    {
+        $sql = "SELECT * FROM recruitments 
+                WHERE status = 'open' AND location LIKE ?
+                ORDER BY created_at DESC
+                LIMIT ?";
+
+        $location = "%{$location}%";
+        return $this->select($sql, [$location, $limit], "si");
+    }
+
+    // Lấy danh sách vị trí tuyển dụng (để lọc)
+    public function getDistinctPositions()
+    {
+        $sql = "SELECT DISTINCT position FROM recruitments WHERE status = 'open' ORDER BY position";
+        return $this->select($sql);
     }
 }
+
+?>

@@ -1,48 +1,42 @@
 <?php
-// models/CategoryModel.php
+require_once __DIR__ . '/BaseModel.php';
 
-require_once '../core/Model.php';
-
-class CategoryModel extends Model
+class CategoryModel extends BaseModel
 {
-    protected $table = 'categories';
 
-    public function __construct()
+    // Lấy tất cả danh mục
+    public function getAllCategories()
     {
-        parent::__construct();
+        $sql = "SELECT * FROM categories ORDER BY name ASC";
+        return $this->select($sql);
     }
 
-    public function findAll()
+    // Lấy danh mục theo slug
+    public function getCategoryBySlug($slug)
     {
-        $stmt = $this->db->prepare("SELECT * FROM categories ORDER BY name");
-        $stmt->execute();
-        return $stmt->fetchAll();
+        $sql = "SELECT * FROM categories WHERE slug = ?";
+        return $this->selectOne($sql, [$slug], "s");
     }
 
-    public function findById($id)
+    // Lấy danh mục theo ID
+    public function getCategoryById($id)
     {
-        $stmt = $this->db->prepare("SELECT * FROM categories WHERE id = :id");
-        $stmt->execute(['id' => $id]);
-        return $stmt->fetch();
+        $sql = "SELECT * FROM categories WHERE id = ?";
+        return $this->selectOne($sql, [$id], "i");
     }
 
-    public function findBySlug($slug)
+    // Lấy danh mục có tin tức
+    public function getCategoriesWithNews()
     {
-        $stmt = $this->db->prepare("SELECT * FROM categories WHERE slug = :slug");
-        $stmt->execute(['slug' => $slug]);
-        return $stmt->fetch();
-    }
+        $sql = "SELECT DISTINCT c.*, COUNT(n.id) as news_count
+                FROM categories c
+                LEFT JOIN news n ON c.id = n.category_id AND n.status = 'published'
+                GROUP BY c.id
+                HAVING news_count > 0
+                ORDER BY c.name ASC";
 
-    public function getWithNewsCount()
-    {
-        $sql = "SELECT c.*, COUNT(n.id) as news_count 
-                FROM categories c 
-                LEFT JOIN news n ON c.id = n.category_id AND n.status = 'published' 
-                GROUP BY c.id 
-                ORDER BY c.name";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll();
+        return $this->select($sql);
     }
 }
+
+?>
