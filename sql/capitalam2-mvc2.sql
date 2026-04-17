@@ -890,6 +890,9 @@ CREATE TABLE IF NOT EXISTS news_title
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
+
+
+
 -- Tạo index cho news_title
 CREATE INDEX idx_news_title_slug ON news_title (slug);
 CREATE INDEX idx_news_title_status ON news_title (status);

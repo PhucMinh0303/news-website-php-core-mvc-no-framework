@@ -3,9 +3,11 @@
  * Admin Controller - Handles homepage
  */
 
-class AdminController extends Controller {
-    
-    public function index() {
+class AdminController extends Controller
+{
+
+    public function index()
+    {
         $this->setPageTitle('Admin Panel');
         $this->render('admin/admin');
     }
@@ -13,7 +15,8 @@ class AdminController extends Controller {
     /**
      * Return the admin sidebar menu (for AJAX/partial loading)
      */
-    public function menu() {
+    public function menu()
+    {
         // Render without layout
         $this->render('admin/menu/menu', false);
     }
@@ -23,11 +26,12 @@ class AdminController extends Controller {
      *
      * @param string $page
      */
-    public function main($page = 'dashboard') {
+    public function main($page = 'dashboard')
+    {
         $allowedPages = [
             'dashboard' => 'admin/main/dashboard_admin',
-            'articles' => 'admin/main/articles_admin',
-            'add-articles' => 'admin/main/post/add_articles',
+            'news' => 'admin/main/news_admin',
+            'add-news' => 'admin/main/post/add_news',
             'add-recruitment' => 'admin/main/post/add_recruitment',
             'recruitment' => 'admin/main/recruitment_admin',
             'contact' => 'admin/main/contact_admin',
@@ -40,4 +44,5 @@ class AdminController extends Controller {
         $this->render($view, false);
     }
 }
+
 ?>

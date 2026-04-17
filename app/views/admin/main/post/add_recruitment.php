@@ -1,171 +1,322 @@
 <?php
 /**
- * add recruitment management view for admin panel
- * Xử lý thêm tin tuyển dụng mới
+ * add_recruitment.php - View thêm tin tuyển dụng mới trong admin panel
+ * Chỉ hiển thị form, không xử lý logic (logic đã chuyển sang RecruitmentController)
  */
 
-require_once __DIR__ . '/../model/Re.php';
+/* Kiểm tra đăng nhập admin - Đảm bảo chỉ admin mới có quyền truy cập trang này
+session_start();
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header('Location: /admin/login');
+    exit;
+}*/
 
-$database = new Database();
-$conn = $database->getConnection();
+// Lấy dữ liệu từ session (nếu có lỗi từ controller)
+$formData = $_SESSION['form_data'] ?? [];
+$errors = $_SESSION['errors'] ?? [];
+$success = $_SESSION['success'] ?? '';
 
-$error = '';
-$success = '';
-
-// Xử lý khi form được submit
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Lấy dữ liệu từ form
-    $recruitment_title = trim($_POST['recruitment_title'] ?? '');
-    $slug = trim($_POST['slug'] ?? '');
-    $location = trim($_POST['location'] ?? '');
-    $education = trim($_POST['education'] ?? 'Cao Đẳng - Đại Học');
-    $quantity = (int)($_POST['quantity'] ?? 1);
-    $salary_range = trim($_POST['salary_range'] ?? '');
-    $deadline = $_POST['deadline'] ?? '';
-    $job_description = $_POST['job_description'] ?? '';
-    $job_requirements = $_POST['job_requirements'] ?? '';
-    $job_benefits = $_POST['job_benefits'] ?? '';
-    $status = $_POST['status'] ?? 'draft';
-    $position = trim($_POST['position'] ?? '');
-    $experience = trim($_POST['experience'] ?? '');
-    $job_type = $_POST['job_type'] ?? 'fulltime';
-
-    // Xử lý upload ảnh
-    $image = 'default-job.webp';
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $upload_dir = __DIR__ . '/../uploads/';
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
-        }
-
-        $file_extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-        $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-
-        if (in_array($file_extension, $allowed_extensions)) {
-            $new_filename = uniqid() . '_' . date('YmdHis') . '.' . $file_extension;
-            $upload_path = $upload_dir . $new_filename;
-
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
-                $image = $new_filename;
-            }
-        }
-    }
-
-    // Validate dữ liệu
-    $errors = [];
-    if (empty($recruitment_title)) {
-        $errors[] = "Vui lòng nhập tiêu đề tin tuyển dụng";
-    }
-    if (empty($slug)) {
-        $slug = createSlug($recruitment_title);
-    }
-    if (empty($deadline)) {
-        $errors[] = "Vui lòng chọn hạn nộp hồ sơ";
-    }
-    if (empty($job_description)) {
-        $errors[] = "Vui lòng nhập mô tả công việc";
-    }
-    if (empty($job_requirements)) {
-        $errors[] = "Vui lòng nhập yêu cầu ứng viên";
-    }
-
-    // Kiểm tra slug đã tồn tại chưa
-    $check_slug = $database->fetchOne("SELECT id FROM recruitments WHERE slug = :slug", [':slug' => $slug]);
-    if ($check_slug) {
-        $slug = $slug . '-' . uniqid();
-    }
-
-    if (empty($errors)) {
-        try {
-            $data = [
-                    ':recruitment_title' => $recruitment_title,
-                    ':slug' => $slug,
-                    ':job_description' => $job_description,
-                    ':job_requirements' => $job_requirements,
-                    ':job_benefits' => $job_benefits,
-                    ':image' => $image,
-                    ':salary_range' => $salary_range,
-                    ':location' => $location,
-                    ':deadline' => $deadline,
-                    ':quantity' => $quantity,
-                    ':position' => $position,
-                    ':experience' => $experience,
-                    ':education' => $education,
-                    ':job_type' => $job_type,
-                    ':status' => $status,
-                    ':views' => 0
-            ];
-
-            $sql = "INSERT INTO recruitments (recruitment_title, slug, job_description, job_requirements, 
-                    job_benefits, image, salary_range, location, deadline, quantity, position, 
-                    experience, education, job_type, status, views, created_at, updated_at) 
-                    VALUES (:recruitment_title, :slug, :job_description, :job_requirements, 
-                    :job_benefits, :image, :salary_range, :location, :deadline, :quantity, :position, 
-                    :experience, :education, :job_type, :status, :views, NOW(), NOW())";
-
-            $stmt = $conn->prepare($sql);
-            $stmt->execute($data);
-
-            $new_id = $conn->lastInsertId();
-            $success = "Đăng tin tuyển dụng thành công! ID: " . $new_id;
-
-            // Reset form sau khi thành công
-            if (isset($_POST['save_and_continue'])) {
-                // Không reset, tiếp tục chỉnh sửa
-            } else {
-                // Chuyển hướng về danh sách sau 2 giây
-                echo "<script>
-                    setTimeout(function() {
-                        window.location.href = '?page=recruitment';
-                    }, 2000);
-                </script>";
-            }
-
-        } catch (PDOException $e) {
-            $error = "Lỗi khi lưu dữ liệu: " . $e->getMessage();
-        }
-    } else {
-        $error = implode("<br>", $errors);
-    }
-}
-
-// Hàm tạo slug từ string
-function createSlug($string)
-{
-    $string = preg_replace('/[^a-zA-Z0-9\s]/', '', $string);
-    $string = preg_replace('/\s+/', '-', $string);
-    $string = strtolower(trim($string));
-    return $string;
-}
-
-// Hàm lấy text status
-function getStatusText($status)
-{
-    $statuses = [
-            'draft' => 'Bản nháp',
-            'open' => 'Đang đăng',
-            'closed' => 'Đã đóng',
-            'filled' => 'Đã tuyển đủ'
-    ];
-    return $statuses[$status] ?? $status;
-}
-
+// Xóa session data sau khi lấy
+unset($_SESSION['form_data']);
+unset($_SESSION['errors']);
+unset($_SESSION['success']);
 ?>
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng tin tuyển dụng - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #1f2937;
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .add-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .add-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .label-row label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .ai-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ai-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-title, .input-slug, .input-location {
+            font-size: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        small {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .bottom-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+            padding-top: 20px;
+            border-top: 2px solid #f3f4f6;
+        }
+
+        .publish-settings h3, .thumbnail-box .thumb-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #374151;
+        }
+
+        .thumbnail-box .thumb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+
+        .upload-box:hover {
+            border-color: #667eea;
+            background: #f3f4f6;
+        }
+
+        #uploadIcon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        #uploadText {
+            color: #4b5563;
+            margin-bottom: 8px;
+        }
+
+        #uploadInfo {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-draft, .btn-publish, .btn-secondary {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-draft {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-draft:hover {
+            background: #4b5563;
+        }
+
+        .btn-publish {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-publish:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        .cancel-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .cancel-text:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            margin: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #10b981;
+            border-left: 4px solid #10b981;
+        }
+
+        .error-text {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .toast-error {
+            background: #ef4444;
+            color: white;
+        }
+
+        .toast-info {
+            background: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
 
 <main class="main">
 
-    <!-- Hiển thị thông báo -->
-    <?php if ($error): ?>
-        <div class="alert alert-error"
-             style="background: #fee2e2; color: #ef4444; padding: 12px 20px; margin: 20px; border-radius: 8px; border-left: 4px solid #ef4444;">
-            <?php echo $error; ?>
+    <!-- Hiển thị thông báo lỗi -->
+    <?php if (!empty($errors)): ?>
+        <div class="alert alert-error">
+            <?php foreach ($errors as $error): ?>
+                <div>• <?php echo htmlspecialchars($error); ?></div>
+            <?php endforeach; ?>
         </div>
     <?php endif; ?>
 
+    <!-- Hiển thị thông báo thành công -->
     <?php if ($success): ?>
-        <div class="alert alert-success"
-             style="background: #dcfce7; color: #10b981; padding: 12px 20px; margin: 20px; border-radius: 8px; border-left: 4px solid #10b981;">
-            <?php echo $success; ?>
+        <div class="alert alert-success">
+            <?php echo htmlspecialchars($success); ?>
         </div>
     <?php endif; ?>
 
@@ -174,7 +325,8 @@ function getStatusText($status)
         TRANG ADMIN - ĐĂNG TIN TUYỂN DỤNG
     </div>
 
-    <form method="POST" action="" enctype="multipart/form-data" id="recruitmentForm">
+    <!-- FORM - action gọi đến controller -->
+    <form method="POST" action="/admin/recruitment/store" enctype="multipart/form-data" id="recruitmentForm">
         <div class="add-container">
 
             <!-- TITLE -->
@@ -184,84 +336,81 @@ function getStatusText($status)
                     <span class="ai-btn" type="button" onclick="generateAITitle()">✨ Gợi ý bằng AI</span>
                 </div>
                 <input class="input-title" type="text" name="recruitment_title" id="recruitment_title"
-                       placeholder="[ Nhập tiêu đề tin tuyển dụng tại đây... ]"
-                       value="<?php echo htmlspecialchars($_POST['recruitment_title'] ?? ''); ?>"
+                       placeholder="Nhập tiêu đề tin tuyển dụng tại đây..."
+                       value="<?php echo htmlspecialchars($formData['recruitment_title'] ?? ''); ?>"
                        onkeyup="generateSlug()" required>
+                <?php if (isset($errors['recruitment_title'])): ?>
+                    <div class="error-text"><?php echo $errors['recruitment_title']; ?></div>
+                <?php endif; ?>
             </div>
 
             <!-- SLUG (auto-generated from title) -->
             <div class="form-group">
                 <label>Slug (URL):</label>
                 <input class="input-slug" type="text" name="slug" id="slug"
-                       placeholder="[ Tự động tạo từ tiêu đề ]"
-                       value="<?php echo htmlspecialchars($_POST['slug'] ?? ''); ?>">
-                <small>(Slug sẽ được tạo tự động từ tiêu đề)</small>
+                       placeholder="Tự động tạo từ tiêu đề"
+                       value="<?php echo htmlspecialchars($formData['slug'] ?? ''); ?>">
+                <small>Slug sẽ được tạo tự động từ tiêu đề</small>
             </div>
 
             <!-- WORK LOCATION -->
             <div class="form-group">
                 <label>Địa điểm làm việc:</label>
-                <textarea class="input-location" name="location"
-                          placeholder="[ Địa chỉ cụ thể... ]"><?php echo htmlspecialchars($_POST['location'] ?? ''); ?></textarea>
+                <textarea class="input-location" name="location" rows="2"
+                          placeholder="Địa chỉ cụ thể..."><?php echo htmlspecialchars($formData['location'] ?? ''); ?></textarea>
             </div>
 
             <!-- POSITION & EXPERIENCE Row -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <!-- POSITION -->
                 <div class="form-group">
                     <label>Vị trí tuyển dụng:</label>
-                    <input class="input-position" type="text" name="position"
-                           placeholder="[ VD: Trưởng phòng, Chuyên viên, Nhân viên... ]"
-                           value="<?php echo htmlspecialchars($_POST['position'] ?? ''); ?>">
+                    <input type="text" name="position"
+                           placeholder="VD: Trưởng phòng, Chuyên viên, Nhân viên..."
+                           value="<?php echo htmlspecialchars($formData['position'] ?? ''); ?>">
                 </div>
-
-                <!-- EXPERIENCE -->
                 <div class="form-group">
                     <label>Kinh nghiệm yêu cầu:</label>
-                    <input class="input-experience" type="text" name="experience"
-                           placeholder="[ VD: 2 năm, Không yêu cầu kinh nghiệm... ]"
-                           value="<?php echo htmlspecialchars($_POST['experience'] ?? ''); ?>">
+                    <input type="text" name="experience"
+                           placeholder="VD: 2 năm, Không yêu cầu kinh nghiệm..."
+                           value="<?php echo htmlspecialchars($formData['experience'] ?? ''); ?>">
                 </div>
             </div>
 
             <!-- DEGREE & JOB TYPE Row -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <!-- DEGREE -->
                 <div class="form-group">
                     <label>Trình độ yêu cầu:</label>
-                    <select class="input-degree" name="education">
-                        <option value="Không yêu cầu" <?php echo (($_POST['education'] ?? '') == 'Không yêu cầu') ? 'selected' : ''; ?>>
+                    <select name="education">
+                        <option value="Không yêu cầu" <?php echo (($formData['education'] ?? '') == 'Không yêu cầu') ? 'selected' : ''; ?>>
                             Không yêu cầu bằng cấp
                         </option>
-                        <option value="Trung Cấp" <?php echo (($_POST['education'] ?? '') == 'Trung Cấp') ? 'selected' : ''; ?>>
+                        <option value="Trung Cấp" <?php echo (($formData['education'] ?? '') == 'Trung Cấp') ? 'selected' : ''; ?>>
                             Trung Cấp
                         </option>
-                        <option value="Cao Đẳng - Đại Học" <?php echo (($_POST['education'] ?? 'Cao Đẳng - Đại Học') == 'Cao Đẳng - Đại Học') ? 'selected' : ''; ?>>
+                        <option value="Cao Đẳng - Đại Học" <?php echo (($formData['education'] ?? 'Cao Đẳng - Đại Học') == 'Cao Đẳng - Đại Học') ? 'selected' : ''; ?>>
                             Cao Đẳng - Đại Học
                         </option>
-                        <option value="Cao Học" <?php echo (($_POST['education'] ?? '') == 'Cao Học') ? 'selected' : ''; ?>>
+                        <option value="Cao Học" <?php echo (($formData['education'] ?? '') == 'Cao Học') ? 'selected' : ''; ?>>
                             Cao Học
                         </option>
-                        <option value="Tiến Sĩ" <?php echo (($_POST['education'] ?? '') == 'Tiến Sĩ') ? 'selected' : ''; ?>>
+                        <option value="Tiến Sĩ" <?php echo (($formData['education'] ?? '') == 'Tiến Sĩ') ? 'selected' : ''; ?>>
                             Tiến Sĩ
                         </option>
                     </select>
                 </div>
-
-                <!-- JOB TYPE -->
                 <div class="form-group">
                     <label>Hình thức làm việc:</label>
-                    <select class="input-jobtype" name="job_type">
-                        <option value="fulltime" <?php echo (($_POST['job_type'] ?? 'fulltime') == 'fulltime') ? 'selected' : ''; ?>>
+                    <select name="job_type">
+                        <option value="fulltime" <?php echo (($formData['job_type'] ?? 'fulltime') == 'fulltime') ? 'selected' : ''; ?>>
                             Toàn thời gian
                         </option>
-                        <option value="parttime" <?php echo (($_POST['job_type'] ?? '') == 'parttime') ? 'selected' : ''; ?>>
+                        <option value="parttime" <?php echo (($formData['job_type'] ?? '') == 'parttime') ? 'selected' : ''; ?>>
                             Bán thời gian
                         </option>
-                        <option value="contract" <?php echo (($_POST['job_type'] ?? '') == 'contract') ? 'selected' : ''; ?>>
+                        <option value="contract" <?php echo (($formData['job_type'] ?? '') == 'contract') ? 'selected' : ''; ?>>
                             Hợp đồng
                         </option>
-                        <option value="internship" <?php echo (($_POST['job_type'] ?? '') == 'internship') ? 'selected' : ''; ?>>
+                        <option value="internship" <?php echo (($formData['job_type'] ?? '') == 'internship') ? 'selected' : ''; ?>>
                             Thực tập
                         </option>
                     </select>
@@ -270,19 +419,16 @@ function getStatusText($status)
 
             <!-- QUANTITY & SALARY RANGE Row -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <!-- QUANTITY -->
                 <div class="form-group">
                     <label>Số lượng cần tuyển:</label>
-                    <input class="input-quantity" type="number" name="quantity" min="1"
-                           value="<?php echo (int)($_POST['quantity'] ?? 1); ?>">
+                    <input type="number" name="quantity" min="1"
+                           value="<?php echo (int)($formData['quantity'] ?? 1); ?>">
                 </div>
-
-                <!-- SALARY RANGE -->
                 <div class="form-group">
                     <label>Mức lương:</label>
-                    <input class="input-salary" type="text" name="salary_range"
-                           placeholder="[ VD: 15.000.000 - 20.000.000 VNĐ hoặc Thỏa thuận ]"
-                           value="<?php echo htmlspecialchars($_POST['salary_range'] ?? ''); ?>">
+                    <input type="text" name="salary_range"
+                           placeholder="VD: 15.000.000 - 20.000.000 VNĐ hoặc Thỏa thuận"
+                           value="<?php echo htmlspecialchars($formData['salary_range'] ?? ''); ?>">
                 </div>
             </div>
 
@@ -290,64 +436,59 @@ function getStatusText($status)
             <div class="form-group">
                 <label>Hạn nộp hồ sơ: <span style="color: red;">*</span></label>
                 <input class="input-deadline" type="date" name="deadline"
-                       value="<?php echo htmlspecialchars($_POST['deadline'] ?? ''); ?>" required>
+                       value="<?php echo htmlspecialchars($formData['deadline'] ?? ''); ?>" required>
             </div>
 
-            <!-- DESCRIPTION (Mô tả công việc) -->
+            <!-- DESCRIPTION -->
             <div class="form-group">
                 <div class="label-row">
                     <label>Mô tả công việc: <span style="color: red;">*</span></label>
                     <span class="ai-btn" type="button" onclick="generateAIDescription()">✨ Gợi ý bằng AI</span>
                 </div>
-                <textarea class="input-description" name="job_description" id="job_description"
-                          placeholder="[ Mô tả chi tiết công việc... ]" rows="6"
-                          required><?php echo htmlspecialchars($_POST['job_description'] ?? ''); ?></textarea>
+                <textarea name="job_description" id="job_description" rows="8"
+                          placeholder="Mô tả chi tiết công việc... (hỗ trợ HTML)"><?php echo htmlspecialchars($formData['job_description'] ?? ''); ?></textarea>
                 <small>Hỗ trợ HTML tags: &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;</small>
             </div>
 
-            <!-- REQUIREMENTS (Yêu cầu ứng viên) -->
+            <!-- REQUIREMENTS -->
             <div class="form-group">
                 <div class="label-row">
                     <label>Yêu cầu ứng viên: <span style="color: red;">*</span></label>
                     <span class="ai-btn" type="button" onclick="generateAIRequirements()">✨ Gợi ý bằng AI</span>
                 </div>
-                <textarea class="input-requirements" name="job_requirements" id="job_requirements"
-                          placeholder="[ Các yêu cầu về kỹ năng, kinh nghiệm, bằng cấp... ]" rows="6"
-                          required><?php echo htmlspecialchars($_POST['job_requirements'] ?? ''); ?></textarea>
+                <textarea name="job_requirements" id="job_requirements" rows="8"
+                          placeholder="Các yêu cầu về kỹ năng, kinh nghiệm, bằng cấp..."><?php echo htmlspecialchars($formData['job_requirements'] ?? ''); ?></textarea>
                 <small>Hỗ trợ HTML tags: &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;</small>
             </div>
 
-            <!-- BENEFITS (Quyền lợi) -->
+            <!-- BENEFITS -->
             <div class="form-group">
                 <div class="label-row">
                     <label>Quyền lợi được hưởng:</label>
                     <span class="ai-btn" type="button" onclick="generateAIBenefits()">✨ Gợi ý bằng AI</span>
                 </div>
-                <textarea class="input-benefits" name="job_benefits" id="job_benefits"
-                          placeholder="[ Bảo hiểm, thưởng, cơ hội thăng tiến... ]"
-                          rows="5"><?php echo htmlspecialchars($_POST['job_benefits'] ?? ''); ?></textarea>
+                <textarea name="job_benefits" id="job_benefits" rows="6"
+                          placeholder="Bảo hiểm, thưởng, cơ hội thăng tiến..."><?php echo htmlspecialchars($formData['job_benefits'] ?? ''); ?></textarea>
                 <small>Hỗ trợ HTML tags: &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;</small>
             </div>
 
             <!-- BOTTOM LAYOUT -->
             <div class="bottom-layout">
-
-                <!-- LEFT -->
                 <div class="publish-settings">
                     <h3>CẤU HÌNH ĐĂNG TIN</h3>
 
                     <label>TRẠNG THÁI</label>
-                    <select class="input-status" name="status">
-                        <option value="draft" <?php echo (($_POST['status'] ?? 'draft') == 'draft') ? 'selected' : ''; ?>>
+                    <select name="status">
+                        <option value="draft" <?php echo (($formData['status'] ?? 'draft') == 'draft') ? 'selected' : ''; ?>>
                             Bản nháp (Draft)
                         </option>
-                        <option value="open" <?php echo (($_POST['status'] ?? '') == 'open') ? 'selected' : ''; ?>>Đang
-                            đăng (Open)
+                        <option value="open" <?php echo (($formData['status'] ?? '') == 'open') ? 'selected' : ''; ?>>
+                            Đang đăng (Open)
                         </option>
-                        <option value="closed" <?php echo (($_POST['status'] ?? '') == 'closed') ? 'selected' : ''; ?>>
+                        <option value="closed" <?php echo (($formData['status'] ?? '') == 'closed') ? 'selected' : ''; ?>>
                             Đã đóng (Closed)
                         </option>
-                        <option value="filled" <?php echo (($_POST['status'] ?? '') == 'filled') ? 'selected' : ''; ?>>
+                        <option value="filled" <?php echo (($formData['status'] ?? '') == 'filled') ? 'selected' : ''; ?>>
                             Đã tuyển đủ (Filled)
                         </option>
                     </select>
@@ -358,7 +499,6 @@ function getStatusText($status)
                         • Filled: Đã tuyển đủ chỉ tiêu</small>
                 </div>
 
-                <!-- RIGHT -->
                 <div class="thumbnail-box">
                     <div class="thumb-header">
                         ẢNH ĐẠI DIỆN TIN TUYỂN DỤNG
@@ -377,17 +517,16 @@ function getStatusText($status)
                              style="max-width: 100%; max-height: 150px; border-radius: 8px;">
                     </div>
                 </div>
-
             </div>
 
-            <!-- ACTION BUTTON -->
+            <!-- ACTION BUTTONS -->
             <div class="action-buttons">
-                <button type="submit" name="save_draft" value="1" class="btn-draft">Lưu nháp</button>
-                <button type="submit" name="publish" value="1" class="btn-publish">Đăng tin</button>
+                <button type="submit" name="save_draft" value="draft" class="btn-draft">Lưu nháp</button>
+                <button type="submit" name="publish" value="open" class="btn-publish">Đăng tin</button>
                 <button type="submit" name="save_and_continue" value="1" class="btn-secondary">Lưu và tiếp tục</button>
             </div>
 
-            <div class="cancel-text" onclick="window.location.href='?page=recruitment'">Hủy bỏ và quay lại</div>
+            <div class="cancel-text" onclick="window.location.href='/admin/recruitment'">Hủy bỏ và quay lại</div>
 
         </div>
     </form>
@@ -409,7 +548,6 @@ function getStatusText($status)
         var preview = document.getElementById('imagePreview');
         var previewImg = document.getElementById('previewImg');
         var uploadBox = document.getElementById('uploadBox');
-        var uploadIcon = document.getElementById('uploadIcon');
         var uploadText = document.getElementById('uploadText');
         var uploadInfo = document.getElementById('uploadInfo');
 
@@ -419,7 +557,6 @@ function getStatusText($status)
                 previewImg.src = e.target.result;
                 preview.style.display = 'block';
                 uploadBox.style.opacity = '0.5';
-                uploadIcon.style.opacity = '0.5';
                 uploadText.innerHTML = 'Đã chọn ảnh: ' + input.files[0].name;
                 uploadInfo.innerHTML = 'Click để đổi ảnh khác';
             }
@@ -427,7 +564,7 @@ function getStatusText($status)
         }
     }
 
-    // AI suggest functions (simulate AI response)
+    // AI suggest functions
     function generateAITitle() {
         var titles = [
             "Tuyển dụng [Vị trí] - Lương hấp dẫn - Môi trường chuyên nghiệp",
@@ -486,51 +623,14 @@ function getStatusText($status)
 
     function showToast(message, type) {
         var toast = document.createElement('div');
-        toast.className = 'toast toast-' + type;
+        toast.className = `toast toast-${type}`;
         toast.innerHTML = message;
-        toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#333; color:white; padding:12px 20px; border-radius:8px; z-index:9999; animation: slideIn 0.3s ease;';
         document.body.appendChild(toast);
         setTimeout(function () {
             toast.remove();
         }, 3000);
     }
-
-    // Click vào upload box
-    document.getElementById('uploadBox').addEventListener('click', function (e) {
-        e.stopPropagation();
-    });
-
-    // Style cho upload box
-    var style = document.createElement('style');
-    style.textContent = `
-    .upload-box {
-        cursor: pointer;
-        transition: opacity 0.3s ease;
-    }
-    .upload-box:hover {
-        opacity: 0.8;
-    }
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    .btn-secondary {
-        background: #6b7280;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-    .btn-secondary:hover {
-        background: #4b5563;
-    }
-`;
-    document.head.appendChild(style);
 </script>
+
+</body>
+</html>

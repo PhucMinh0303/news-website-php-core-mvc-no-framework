@@ -4,14 +4,17 @@
  * All requests are routed through this file
  */
 
+
 // Load application bootstrap Vdt@#2023
 require_once 'app/bootstrap.php';
 
 require_once 'app/config/config.php';
+require_once 'app/config/database.php';
 // Models
 require_once 'app/Core/Database.php';
-require_once 'app/Models/User_model.php';
+require_once 'app/Models/UserModel.php';
 // Core
+require_once 'app/core/Model.php';
 require_once 'app/core/App.php';
 require_once 'app/core/Controller.php';
 require_once 'app/core/Router.php';
@@ -43,21 +46,21 @@ try {
     if (!class_exists($controllerName)) {
         throw new Exception("Controller not found: {$controllerName}");
     }
-    
+
     // Instantiate controller
     $controller = new $controllerName();
-    
+
     // Check if action method exists
     if (!method_exists($controller, $actionName)) {
         throw new Exception("Action not found: {$controllerName}@{$actionName}");
     }
-    
+
     // Call the action with parameters
     call_user_func_array([$controller, $actionName], $params);
-    
+
     // Output the view
     $controller->output();
-    
+
 } catch (Exception $e) {
     // Error handling
     if (DEBUG) {

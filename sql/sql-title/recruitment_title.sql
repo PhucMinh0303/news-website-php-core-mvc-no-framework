@@ -1,88 +1,206 @@
--- Bảng quản lý bài tuyển dụng
-CREATE TABLE IF NOT EXISTS `recruitment_title`
+-- =====================================================
+-- 4. Bảng recruitments
+-- =====================================================
+-- Tạo bảng recruitments
+CREATE TABLE IF NOT EXISTS recruitments
 (
-    `id`             INT(11)      NOT NULL AUTO_INCREMENT,
-    `slug`           VARCHAR(255) NOT NULL COMMENT 'Đường dẫn thân thiện',
-    `title`          VARCHAR(255) NOT NULL COMMENT 'Tiêu đề công việc',
-    `position`       VARCHAR(255) NOT NULL COMMENT 'Vị trí tuyển dụng',
-    `description`    TEXT         NOT NULL COMMENT 'Mô tả công việc',
-    `requirements`   TEXT         NOT NULL COMMENT 'Yêu cầu công việc',
-    `benefits`       TEXT         NOT NULL COMMENT 'Quyền lợi',
-    `work_location`  VARCHAR(500) NOT NULL COMMENT 'Nơi làm việc',
-    `degree`         VARCHAR(100) NOT NULL COMMENT 'Bằng cấp yêu cầu',
-    `quantity`       INT(5)       NOT NULL DEFAULT 1 COMMENT 'Số lượng tuyển',
-    `deadline`       DATE         NOT NULL COMMENT 'Hạn nộp hồ sơ',
-    `salary`         VARCHAR(100)          DEFAULT 'Thỏa thuận' COMMENT 'Mức lương',
-    `contact_person` VARCHAR(100)          DEFAULT NULL COMMENT 'Người liên hệ',
-    `contact_phone`  VARCHAR(20)           DEFAULT NULL COMMENT 'Số điện thoại liên hệ',
-    `contact_email`  VARCHAR(100)          DEFAULT NULL COMMENT 'Email liên hệ',
-    `image`          VARCHAR(500)          DEFAULT NULL COMMENT 'Ảnh đại diện',
-    `status`         TINYINT(1)   NOT NULL DEFAULT 1 COMMENT 'Trạng thái: 1-Hiển thị, 0-Ẩn',
-    `featured`       TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Nổi bật',
-    `views`          INT(11)      NOT NULL DEFAULT 0 COMMENT 'Lượt xem',
-    `created_at`     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `unique_slug` (`slug`),
-    KEY `idx_status` (`status`),
-    KEY `idx_deadline` (`deadline`)
+    id                INT PRIMARY KEY AUTO_INCREMENT,
+    recruitment_title VARCHAR(255)        NOT NULL,
+    slug              VARCHAR(255) UNIQUE NOT NULL,
+    job_description   LONGTEXT            NOT NULL,
+    job_requirements  LONGTEXT            NOT NULL,
+    job_benefits      LONGTEXT,
+    image             VARCHAR(255),
+    salary_range      VARCHAR(100),
+    location          VARCHAR(200),
+    deadline          DATE,
+    quantity          INT                                                     DEFAULT 1,
+    position          VARCHAR(100),
+    experience        VARCHAR(100),
+    education         VARCHAR(100),
+    job_type          ENUM ('fulltime', 'parttime', 'contract', 'internship') DEFAULT 'fulltime',
+    status            ENUM ('draft', 'open', 'closed', 'filled')              DEFAULT 'draft',
+    views             INT                                                     DEFAULT 0,
+    created_at        TIMESTAMP                                               DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP                                               DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
--- Bảng quản lý đơn ứng tuyển
-CREATE TABLE IF NOT EXISTS `applications`
-(
-    `id`             INT(11)      NOT NULL AUTO_INCREMENT,
-    `recruitment_id` INT(11)      NOT NULL COMMENT 'ID bài tuyển dụng',
-    `fullname`       VARCHAR(100) NOT NULL COMMENT 'Họ tên',
-    `phone`          VARCHAR(20)  NOT NULL COMMENT 'Số điện thoại',
-    `email`          VARCHAR(100) NOT NULL COMMENT 'Email',
-    `content`        TEXT COMMENT 'Nội dung ứng tuyển',
-    `cv_file`        VARCHAR(500)          DEFAULT NULL COMMENT 'Đường dẫn file CV',
-    `status`         TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'Trạng thái: 0-Chờ xử lý, 1-Đã xem, 2-Phỏng vấn, 3-Trúng tuyển, 4-Từ chối',
-    `notes`          TEXT COMMENT 'Ghi chú',
-    `applied_at`     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `processed_at`   TIMESTAMP    NULL     DEFAULT NULL,
-    `ip_address`     VARCHAR(45)           DEFAULT NULL,
-    PRIMARY KEY (`id`),
-    KEY `idx_recruitment_id` (`recruitment_id`),
-    KEY `idx_email` (`email`),
-    KEY `idx_status` (`status`),
-    FOREIGN KEY (`recruitment_id`) REFERENCES `recruitment_title` (`id`) ON DELETE CASCADE
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
-
--- Insert dữ liệu mẫu
-INSERT INTO `recruitment_title` (`slug`, `title`, `position`, `description`, `requirements`, `benefits`,
-                                 `work_location`,
-                                 `degree`, `quantity`, `deadline`, `salary`, `contact_person`, `contact_phone`,
-                                 `contact_email`, `image`)
-VALUES ('truong-phong-nguon-von', 'Trưởng phòng nguồn vốn', 'Trưởng phòng',
-        '<ul><li>Quản lý, theo dõi nhu cầu và cấp phát văn phòng phẩm, mực in, nước uống.</li><li>Thực hiện các thủ tục thanh toán chi phí hành chính văn phòng.</li><li>Soạn thảo, lưu trữ hồ sơ, giấy tờ liên quan.</li><li>Tổ chức sự kiện và truyền thông nội bộ.</li><li>Quản lý website, fanpage của công ty.</li><li>Thực hiện các công việc khác theo chỉ đạo của cấp trên.</li></ul>',
-        '<ul><li>Tốt nghiệp đại học chuyên ngành Kinh tế, Tài chính, Ngân hàng hoặc các ngành liên quan.</li><li>Ưu tiên ứng viên có kinh nghiệm trong lĩnh vực tài chính, ngân hàng.</li><li>Có khả năng giao tiếp và thuyết trình tốt.</li><li>Tinh thần trách nhiệm cao, làm việc cẩn thận, tỉ mỉ.</li><li>Có khả năng làm việc độc lập và theo nhóm.</li></ul>',
-        '<ul><li>Lương thỏa thuận: 7 - 10 triệu đồng/tháng.</li><li>Lương tháng 13 và thưởng các ngày Lễ, Tết theo quy định của công ty.</li><li>Tham gia BHYT, BHXH theo quy định của Nhà nước.</li><li>Du lịch, nghỉ mát hằng năm.</li><li>Được đào tạo kỹ năng chuyên môn, làm việc trong môi trường thân thiện, khuyến khích sáng tạo.</li></ul>',
+-- Thêm dữ liệu từ recruitment.php
+INSERT INTO recruitments (recruitment_title, slug, job_description, job_requirements,
+                          job_benefits, image, location, deadline, quantity, position, education, status, created_at)
+VALUES ('Trưởng phòng nguồn vốn',
+        'truong-phong-nguon-von',
+        '<p><strong>Mô tả công việc:</strong></p>
+         <ul>
+           <li>Quản lý và phát triển nguồn vốn của công ty</li>
+           <li>Xây dựng chiến lược huy động vốn hiệu quả</li>
+           <li>Đàm phán với các đối tác tài chính, ngân hàng</li>
+           <li>Quản lý danh mục đầu tư và dòng tiền</li>
+           <li>Báo cáo trực tiếp lên Ban Giám đốc</li>
+         </ul>',
+        '<p><strong>Yêu cầu:</strong></p>
+         <ul>
+           <li>Tốt nghiệp Đại học chuyên ngành Tài chính - Ngân hàng, Kinh tế hoặc liên quan</li>
+           <li>Có ít nhất 5 năm kinh nghiệm trong lĩnh vực tài chính, ngân hàng</li>
+           <li>Kinh nghiệm quản lý đội nhóm từ 2 năm trở lên</li>
+           <li>Kỹ năng đàm phán, thuyết trình xuất sắc</li>
+           <li>Hiểu biết sâu về thị trường tài chính và các sản phẩm tài chính</li>
+         </ul>',
+        '<p><strong>Quyền lợi:</strong></p>
+         <ul>
+           <li>Lương thỏa thuận + thưởng theo hiệu quả công việc</li>
+           <li>Được tham gia đầy đủ BHXH, BHYT, BHTN theo quy định</li>
+           <li>Môi trường làm việc chuyên nghiệp, năng động</li>
+           <li>Cơ hội thăng tiến cao</li>
+           <li>Du lịch hàng năm, nghỉ mát cùng công ty</li>
+         </ul>',
+        'truong-phong-nguon-von.webp',
         'Hội sở: Hasco Building, 98 Xuân Thủy, Phường An Khánh, Tp. Hồ Chí Minh',
+        '2025-11-22',
+        1,
+        'Trưởng phòng',
         'Cao Đẳng - Đại Học',
-        1,
-        '2025-11-22',
-        '7 - 10 triệu đồng/tháng',
-        'Chị Phương – PHCNS',
-        '0999 678 6789',
-        'tuyendung@capitalam.vn',
-        'img/recruitment/truong-phong-nguon-von-1763953822-egprx.webp'),
+        'open',
+        NOW()),
 
-       ('chuyen-vien-dau-tu', 'Chuyên viên đầu tư', 'Chuyên viên',
-        '<ul><li>Nghiên cứu và phân tích thị trường đầu tư</li><li>Đánh giá các dự án đầu tư tiềm năng</li><li>Lập báo cáo phân tích tài chính</li><li>Hỗ trợ quản lý danh mục đầu tư</li></ul>',
-        '<ul><li>Tốt nghiệp đại học chuyên ngành Tài chính, Đầu tư, Kinh tế</li><li>Có kiến thức về phân tích tài chính</li><li>Thành thạo Excel và các công cụ phân tích</li></ul>',
-        '<ul><li>Lương thỏa thuận: 10 - 15 triệu đồng/tháng</li><li>Thưởng theo hiệu suất công việc</li><li>BHXH, BHYT đầy đủ</li></ul>',
+       ('Chuyên viên đầu tư',
+        'chuyen-vien-dau-tu',
+        '<p><strong>Mô tả công việc:</strong></p>
+         <ul>
+           <li>Nghiên cứu và phân tích các cơ hội đầu tư</li>
+           <li>Đánh giá hiệu quả các dự án đầu tư</li>
+           <li>Lập báo cáo phân tích tài chính</li>
+           <li>Theo dõi và quản lý danh mục đầu tư</li>
+           <li>Phối hợp với các phòng ban liên quan trong quá trình triển khai dự án</li>
+         </ul>',
+        '<p><strong>Yêu cầu:</strong></p>
+         <ul>
+           <li>Tốt nghiệp Đại học chuyên ngành Tài chính, Đầu tư, Kinh tế hoặc liên quan</li>
+           <li>Có ít nhất 2 năm kinh nghiệm trong lĩnh vực đầu tư, phân tích tài chính</li>
+           <li>Thành thạo Excel, các công cụ phân tích tài chính</li>
+           <li>Kỹ năng phân tích, tổng hợp và báo cáo tốt</li>
+           <li>Khả năng làm việc độc lập và theo nhóm</li>
+         </ul>',
+        '<p><strong>Quyền lợi:</strong></p>
+         <ul>
+           <li>Lương: 15-20 triệu đồng/tháng + thưởng</li>
+           <li>Đầy đủ chế độ bảo hiểm theo quy định</li>
+           <li>Môi trường làm việc trẻ trung, năng động</li>
+           <li>Đào tạo chuyên sâu về nghiệp vụ</li>
+         </ul>',
+        'chuyen-vien-dau-tu.webp',
         'Hội sở: Hasco Building, 98 Xuân Thủy, Phường An Khánh, Tp. Hồ Chí Minh',
-        'Đại học',
-        1,
         '2025-11-22',
-        '10 - 15 triệu đồng/tháng',
-        'Chị Phương',
-        '0999 678 6789',
-        'tuyendung@capitalam.vn',
-        'img/recruitment/truong-phong-nguon-von-1763953822-egprx.webp');
+        1,
+        'Chuyên viên',
+        'Cao Đẳng - Đại Học',
+        'open',
+        NOW()),
+
+       ('Chuyên viên hành chính',
+        'chuyen-vien-hanh-chinh',
+        '<p><strong>Mô tả công việc:</strong></p>
+         <ul>
+           <li>Quản lý công văn, giấy tờ, tài liệu hành chính</li>
+           <li>Tiếp nhận và xử lý văn bản đến - đi</li>
+           <li>Lên lịch công tác, sắp xếp cuộc họp</li>
+           <li>Quản lý cơ sở vật chất, văn phòng phẩm</li>
+           <li>Hỗ trợ công tác tổ chức sự kiện, hội nghị</li>
+         </ul>',
+        '<p><strong>Yêu cầu:</strong></p>
+         <ul>
+           <li>Tốt nghiệp Cao đẳng trở lên các chuyên ngành Quản trị văn phòng, Hành chính học</li>
+           <li>Kỹ năng văn phòng thành thạo (Word, Excel, PowerPoint)</li>
+           <li>Giao tiếp tốt, ngoại hình ưa nhìn</li>
+           <li>Cẩn thận, tỉ mỉ và có tinh thần trách nhiệm cao</li>
+         </ul>',
+        '<p><strong>Quyền lợi:</strong></p>
+         <ul>
+           <li>Lương: 10-12 triệu đồng/tháng</li>
+           <li>Đầy đủ chế độ phúc lợi theo quy định</li>
+           <li>Môi trường làm việc thân thiện, hỗ trợ</li>
+         </ul>',
+        'chuyen-vien-hanh-chinh.webp',
+        'Hội sở: Hasco Building, 98 Xuân Thủy, Phường An Khánh, Tp. Hồ Chí Minh',
+        '2025-11-22',
+        1,
+        'Chuyên viên',
+        'Cao Đẳng - Đại Học',
+        'open',
+        NOW()),
+
+       ('Chuyên viên nhân sự',
+        'chuyen-vien-nhan-su',
+        '<p><strong>Mô tả công việc:</strong></p>
+         <ul>
+           <li>Thực hiện công tác tuyển dụng theo nhu cầu</li>
+           <li>Quản lý hồ sơ nhân viên</li>
+           <li>Theo dõi và tính toán lương, thưởng, phúc lợi</li>
+           <li>Thực hiện các thủ tục bảo hiểm, hợp đồng lao động</li>
+           <li>Xây dựng và triển khai các chương trình đào tạo</li>
+         </ul>',
+        '<p><strong>Yêu cầu:</strong></p>
+         <ul>
+           <li>Tốt nghiệp Đại học chuyên ngành Quản trị nhân sự, Tâm lý học hoặc liên quan</li>
+           <li>Có ít nhất 1 năm kinh nghiệm trong lĩnh vực nhân sự</li>
+           <li>Hiểu biết về luật lao động, bảo hiểm xã hội</li>
+           <li>Kỹ năng giao tiếp, đàm phán tốt</li>
+           <li>Trung thực, cẩn thận và bảo mật thông tin</li>
+         </ul>',
+        '<p><strong>Quyền lợi:</strong></p>
+         <ul>
+           <li>Lương: 12-15 triệu đồng/tháng</li>
+           <li>Được đào tạo nâng cao nghiệp vụ</li>
+           <li>Cơ hội thăng tiến rõ ràng</li>
+           <li>Môi trường làm việc chuyên nghiệp</li>
+         </ul>',
+        'chuyen-vien-nhan-su.webp',
+        'Hội sở: Hasco Building, 98 Xuân Thủy, Phường An Khánh, Tp. Hồ Chí Minh',
+        '2025-11-21',
+        1,
+        'Chuyên viên',
+        'Cao Đẳng - Đại Học',
+        'open',
+        NOW());
+
+-- Tạo index cho bảng recruitments
+CREATE INDEX idx_recruitments_status ON recruitments (status);
+CREATE INDEX idx_recruitments_deadline ON recruitments (deadline);
+CREATE INDEX idx_recruitments_job_type ON recruitments (job_type);
+-- Cập nhật dữ liệu chi tiết cho bảng recruitments với nội dung đầy đủ
+UPDATE recruitments
+SET job_description  = '<p><strong>Mô tả công việc</strong></p>
+    <ul>
+        <li>Quản lý, theo dõi nhu cầu và cấp phát văn phòng phẩm, mực in, nước uống.</li>
+        <li>Thực hiện các thủ tục thanh toán chi phí hành chính văn phòng.</li>
+        <li>Soạn thảo, lưu trữ hồ sơ, giấy tờ liên quan.</li>
+        <li>Tổ chức sự kiện và truyền thông nội bộ.</li>
+        <li>Quản lý website, fanpage của công ty.</li>
+        <li>Thực hiện các công việc khác theo chỉ đạo của cấp trên.</li>
+    </ul>',
+    job_requirements = '<p><strong>Yêu cầu công việc</strong></p>
+    <ul>
+        <li>Tốt nghiệp đại học chuyên ngành Kinh tế, Tài chính, Ngân hàng hoặc các ngành liên quan.</li>
+        <li>Ưu tiên ứng viên có kinh nghiệm trong lĩnh vực tài chính, ngân hàng.</li>
+        <li>Có khả năng giao tiếp và thuyết trình tốt.</li>
+        <li>Tinh thần trách nhiệm cao, làm việc cẩn thận, tỉ mỉ.</li>
+        <li>Có khả năng làm việc độc lập và theo nhóm.</li>
+    </ul>',
+    job_benefits     = '<p><strong>Quyền lợi</strong></p>
+    <ul>
+        <li>Lương thỏa thuận: 7 - 10 triệu đồng/tháng.</li>
+        <li>Lương tháng 13 và thưởng các ngày Lễ, Tết theo quy định của công ty.</li>
+        <li>Tham gia BHYT, BHXH theo quy định của Nhà nước.</li>
+        <li>Du lịch, nghỉ mát hằng năm.</li>
+        <li>Được đào tạo kỹ năng chuyên môn, làm việc trong môi trường thân thiện, khuyến khích sáng tạo.</li>
+    </ul>
+    <br />
+    <div>
+        Liên hệ trực tiếp với phòng HCNS:<br />
+        Điện thoại/Zalo: Chị Phương – PHCNS: 0999 678 6789<br />
+        Email: tuyendung@capitalam.vn<br />
+        Bộ phận:&nbsp;Hành chính/Nhân sự
+    </div>'
+WHERE slug = 'truong-phong-nguon-von';

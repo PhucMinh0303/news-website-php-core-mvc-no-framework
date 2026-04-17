@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/sql/capitalam2-mvc2.sql" dialect="MariaDB" />
+    <file url="file://$PROJECT_DIR$/sql/news&amp;recruitment.sql" dialect="MariaDB" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/Procedures_Triggers.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/author.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/breadcrumb_paths.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/categories.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/contact.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/contact_attachments.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/contact_categories.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/contact_histories.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/create_db.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/job_applications.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/links.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/login_logs.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/menu_items.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/menus.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/news.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/news_comments.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/news_related.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/news_related_links.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/news_tag_relations.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/news_tags.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/news_title.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/news_views_stats.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/permissions.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/recruitment_related_links.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/recruitment_title.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/recruitments.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/response_templates.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/sql-title/update-recruitment.sql" dialect="GenericSQL" />
+    <file url="PROJECT" dialect="MySQL" />
+  </component>
+</project>

@@ -44,6 +44,7 @@ class Router {
         
         // Recruitment
         $this->addRoute('recruitment', 'RecruitmentController@index');
+        $this->addRoute('recruitment/@slug', 'RecruitmentController@detail');
         
         // Contact
         $this->addRoute('contact', 'ContactController@index');

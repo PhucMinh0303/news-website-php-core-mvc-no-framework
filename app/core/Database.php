@@ -8,7 +8,7 @@ class Database
     private $user = DB_USER;
     private $pass = DB_PASS;
     private $charset = DB_CHARSET;
-    private $pdo;
+    private $conn;
     private $error;
     private static $instance = null;
 
@@ -22,7 +22,7 @@ class Database
         ];
 
         try {
-            $this->pdo = new PDO($dsn, $this->user, $this->pass, $options);
+            $this->conn = new PDO($dsn, $this->user, $this->pass, $options);
         } catch (PDOException $e) {
             $this->error = $e->getMessage();
             die("Connection failed: " . $this->error);
@@ -31,7 +31,7 @@ class Database
 
     public function getConnection()
     {
-        return $this->pdo;
+        return $this->conn;
     }
 
 
@@ -39,7 +39,7 @@ class Database
     public function query($sql, $params = [])
     {
         try {
-            $stmt = $this->pdo->prepare($sql);
+            $stmt = $this->conn->prepare($sql);
             $stmt->execute($params);
             return $stmt;
         } catch (PDOException $e) {
@@ -50,38 +50,67 @@ class Database
     // Lấy tất cả bản ghi
     public function fetchAll($sql, $params = [])
     {
-        $stmt = $this->query($sql, $params);
-        return $stmt->fetchAll();
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Lấy một bản ghi
     public function fetchOne($sql, $params = [])
     {
-        $stmt = $this->query($sql, $params);
-        return $stmt->fetch();
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     // Lấy ID vừa insert
-    public function lastInsertId()
+    public function insert($table, $data)
     {
-        return $this->pdo->lastInsertId();
+        $fields = array_keys($data);
+        $placeholders = ':' . implode(', :', $fields);
+
+        $sql = "INSERT INTO {$table} (" . implode(', ', $fields) . ") 
+                VALUES ({$placeholders})";
+
+        $stmt = $this->query($sql, $data);
+        return $this->conn->lastInsertId();
+    }
+
+    public function update($table, $data, $where, $whereParams = [])
+    {
+        $fields = array_map(function ($field) {
+            return "{$field} = :{$field}";
+        }, array_keys($data));
+
+        $sql = "UPDATE {$table} SET " . implode(', ', $fields) . " WHERE {$where}";
+        $params = array_merge($data, $whereParams);
+
+        $stmt = $this->query($sql, $params);
+        return $stmt->rowCount();
+    }
+
+    public function delete($table, $where, $params = [])
+    {
+        $sql = "DELETE FROM {$table} WHERE {$where}";
+        $stmt = $this->query($sql, $params);
+        return $stmt->rowCount();
     }
 
     // Bắt đầu transaction
     public function beginTransaction()
     {
-        return $this->pdo->beginTransaction();
+        return $this->conn->beginTransaction();
     }
 
     // Commit transaction
     public function commit()
     {
-        return $this->pdo->commit();
+        return $this->conn->commit();
     }
 
     // Rollback transaction
     public function rollback()
     {
-        return $this->pdo->rollBack();
+        return $this->conn->rollBack();
     }
 }

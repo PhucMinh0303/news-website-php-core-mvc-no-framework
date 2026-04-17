@@ -1,1 +1,23 @@
-{ "files.associations": { "*.sql": "sql" }, "editor.formatOnSave": true }
+{
+    "files.associations": {
+        "*.sql": "sql"
+    },
+    "editor.formatOnSave": true,
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "capitalam2-mvc",
+            "database": "quanly_tintuc",
+            "username": "capitalam",
+            "password": "123456"
+        }
+    ]
+}

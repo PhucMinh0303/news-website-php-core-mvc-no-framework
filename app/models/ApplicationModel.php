@@ -1,47 +1,57 @@
 <?php
 // models/ApplicationModel.php
-
 require_once __DIR__ . '/../core/Model.php';
 
 class ApplicationModel extends Model
 {
     protected $table = 'applications';
 
-    public function __construct()
+    // ... giữ nguyên các phương thức hiện có ...
+
+    /**
+     * Lấy chi tiết đơn ứng tuyển kèm thông tin bài tuyển dụng
+     */
+    public function getDetailWithJob($applicationId)
     {
-        parent::__construct();
+        $sql = "SELECT a.*, r.recruitment_title, r.slug, r.location 
+                FROM applications a 
+                JOIN recruitments r ON a.recruitment_id = r.id 
+                WHERE a.id = :id";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $applicationId]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Lưu đơn ứng tuyển
+     * Cập nhật trạng thái đơn ứng tuyển
      */
-    public function save($data)
+    public function updateStatus($id, $status)
     {
-        $sql = "INSERT INTO applications (recruitment_id, fullname, phone, email, content, cv_file, ip_address) 
-                VALUES (:recruitment_id, :fullname, :phone, :email, :content, :cv_file, :ip_address)";
-
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute($data);
+        $sql = "UPDATE {$this->table} SET status = :status, updated_at = NOW() WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute(['id' => $id, 'status' => $status]);
     }
 
     /**
-     * Kiểm tra đã ứng tuyển chưa (tránh spam)
+     * Thống kê số lượng ứng viên theo bài tuyển dụng
      */
-    public function hasApplied($recruitmentId, $email, $ipAddress)
+    public function countByRecruitment($recruitmentId = null)
     {
-        $sql = "SELECT COUNT(*) as count FROM applications 
-                WHERE recruitment_id = :recruitment_id 
-                AND (email = :email OR ip_address = :ip_address)
-                AND DATE(applied_at) = CURDATE()";
+        $sql = "SELECT recruitment_id, COUNT(*) as total FROM {$this->table}";
+        $params = [];
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            'recruitment_id' => $recruitmentId,
-            'email' => $email,
-            'ip_address' => $ipAddress
-        ]);
+        if ($recruitmentId) {
+            $sql .= " WHERE recruitment_id = :recruitment_id";
+            $params['recruitment_id'] = $recruitmentId;
+        }
 
-        $result = $stmt->fetch();
-        return $result['count'] > 0;
+        $sql .= " GROUP BY recruitment_id";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
