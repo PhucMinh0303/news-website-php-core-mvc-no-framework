@@ -1,7 +1,7 @@
 <?php
 define('BASE_PATH', dirname(__DIR__));
 
-// Cấu hình kết nối database
+// Cấu hình kết nối database cho XAMPP
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'quanly_tintuc'); // Tên database trong phpMyAdmin
 define('DB_USER', 'capitalam');               // Username MySQL

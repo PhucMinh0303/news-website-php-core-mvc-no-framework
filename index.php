@@ -24,6 +24,7 @@ require_once 'app/core/View.php';
 require_once 'app/controllers/HomeController.php';
 require_once 'app/controllers/PageController.php';
 require_once 'app/controllers/NewsController.php';
+require_once 'app/controllers/RecruitmentController.php';
 require_once 'app/controllers/ContactController.php';
 require_once 'app/controllers/NotFoundController.php';
 require_once 'app/controllers/UserController.php';
