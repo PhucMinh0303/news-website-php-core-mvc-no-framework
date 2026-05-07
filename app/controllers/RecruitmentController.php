@@ -30,24 +30,16 @@ class RecruitmentController extends Controller
         $jobs = [];
         $total = 0;
 
-        if (!empty($keyword) || !empty($location)) {
-            // Có tìm kiếm
-            $jobs = $this->recruitmentModel->search($keyword, $location, null, $limit, $offset);
-            $total = $this->recruitmentModel->countSearchResults($keyword, $location);
-        } else {
-            // Lấy tất cả jobs đang mở
-            $jobs = $this->recruitmentModel->getAll(1, $limit, $offset);
-            $total = $this->recruitmentModel->count(1);
-        }
+        
 
         $total_pages = ceil($total / $limit);
 
         // Lấy các job nổi bật (recent jobs)
-        $recentJobs = $this->recruitmentModel->getRecentJobs(5);
+        /*$recentJobs = $this->recruitmentModel->getRecentJobs(5);*/
 
         $data = [
             'jobs' => $jobs,
-            'recentJobs' => $recentJobs,
+            /*'recentJobs' => $recentJobs,*/
             'total' => $total,
             'total_pages' => $total_pages,
             'current_page' => $page,
@@ -55,8 +47,7 @@ class RecruitmentController extends Controller
             'location' => $location
         ];
 
-        extract($data);
-        include __DIR__ . '/../views/recruitment/index.php';
+        $this->view('recruitment/recruitment', $data);
     }
 
     /**
@@ -88,9 +79,12 @@ class RecruitmentController extends Controller
         $this->recruitmentModel->incrementViews($job['id']);
 
         // Lấy các job liên quan (cùng vị trí hoặc cùng địa điểm)
-        $relatedJobs = $this->recruitmentModel->getRelatedJobs($job['id'], $job['work_location'], 3);
+        /*$relatedJobs = $this->recruitmentModel->getRelatedJobs($job['id'], $job['work_location'], 3);*/
 
-        include __DIR__ . '/../views/recruitment/detail.php';
+        $this->view('recruitment/recruitment-detail', [
+            'job' => $job,
+            /*'relatedJobs' => $relatedJobs*/
+        ]);
     }
 
     /**
@@ -145,9 +139,9 @@ class RecruitmentController extends Controller
         }
 
         // Kiểm tra đã ứng tuyển chưa (trong 24h gần nhất)
-        if ($this->applicationModel->hasAppliedRecently($recruitmentId, $email, $ipAddress, 24)) {
+        /*if ($this->applicationModel->hasAppliedRecently($recruitmentId, $email, $ipAddress, 24)) {
             $errors[] = 'Bạn đã ứng tuyển vị trí này trong 24 giờ qua! Vui lòng chờ phản hồi.';
-        }
+        }*/
 
         // Xử lý upload CV
         $cvFile = '';
@@ -184,14 +178,14 @@ class RecruitmentController extends Controller
                 'ip_address' => $ipAddress
             ];
 
-            if ($this->applicationModel->save($data)) {
+            /*if ($this->applicationModel->save($data)) {
                 $_SESSION['success'] = 'Ứng tuyển thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.';
 
                 // Gửi email thông báo (nếu có cấu hình)
                 $this->sendApplicationConfirmationEmail($email, $fullname, $job['title']);
             } else {
                 $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại sau.';
-            }
+            }*/
         } else {
             $_SESSION['errors'] = $errors;
         }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Admin Controller - Handles homepage
  */
@@ -30,12 +31,15 @@ class AdminController extends Controller
     {
         $allowedPages = [
             'dashboard' => 'admin/main/dashboard_admin',
-            'news' => 'admin/main/news_admin',
+            'news' => 'admin/main/news/news_admin',
             'add-news' => 'admin/main/post/add_news',
             'add-recruitment' => 'admin/main/post/add_recruitment',
-            'recruitment' => 'admin/main/recruitment_admin',
+            'recruitment' => 'admin/main/recruitment/recruitment_admin',
             'contact' => 'admin/main/contact_admin',
+            'create-recruitment' => 'admin/main/recruitment/create',
             // Add other pages here as needed
+            // 'add-recruitment' => 'admin/main/post/add_recruitment',
+            // 'create-recruitment' => 'admin/main/recruitment/create',
         ];
 
         $view = $allowedPages[$page] ?? $allowedPages['dashboard'];
@@ -44,5 +48,3 @@ class AdminController extends Controller
         $this->render($view, false);
     }
 }
-
-?>
