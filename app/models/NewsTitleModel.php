@@ -24,7 +24,7 @@ class NewsTitleModel extends Model
                 WHERE nt.slug = :slug 
                 AND nt.status = 'published'";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->execute(['slug' => $slug]);
         return $stmt->fetch();
     }
@@ -40,7 +40,7 @@ class NewsTitleModel extends Model
                 ORDER BY n.publish_date DESC 
                 LIMIT :limit";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':category_id', $categoryId, PDO::PARAM_INT);
         $stmt->bindValue(':news_id', $newsId, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -58,7 +58,7 @@ class NewsTitleModel extends Model
                 ORDER BY nt.published_at DESC 
                 LIMIT :limit";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -73,7 +73,7 @@ class NewsTitleModel extends Model
                 ORDER BY n.publish_date DESC 
                 LIMIT :limit";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -82,14 +82,14 @@ class NewsTitleModel extends Model
     public function incrementViews($id)
     {
         $sql = "UPDATE news_title SET views = views + 1 WHERE id = :id";
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
 
     public function incrementShareCount($id)
     {
         $sql = "UPDATE news_title SET share_count = share_count + 1 WHERE id = :id";
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
 }

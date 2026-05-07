@@ -4,23 +4,23 @@ require_once __DIR__ . '/../config/Database.php';
 class BaseModel
 {
     protected $db;
-    protected $connection;
+    protected $conn;
 
     public function __construct()
     {
         $this->db = new Database();
-        $this->connection = $this->db->getConnection();
+        $this->conn = $this->db->getConnection();
     }
 
     public function __destruct()
     {
-        $this->db->closeConnection();
+        $this->conn->closeConnection();
     }
 
     // Phương thức lấy dữ liệu (SELECT)
     protected function select($sql, $params = [], $types = "")
     {
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
 
         if (!empty($params)) {
             $stmt->bind_param($types, ...$params);
@@ -48,7 +48,7 @@ class BaseModel
     // Phương thức thực thi (INSERT, UPDATE, DELETE)
     protected function execute($sql, $params = [], $types = "")
     {
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
 
         if (!empty($params)) {
             $stmt->bind_param($types, ...$params);

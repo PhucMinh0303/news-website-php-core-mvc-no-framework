@@ -25,7 +25,7 @@ class ContactModel extends Model
             $data['referrer_url'] ?? null
         ];
 
-        $stmt = $this->db->query($sql, $params);
+        $stmt = $this->conn->query($sql, $params);
         $result = $stmt->fetch();
         return $result['contact_id'] ?? null;
     }
@@ -39,7 +39,7 @@ class ContactModel extends Model
                 WHERE c.status IN ('new', 'read', 'processing')
                 ORDER BY FIELD(c.priority, 'urgent', 'high', 'medium', 'low'), c.created_at";
 
-        return $this->db->fetchAll($sql);
+        return $this->conn->fetchAll($sql);
     }
 
     public function updateContactStatus($id, $status, $responseContent = null, $responseBy = null)
@@ -52,7 +52,7 @@ class ContactModel extends Model
             $data['response_by'] = $responseBy;
         }
 
-        return $this->updateById($id, $data);
+        return $this->conn->updateById($id, $data);
     }
 
     public function getContactStats()
@@ -65,7 +65,7 @@ class ContactModel extends Model
                 GROUP BY status
                 ORDER BY FIELD(status, 'new', 'processing', 'read', 'replied', 'resolved')";
 
-        return $this->db->fetchAll($sql);
+        return $this->conn->fetchAll($sql);
     }
 
     public function getDailyStats($days = 30)
@@ -80,7 +80,7 @@ class ContactModel extends Model
                 GROUP BY DATE(created_at)
                 ORDER BY date DESC";
 
-        return $this->db->fetchAll($sql, [$days]);
+        return $this->conn->fetchAll($sql, [$days]);
     }
 
     public function getContactHistory($contactId)
@@ -89,6 +89,6 @@ class ContactModel extends Model
                 WHERE contact_id = ? 
                 ORDER BY created_at DESC";
 
-        return $this->db->fetchAll($sql, [$contactId]);
+        return $this->conn->fetchAll($sql, [$contactId]);
     }
 }

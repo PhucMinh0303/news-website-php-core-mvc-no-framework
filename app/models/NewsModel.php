@@ -22,11 +22,11 @@ class NewsModel extends Model
 
         if ($limit) {
             $sql .= " LIMIT :limit OFFSET :offset";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->conn->prepare($sql);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         } else {
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->conn->prepare($sql);
         }
 
         $stmt->execute();
@@ -35,7 +35,7 @@ class NewsModel extends Model
 
     public function getTotalPublished()
     {
-        $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM news WHERE status = 'published'");
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM news WHERE status = 'published'");
         $stmt->execute();
         $result = $stmt->fetch();
         return $result['total'];
@@ -51,7 +51,7 @@ class NewsModel extends Model
                 ORDER BY n.publish_date DESC 
                 LIMIT :limit";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -67,7 +67,7 @@ class NewsModel extends Model
                 ORDER BY n.publish_date DESC 
                 LIMIT :limit";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -76,7 +76,7 @@ class NewsModel extends Model
     public function incrementViews($id)
     {
         $sql = "UPDATE news SET views = views + 1 WHERE id = :id";
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
 }

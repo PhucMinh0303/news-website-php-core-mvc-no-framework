@@ -12,34 +12,35 @@ class RecruitmentModel extends Model
     }
 
     /**
-     * Lấy tất cả tin tuyển dụng với phân trang và filter
+     * Lấy tất cả tin tuyển dụng với phân trang và filter (Admin)
      */
-    public function getAll($status = null, $limit = null, $offset = 0, $search = null)
+    public function getAllAdmin($status = null, $limit = null, $offset = 0, $search = null)
     {
         $sql = "SELECT * FROM {$this->table} WHERE 1=1";
         $params = [];
-        // Filter theo status (status là số: 1, 0, 2)
-        if ($status !== null && $status != '') {
+        
+        if ($status !== null && $status !== '') {
             $sql .= " AND status = :status";
             $params['status'] = (int)$status;
         }
-        // Search theo title hoặc description
+        
         if (!empty($search)) {
-            $sql .= " AND (title LIKE :search OR description LIKE :search)";
+            $sql .= " AND (title LIKE :search OR description LIKE :search OR requirements LIKE :search)";
             $params['search'] = "%{$search}%";
         }
+        
         $sql .= " ORDER BY created_at DESC";
 
-        if ($limit) {
+        if ($limit !== null) {
             $sql .= " LIMIT :limit OFFSET :offset";
-            $params['limit'] = $limit;
-            $params['offset'] = $offset;
+            $params['limit'] = (int)$limit;
+            $params['offset'] = (int)$offset;
         }
 
         $stmt = $this->conn->prepare($sql);
 
         foreach ($params as $key => $value) {
-            if ($key == 'limit' || $key == 'offset' || $key == 'status') {
+            if (in_array($key, ['limit', 'offset', 'status'])) {
                 $stmt->bindValue($key, $value, PDO::PARAM_INT);
             } else {
                 $stmt->bindValue($key, $value, PDO::PARAM_STR);
@@ -51,6 +52,53 @@ class RecruitmentModel extends Model
     }
 
     /**
+     * Lấy tất cả tin tuyển dụng active cho User
+     */
+    public function getActiveJobs($limit = null, $offset = 0, $search = null)
+    {
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE status = 1 AND deadline >= CURDATE()";
+        $params = [];
+        
+        if (!empty($search)) {
+            $sql .= " AND (title LIKE :search OR description LIKE :search)";
+            $params['search'] = "%{$search}%";
+        }
+        
+        $sql .= " ORDER BY created_at DESC";
+
+        if ($limit !== null) {
+            $sql .= " LIMIT :limit OFFSET :offset";
+            $params['limit'] = (int)$limit;
+            $params['offset'] = (int)$offset;
+        }
+
+        $stmt = $this->conn->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            if (in_array($key, ['limit', 'offset'])) {
+                $stmt->bindValue($key, $value, PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue($key, $value, PDO::PARAM_STR);
+            }
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tin tuyển dụng theo ID
+     */
+    public function getById($id)
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Lấy tin tuyển dụng theo slug
      */
     public function getBySlug($slug)
@@ -58,8 +106,53 @@ class RecruitmentModel extends Model
         $sql = "SELECT * FROM {$this->table} WHERE slug = :slug";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['slug' => $slug]);
-
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Tạo slug từ title
+     */
+    private function createSlug($title)
+    {
+        $slug = strtolower(trim($title));
+        $slug = preg_replace('/[^a-z0-9-]/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', $slug);
+        return trim($slug, '-');
+    }
+
+    /**
+     * Tạo slug duy nhất
+     */
+    private function generateUniqueSlug($title, $id = null)
+    {
+        $slug = $this->createSlug($title);
+        $originalSlug = $slug;
+        $counter = 1;
+        
+        while ($this->slugExists($slug, $id)) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+        
+        return $slug;
+    }
+
+    /**
+     * Kiểm tra slug đã tồn tại chưa
+     */
+    private function slugExists($slug, $excludeId = null)
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE slug = :slug";
+        $params = ['slug' => $slug];
+        
+        if ($excludeId) {
+            $sql .= " AND id != :id";
+            $params['id'] = $excludeId;
+        }
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchColumn() > 0;
     }
 
     /**
@@ -67,15 +160,32 @@ class RecruitmentModel extends Model
      */
     public function create($data)
     {
-        $sql = "INSERT INTO {$this->table} (recruitment_title, slug, job_description, job_requirements, 
-                job_benefits, image, salary_range, location, deadline, quantity, position, 
-                experience, education, job_type, status, views, created_at, updated_at) 
-                VALUES (:recruitment_title, :slug, :job_description, :job_requirements, 
-                :job_benefits, :image, :salary_range, :location, :deadline, :quantity, :position, 
-                :experience, :education, :job_type, :status, :views, NOW(), NOW())";
+        // Tạo slug từ title
+        $data['slug'] = $this->generateUniqueSlug($data['title']);
+        
+        $sql = "INSERT INTO {$this->table} 
+                (title, slug, image, work_location, degree, quantity, salary_range, 
+                 deadline, description, requirements, benefits, status, created_at, updated_at) 
+                VALUES 
+                (:title, :slug, :image, :work_location, :degree, :quantity, :salary_range, 
+                 :deadline, :description, :requirements, :benefits, :status, NOW(), NOW())";
 
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute($data);
+        
+        $stmt->execute([
+            'title' => $data['title'],
+            'slug' => $data['slug'],
+            'image' => $data['image'] ?? 'default-job.webp',
+            'work_location' => $data['work_location'] ?? null,
+            'degree' => $data['degree'] ?? 'Cao Đẳng - Đại Học',
+            'quantity' => (int)($data['quantity'] ?? 1),
+            'salary_range' => $data['salary_range'] ?? null,
+            'deadline' => $data['deadline'],
+            'description' => $data['description'] ?? null,
+            'requirements' => $data['requirements'] ?? null,
+            'benefits' => $data['benefits'] ?? null,
+            'status' => (int)($data['status'] ?? 1)
+        ]);
 
         return $this->conn->lastInsertId();
     }
@@ -85,59 +195,70 @@ class RecruitmentModel extends Model
      */
     public function update($id, $data)
     {
-        $fields = [];
-        foreach ($data as $key => $value) {
-            $fields[] = "{$key} = :{$key}";
+        // Cập nhật slug nếu title thay đổi
+        if (isset($data['title'])) {
+            $data['slug'] = $this->generateUniqueSlug($data['title'], $id);
         }
-
+        
+        $fields = [];
+        $params = [];
+        
+        $allowedFields = ['title', 'slug', 'image', 'work_location', 'degree', 'quantity', 
+                          'salary_range', 'deadline', 'description', 'requirements', 'benefits', 'status'];
+        
+        foreach ($data as $key => $value) {
+            if (in_array($key, $allowedFields)) {
+                $fields[] = "{$key} = :{$key}";
+                $params[$key] = $value;
+            }
+        }
+        
+        if (empty($fields)) {
+            return false;
+        }
+        
+        $params['id'] = $id;
         $sql = "UPDATE {$this->table} SET " . implode(', ', $fields) . ", updated_at = NOW() WHERE id = :id";
-        $data['id'] = $id;
-
+        
         $stmt = $this->conn->prepare($sql);
-        return $stmt->execute($data);
+        return $stmt->execute($params);
     }
 
     /**
-     * Tăng lượt xem
+     * Xóa tin tuyển dụng
      */
-    public function incrementViews($id)
+    public function delete($id)
     {
-        $sql = "UPDATE {$this->table} SET views = views + 1 WHERE id = :id";
+        $sql = "DELETE FROM {$this->table} WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
 
     /**
-     * Lấy tin tuyển dụng đang mở
+     * Cập nhật trạng thái
      */
-    public function getOpenJobs($limit = 10)
+    public function updateStatus($id, $status)
     {
-        $sql = "SELECT * FROM {$this->table} 
-                WHERE status = 'open' AND deadline >= CURDATE() 
-                ORDER BY created_at DESC 
-                LIMIT :limit";
-
+        $sql = "UPDATE {$this->table} SET status = :status, updated_at = NOW() WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->execute(['id' => $id, 'status' => (int)$status]);
     }
 
     /**
-     * Đếm tổng số tin với fitter
+     * Đếm tổng số tin (Admin)
      */
-    public function count($status = null, $search = null)
+    public function countAdmin($status = null, $search = null)
     {
         $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE 1=1";
         $params = [];
 
-        if ($status) {
+        if ($status !== null && $status !== '') {
             $sql .= " AND status = :status";
             $params['status'] = (int)$status;
         }
+        
         if (!empty($search)) {
-            $sql .= " AND (title LIKE :search OR description LIKE :search)";
+            $sql .= " AND (title LIKE :search OR description LIKE :search OR requirements LIKE :search)";
             $params['search'] = "%{$search}%";
         }
 
@@ -149,37 +270,41 @@ class RecruitmentModel extends Model
                 $stmt->bindValue($key, $value, PDO::PARAM_STR);
             }
         }
-        $stmt->execute($params);
+        $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
         return $result['total'];
     }
 
     /**
-     * Tìm kiếm tin tuyển dụng
+     * Đếm số tin active cho User
      */
-    public function search($keyword, $location = null, $jobType = null)
+    public function countActive($search = null)
     {
-        $sql = "SELECT * FROM {$this->table} 
-                WHERE (recruitment_title LIKE :keyword OR job_description LIKE :keyword) 
-                AND status = 'open'";
-        $params = ['keyword' => "%{$keyword}%"];
-
-        if ($location) {
-            $sql .= " AND location LIKE :location";
-            $params['location'] = "%{$location}%";
+        $sql = "SELECT COUNT(*) as total FROM {$this->table} 
+                WHERE status = 1 AND deadline >= CURDATE()";
+        $params = [];
+        
+        if (!empty($search)) {
+            $sql .= " AND (title LIKE :search OR description LIKE :search)";
+            $params['search'] = "%{$search}%";
         }
-
-        if ($jobType) {
-            $sql .= " AND job_type = :job_type";
-            $params['job_type'] = $jobType;
-        }
-
-        $sql .= " ORDER BY created_at DESC";
-
+        
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute($params);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, PDO::PARAM_STR);
+        }
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'];
+    }
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    /**
+     * Tăng lượt xem
+     */
+    public function incrementViews($id)
+    {
+        // Nếu có cột views thì thêm, hiện tại chưa có trong SQL
+        // Có thể bỏ qua hoặc thêm cột views sau
+        return true;
     }
 }

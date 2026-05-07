@@ -24,10 +24,10 @@ class RecruitmentTitleModel extends Model
 
         if ($limit) {
             $sql .= " LIMIT :limit";
-            $stmt = $this->connection->prepare($sql);
+            $stmt = $this->conn->prepare($sql);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         } else {
-            $stmt = $this->connection->prepare($sql);
+            $stmt = $this->conn->prepare($sql);
         }
 
         $stmt->execute();
@@ -45,7 +45,7 @@ class RecruitmentTitleModel extends Model
                 ORDER BY created_at DESC 
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -60,7 +60,7 @@ class RecruitmentTitleModel extends Model
     {
         $sql = "SELECT COUNT(*) as total FROM recruitment_title 
                 WHERE status = 1 AND deadline >= CURDATE()";
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -73,7 +73,7 @@ class RecruitmentTitleModel extends Model
     public function getDetail($slug)
     {
         $sql = "SELECT * FROM recruitment_title WHERE slug = :slug AND status = 1";
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->execute(['slug' => $slug]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -90,7 +90,7 @@ class RecruitmentTitleModel extends Model
                 ORDER BY created_at DESC 
                 LIMIT :limit";
 
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -116,7 +116,7 @@ class RecruitmentTitleModel extends Model
             }
         }
 
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':keyword', "%{$keyword}%", PDO::PARAM_STR);
 
         if ($limit !== null) {
@@ -136,7 +136,7 @@ class RecruitmentTitleModel extends Model
     public function incrementViews($id)
     {
         $sql = "UPDATE recruitment_title SET views = views + 1 WHERE id = :id";
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
 
@@ -152,7 +152,7 @@ class RecruitmentTitleModel extends Model
                 ORDER BY created_at DESC 
                 LIMIT :limit";
 
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':position', $position, PDO::PARAM_STR);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -168,7 +168,7 @@ class RecruitmentTitleModel extends Model
         $sql = "SELECT DISTINCT position FROM recruitment_title 
                 WHERE status = 1 AND deadline >= CURDATE() 
                 ORDER BY position ASC";
-        $stmt = $this->connection->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
