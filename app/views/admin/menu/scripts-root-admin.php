@@ -7,18 +7,15 @@
     </script>
 
     <!-- Load scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    
-    
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- Thêm jQuery 3.7.1 và file JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
     <script src="<?php echo View::asset('js/admin.js'); ?>"></script>
-    
+
 
     <?php
     if (isset($view_animation_data)) {
-        echo View::js('animationData', $view_animation_data);
+      echo View::js('animationData', $view_animation_data);
     }
     ?>
     <script>
@@ -30,6 +27,13 @@
         //   // Apply animation using a library or custom CSS
         // }
       }
+      // Khởi tạo form khi document ready
+      $(document).ready(function() {
+        if (typeof recruitmentForm !== 'undefined') {
+          recruitmentForm.init();
+        }
+      });
     </script>
-  </body>
-</html>
+    </body>
+
+    </html>

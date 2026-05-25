@@ -198,16 +198,15 @@ class Controller
 
     public function model($model)
     {
-        require_once '../app/models/' . $model . '.php';
+        require_once APP_PATH . 'models/' . $model . '.php';
         return new $model;
-
     }
 
     protected function view($view, $data = [])
     {
         extract($data);
 
-        $viewFile = __DIR__ . "/../views/{$view}.php";
+        $viewFile = APP_PATH . 'views/' . $view . '.php';
 
         if (file_exists($viewFile)) {
             require_once $viewFile;

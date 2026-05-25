@@ -193,31 +193,7 @@ class RecruitmentController extends Controller
         header("Location: /recruitment/" . $job['slug']);
     }
 
-    /**
-     * API: Lấy danh sách jobs theo AJAX (cho load more)
-     */
-    public function apiGetJobs()
-    {
-        header('Content-Type: application/json');
-
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
-        $offset = ($page - 1) * $limit;
-
-        $jobs = $this->recruitmentModel->getAll(1, $limit, $offset);
-        $total = $this->recruitmentModel->count(1);
-
-        echo json_encode([
-            'success' => true,
-            'data' => $jobs,
-            'pagination' => [
-                'current_page' => $page,
-                'total_pages' => ceil($total / $limit),
-                'total_records' => $total
-            ]
-        ]);
-        exit;
-    }
+    
 
     /**
      * Gửi email xác nhận ứng tuyển

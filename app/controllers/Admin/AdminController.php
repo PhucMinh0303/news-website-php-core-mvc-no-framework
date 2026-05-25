@@ -32,14 +32,12 @@ class AdminController extends Controller
         $allowedPages = [
             'dashboard' => 'admin/main/dashboard_admin',
             'news' => 'admin/main/news/news_admin',
-            'add-news' => 'admin/main/post/add_news',
-            'add-recruitment' => 'admin/main/post/add_recruitment',
+            'create-news' => 'admin/main/news/create',
             'recruitment' => 'admin/main/recruitment/recruitment_admin',
-            'contact' => 'admin/main/contact_admin',
             'create-recruitment' => 'admin/main/recruitment/create',
-            // Add other pages here as needed
-            // 'add-recruitment' => 'admin/main/post/add_recruitment',
-            // 'create-recruitment' => 'admin/main/recruitment/create',
+            'contact' => 'admin/main/contact_admin',
+
+
         ];
 
         $view = $allowedPages[$page] ?? $allowedPages['dashboard'];

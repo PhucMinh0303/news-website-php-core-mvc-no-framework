@@ -53,7 +53,7 @@ class AdminRecruitmentController extends Controller
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/main/recruitment/store');
+            header('Location: /admin/main/recruitment');
             return;
         }
 
@@ -89,7 +89,7 @@ class AdminRecruitmentController extends Controller
 
             if ($result) {
                 $_SESSION['success'] = 'Thêm tin tuyển dụng thành công!';
-                header('Location: /admin/main/recruitment/store');
+                header('Location: /admin/main/recruitment');
                 return;
             } else {
                 $errors[] = 'Có lỗi xảy ra, vui lòng thử lại!';
@@ -98,7 +98,7 @@ class AdminRecruitmentController extends Controller
 
         $_SESSION['errors'] = $errors;
         $_SESSION['old_input'] = $_POST;
-        header('Location: /admin/main/recruitment/store');
+        header('Location: /admin/main/recruitment/create');
     }
 
     /**
@@ -123,14 +123,14 @@ class AdminRecruitmentController extends Controller
     public function update($id)
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/recruitment');
+            header('Location: /admin/main/recruitment');
             return;
         }
 
         $job = $this->recruitmentModel->getById($id);
         if (!$job) {
             $_SESSION['error'] = 'Tin tuyển dụng không tồn tại!';
-            header('Location: /admin/recruitment');
+            header('Location: /admin/main/recruitment');
             return;
         }
 
@@ -173,7 +173,7 @@ class AdminRecruitmentController extends Controller
 
             if ($result) {
                 $_SESSION['success'] = 'Cập nhật tin tuyển dụng thành công!';
-                header('Location: /admin/recruitment');
+                header('Location: /admin/main/recruitment');
                 return;
             } else {
                 $errors[] = 'Có lỗi xảy ra, vui lòng thử lại!';
@@ -182,7 +182,7 @@ class AdminRecruitmentController extends Controller
 
         $_SESSION['errors'] = $errors;
         $_SESSION['old_input'] = $_POST;
-        header("Location: /admin/recruitment/edit/{$id}");
+        header("Location: /admin/main/recruitment/edit/{$id}");
     }
 
     /**
@@ -212,7 +212,7 @@ class AdminRecruitmentController extends Controller
             $_SESSION['error'] = 'Tin tuyển dụng không tồn tại!';
         }
 
-        header('Location: /admin/recruitment');
+        header('Location: /admin/main/recruitment');
     }
 
     /**
@@ -233,7 +233,7 @@ class AdminRecruitmentController extends Controller
             }
         }
 
-        header('Location: /admin/recruitment');
+        header('Location: /admin/main/recruitment');
     }
 
     /**
@@ -271,21 +271,22 @@ class AdminRecruitmentController extends Controller
      */
     private function uploadImage($file)
     {
-        // Tạo thư mục upload nếu chưa tồn tại
         $uploadDir = __DIR__ . '/../../public/uploads/recruitments/';
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
-        // Kiểm tra loại file và kích thước
+
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        $maxSize = 2 * 1024 * 1024; // 2MB
+
         if (!in_array($file['type'], $allowedTypes)) {
             return ['success' => false, 'error' => 'Chỉ chấp nhận file ảnh (JPG, PNG, WEBP)'];
         }
-        $maxSize = 2 * 1024 * 1024; // 2MB (Giới hạn kích thước file, có thể điều chỉnh theo nhu cầu)
+
         if ($file['size'] > $maxSize) {
             return ['success' => false, 'error' => 'Kích thước ảnh không được vượt quá 2MB'];
         }
-        // Tạo tên file unique
+
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $filename = uniqid() . '_' . time() . '.' . $ext;
         $destination = $uploadDir . $filename;

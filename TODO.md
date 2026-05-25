@@ -23,6 +23,11 @@
 - [ ] Ensure all controllers exist and methods are properly defined
 - [ ] Update any documentation or comments if necessary
 
+## Fixed Issues (May 14, 2026)
+
+- [x] Fixed web_routes.php - Changed `$router->add()` calls to `$router->addRoute()` (Router API mismatch)
+- [x] Fixed NewsApiController.php - Moved `show()` method inside class definition (syntax error)
+
 ## Notes
 
 - The Front Controller pattern is now implemented with Router handling URL routing.

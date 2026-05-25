@@ -22,10 +22,23 @@ class UserModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Lấy user theo id
+    public function getUser($id)
+    {
+        $query = "SELECT * FROM users WHERE id = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([$id]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     // Thêm user
     public function create($name, $email)
     {
         $stmt = $this->conn->prepare("INSERT INTO users (name, email) VALUES (?, ?)");
-        return $stmt->execute([$name, $email]);
+        if ($stmt->execute([$name, $email])) {
+            return $this->conn->lastInsertId();
+        }
+        return false;
     }
 }

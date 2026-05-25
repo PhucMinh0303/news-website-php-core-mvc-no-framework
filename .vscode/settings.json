@@ -1,23 +1,175 @@
 {
     "files.associations": {
+        "*.php": "php",
         "*.sql": "sql"
     },
     "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+    },
+      
     "sqltools.connections": [
-        {
-            "mysqlOptions": {
-                "authProtocol": "default",
-                "enableSsl": "Disabled"
-            },
-            "ssh": "Disabled",
-            "previewLimit": 50,
-            "server": "localhost",
-            "port": 3306,
-            "driver": "MySQL",
-            "name": "capitalam2-mvc",
-            "database": "quanly_tintuc",
-            "username": "capitalam",
-            "password": "123456"
-        }
-    ]
+      {
+        "mysqlOptions": {
+          "authProtocol": "default",
+          "enableSsl": "Disabled"
+        },
+        "ssh": "Disabled",
+        "previewLimit": 50,
+        "server": "localhost",
+        "port": 3306,
+        "driver": "MySQL",
+        "name": "xampp-mysql",
+        "database": "quanly_tintuc",
+        "username": "capitalam"
+      }
+    ],
+    "editor.fontFamily": "JetBrains Mono, Consolas, monospace",
+    "editor.fontLigatures": true,
+    "workbench.colorTheme": "PhpStorm Dark Islands",
+    "workbench.iconTheme": "phpstorm-icon",
+    "editor.lineHeight": 22,
+    "editor.fontSize": 14,
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.smoothScrolling": true,
+    "code-translate.targetLanguage": "vi",
+    "code-translate.sourceLanguage": "auto",
+    "cSpell.language": "en,vi",
+    "explorer.confirmDragAndDrop": false,
+    "explorer.confirmDelete": false,
+    "explorer.confirmRename": false,
+
+
+    // ========================
+  // PHP IntelliSense
+  // ========================
+  "intelephense.environment.phpVersion": "8.2",
+  "intelephense.files.maxSize": 5000000,
+
+  "intelephense.diagnostics.enable": true,
+  "intelephense.diagnostics.undefinedFunctions": true,
+  "intelephense.diagnostics.undefinedMethods": true,
+  "intelephense.diagnostics.undefinedTypes": true,
+  "intelephense.diagnostics.undefinedConstants": true,
+
+  "intelephense.completion.fullyQualifyGlobalConstantsAndFunctions": true,
+  "intelephense.completion.insertUseDeclaration": true,
+
+  // ========================
+  // Format giống PhpStorm
+  // ========================
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+  
+  
+  // ========================
+  // Format HTML giống PhpStorm
+  // ========================
+  "[html]": {
+      "editor.defaultFormatter": "vscode.html-language-features",
+      "editor.formatOnSave": true,
+      "editor.tabSize": 4,
+      "editor.insertSpaces": true,
+      "editor.wordWrap": "off"
+  },
+
+  // ========================
+  // HTML format options (giống PhpStorm)
+  // ========================
+  "html.format.wrapLineLength": 120,
+  "html.format.unformatted": "inline, pre, code",
+  "html.format.contentUnformatted": "pre, code, textarea",
+  "html.format.indentInnerHtml": true,
+  "html.format.preserveNewLines": true,
+  "html.format.maxPreserveNewLines": 1,
+  "html.format.indentHandlebars": true,
+  "html.format.extraLiners": "head, body, /html",
+  "html.format.wrapAttributes": "auto",
+  "html.format.templating": true,
+
+  // ========================
+  // Emmet hỗ trợ trong PHP
+  // ========================
+  "emmet.includeLanguages": {
+      "php": "html",
+      "html": "html"
+  },
+  "emmet.triggerExpansionOnTab": true,
+
+  // ========================
+  // Mixed language formatting (HTML trong PHP)
+  // ========================
+  
+
+
+  // ========================
+  // Hiển thị lỗi realtime
+  // ========================
+  "editor.inlineSuggest.enabled": true,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+
+  "editor.renderWhitespace": "boundary",
+  "editor.renderControlCharacters": false,
+
+  // ========================
+  // Error Lens (hiển thị lỗi như PhpStorm)
+  // ========================
+  "errorLens.enabled": true,
+  "errorLens.messageEnabled": true,
+  "errorLens.fontWeight": "bold",
+
+  // ========================
+  // Auto import / path
+  // ========================
+  "php.validate.enable": true,
+  "php.suggest.basic": false,
+
+  // ========================
+  // File exclude (nhẹ IDE)
+  // ========================
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/node_modules": true,
+    "**/vendor": true
+  },
+
+  // ========================
+  // Search ignore
+  // ========================
+  "search.exclude": {
+    "**/vendor": true,
+    "**/node_modules": true
+  },
+
+  // ========================
+  // UI giống PhpStorm hơn
+  // ========================
+  "breadcrumbs.enabled": true,
+  "editor.minimap.enabled": false,
+  "editor.lineNumbers": "on",
+
+  // ========================
+  // PHP Debug (Xdebug)
+  // ========================
+  "php.debug.executablePath": "D:/xampp/php/php.exe",
+
+  // ========================
+  // Save tự động (optional)
+  // ========================
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+
+  // ========================
+  // Setup Jquery (nếu cần)
+  // ========================
+  
 }
