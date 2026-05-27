@@ -59,7 +59,7 @@ unset($_SESSION['errors']);
 
             <div class="grid-2cols">
                 <div class="form-group">
-                    <label>Trình độ yêu cầu:</label>
+                    <label>Trình độ yêu cầu: <span class="required">*</span></label>
                     <select name="degree">
                         <option value="Không yêu cầu" <?php echo (($formData['degree'] ?? '') == 'Không yêu cầu') ? 'selected' : ''; ?>>
                             Không yêu cầu bằng cấp
@@ -101,7 +101,7 @@ unset($_SESSION['errors']);
                         value="<?php echo (int)($formData['quantity'] ?? 1); ?>" required>
                 </div>
                 <div class="form-group">
-                    <label>Mức lương:</label>
+                    <label>Mức lương: <span class="required">*</span></label>
                     <input type="text" name="salary_display" id="salary_display"
                         placeholder="VD: 15.000.000 - 20.000.000 VNĐ hoặc Thỏa thuận"
                         value="<?php echo htmlspecialchars($formData['salary_range'] ?? ''); ?>">
@@ -112,7 +112,7 @@ unset($_SESSION['errors']);
 
             <div class="form-group">
                 <label>Hạn nộp hồ sơ: <span class="required">*</span></label>
-                <input class="input-deadline" type="date" name="deadline"
+                <input class="input-deadline" name="deadline" id="deadline" type="date"
                     value="<?php echo htmlspecialchars($formData['deadline'] ?? ''); ?>"
                     min="<?php echo date('Y-m-d'); ?>" required>
             </div>
@@ -139,7 +139,7 @@ unset($_SESSION['errors']);
 
             <div class="form-group">
                 <div class="label-row">
-                    <label>Quyền lợi được hưởng:</label>
+                    <label>Quyền lợi được hưởng: <span class="required">*</span></label>
                     <button type="button" class="ai-btn" onclick="recruitmentForm.generateAIBenefits()">✨ Gợi ý bằng AI</button>
                 </div>
                 <textarea name="benefits" id="job_benefits" rows="6"
