@@ -7,6 +7,7 @@ async function loadHTML(url, containerId) {
     const container = document.getElementById(containerId);
     container.innerHTML = html;
     initQuillEditor(container);
+    window.recruitmentForm?.init?.(container);
   } catch (error) {
     console.error("Lỗi tải file:", error);
     document.getElementById(containerId).innerHTML =

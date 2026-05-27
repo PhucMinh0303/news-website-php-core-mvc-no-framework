@@ -1,34 +1,33 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="<?php echo View::escape(SITE_TITLE); ?>" />
-    <meta name="keywords" content="Capital AM, Asset Management, Financial Services, Investment" />
-    <meta name="author" content="<?php echo View::escape(SITE_NAME); ?>" />
-    <meta property="og:title" content="<?php echo View::escape(SITE_TITLE); ?>" />
-    <meta property="og:description" content="<?php echo View::escape(SITE_TITLE); ?>" />
-    <meta property="og:url" content="<?php echo BASE_URL; ?>" />
-    <title><?php echo isset($view_page_title) ? View::escape($view_page_title) . ' - ' . View::escape(SITE_NAME) : View::escape(SITE_TITLE); ?></title>
 
-    <!-- Quill CSS library -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="<?php echo View::escape(SITE_TITLE); ?>" />
+  <meta name="keywords" content="Capital AM, Asset Management, Financial Services, Investment" />
+  <meta name="author" content="<?php echo View::escape(SITE_NAME); ?>" />
+  <meta property="og:title" content="<?php echo View::escape(SITE_TITLE); ?>" />
+  <meta property="og:description" content="<?php echo View::escape(SITE_TITLE); ?>" />
+  <meta property="og:url" content="<?php echo BASE_URL; ?>" />
+  <title><?php echo isset($view_page_title) ? View::escape($view_page_title) . ' - ' . View::escape(SITE_NAME) : View::escape(SITE_TITLE); ?></title>
 
-    <!-- CSS chính -->
-    <link rel="stylesheet" href="<?php echo View::asset('css/admin.css'); ?>" />
-    
+  <!-- Quill CSS library -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
-    />
-    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
-  </head>
+  <!-- CSS chính -->
+  <link rel="stylesheet" href="<?php echo View::asset('css/admin/admin.css'); ?>" />
+  <link rel="stylesheet" href="<?php echo View::asset('css/admin/recruitment-create.css'); ?>" />
 
-  <body>
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+</head>
+
+<body>

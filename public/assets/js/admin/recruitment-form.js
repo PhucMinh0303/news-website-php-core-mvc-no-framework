@@ -10,11 +10,11 @@
     'Cần tìm Nhân viên Chăm sóc khách hàng - Tiếng Anh tốt'
   ];
 
-  const aiDescription = '<p><strong>Mô tả công việc:</strong></p>\n<ul>\n    <li>Thực hiện các công việc chuyên môn theo đúng quy trình của công ty</li>\n    <li>Phối hợp với các phòng ban để đảm bảo tiến độ công việc</li>\n    <li>Báo cáo kết quả công việc định kỳ cho cấp trên trực tiếp</li>\n    <li>Tham gia các dự án theo sự phân công của quản lý</li>\n    <li>Đề xuất các giải pháp cải thiện quy trình làm việc</li>\n</ul>';
+  const aiDescription = 'Thực hiện các công việc chuyên môn theo đúng quy trình của công ty\nPhối hợp với các phòng ban để đảm bảo tiến độ công việc\nBáo cáo kết quả công việc định kỳ cho cấp trên trực tiếp\nTham gia các dự án theo sự phân công của quản lý\nĐề xuất các giải pháp cải thiện quy trình làm việc\n';
 
-  const aiRequirements = '<p><strong>Yêu cầu ứng viên:</strong></p>\n<ul>\n    <li>Tốt nghiệp Cao đẳng / Đại học chuyên ngành phù hợp</li>\n    <li>Có ít nhất 1-2 năm kinh nghiệm trong lĩnh vực tương tự</li>\n    <li>Thành thạo các công cụ văn phòng (Word, Excel, PowerPoint)</li>\n    <li>Kỹ năng giao tiếp, làm việc nhóm tốt</li>\n    <li>Chủ động, sáng tạo và có tinh thần trách nhiệm cao</li>\n</ul>';
+  const aiRequirements = 'Tốt nghiệp Cao đẳng / Đại học chuyên ngành phù hợp\nCó ít nhất 1-2 năm kinh nghiệm trong lĩnh vực tương tự\nThành thạo các công cụ văn phòng (Word, Excel, PowerPoint)\nKỹ năng giao tiếp, làm việc nhóm tốt\nChủ động, sáng tạo và có tinh thần trách nhiệm cao\n';
 
-  const aiBenefits = '<p><strong>Quyền lợi được hưởng:</strong></p>\n<ul>\n    <li>Lương cạnh tranh + thưởng hiệu quả công việc</li>\n    <li>Đầy đủ BHXH, BHYT, BHTN theo quy định</li>\n    <li>Môi trường làm việc năng động, thân thiện</li>\n    <li>Cơ hội thăng tiến và đào tạo chuyên sâu</li>\n    <li>Các hoạt động team building, du lịch hàng năm</li>\n</ul>';
+  const aiBenefits = 'Lương cạnh tranh + thưởng hiệu quả công việc\nĐầy đủ BHXH, BHYT, BHTN theo quy định\nMôi trường làm việc năng động, thân thiện\nCơ hội thăng tiến và đào tạo chuyên sâu\nCác hoạt động team building, du lịch hàng năm\n';
 
   function removeVietnameseTones(str) {
     if (!str) {
@@ -202,31 +202,44 @@
     const deadline = $deadline.val();
     const errors = [];
 
+    // Xóa class lỗi cũ
+    $('.error-field').removeClass('error-field');
+    $('.field-error').remove();
+
     if (!title) {
       errors.push('Vui lòng nhập tiêu đề tin tuyển dụng');
-      $title.trigger('focus');
+      $title.addClass('error-field');
+      $title.after($('<small>').addClass('field-error error-text').text('Vui lòng nhập tiêu đề tin tuyển dụng'));
     }
 
     if (!slug) {
       errors.push('Slug không được để trống');
+      $slug.addClass('error-field');
     } else if (!isValidSlug(slug)) {
       errors.push('Slug không hợp lệ (chỉ chứa chữ thường, số và dấu gạch ngang)');
+      $slug.addClass('error-field');
     }
 
     if (!workLocation) {
       errors.push('Vui lòng nhập địa điểm làm việc');
+      $workLocation.addClass('error-field');
+      $workLocation.after($('<small>').addClass('field-error error-text').text('Vui lòng nhập địa điểm làm việc'));
     }
 
     if (!quantity || parseInt(quantity, 10) < 1) {
       errors.push('Số lượng cần tuyển phải lớn hơn 0');
+      $quantity.addClass('error-field');
+      $quantity.after($('<small>').addClass('field-error error-text').text('Số lượng cần tuyển phải lớn hơn 0'));
     }
 
     if (!deadline) {
       errors.push('Vui lòng chọn hạn nộp hồ sơ');
+      $deadline.addClass('error-field');
+      $deadline.after($('<small>').addClass('field-error error-text').text('Vui lòng chọn hạn nộp hồ sơ'));
     }
 
     if (errors.length > 0) {
-      showToast('• ' + errors.join('\n• '), 'error');
+      showToast('⚠️ Vui lòng kiểm tra lại các trường thông tin:\n• ' + errors.join('\n• '), 'error');
       return false;
     }
 

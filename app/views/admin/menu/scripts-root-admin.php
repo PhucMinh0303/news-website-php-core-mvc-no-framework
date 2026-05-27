@@ -10,7 +10,8 @@
     <!-- Thêm jQuery 3.7.1 và file JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <script src="<?php echo View::asset('js/admin.js'); ?>"></script>
+    <script src="<?php echo View::asset('js/admin/recruitment-form.js'); ?>"></script>
+    <script src="<?php echo View::asset('js/admin/admin.js'); ?>"></script>
 
 
     <?php
