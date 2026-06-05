@@ -17,7 +17,7 @@
         <li class="menu-item" data-page="contact">Contact</li>
         <li class="menu-item" data-page="media-library">Media Library</li>
         <li class="menu-item" data-page="analytics">Analytics</li>
-        <li class="menu-item" data-page="ai-content-lab">AI Content Lab</li>
+        <li class="menu-item" data-page="test-db">Test SQL</li>
     </ul>
 
     <div class="profile">

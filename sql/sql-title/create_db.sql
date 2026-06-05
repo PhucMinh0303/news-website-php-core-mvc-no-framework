@@ -25,3 +25,7 @@ FLUSH PRIVILEGES;
 
 -- Sử dụng database
 USE quanly_tintuc;
+
+-- Đặt mật khẩu thành rỗng (nếu cần)
+ALTER USER 'root'@'localhost' IDENTIFIED BY '';
+FLUSH PRIVILEGES;

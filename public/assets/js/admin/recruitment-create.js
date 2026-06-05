@@ -37,7 +37,7 @@
       getMessage: function() { return 'Số lượng cần tuyển phải lớn hơn 0'; }
     },
     { 
-      selector: 'input[name="deadline"]', 
+      selector: '#deadline', 
       name: 'deadline',
       label: 'Hạn nộp hồ sơ',
       getMessage: function() { return 'Vui lòng chọn hạn nộp hồ sơ'; }
@@ -193,6 +193,80 @@
     return $requiredFields;
   }
 
+  // Validation cho deadline field
+  function initDeadlineValidation($form) {
+    const $deadline = $form.find('#deadline');
+    
+    if (!$deadline.length || $deadline.data('deadline-bound')) {
+      return;
+    }
+    
+    $deadline.data('deadline-bound', true);
+    
+    // Hàm kiểm tra deadline
+    function validateDeadline() {
+      const deadlineValue = $deadline.val();
+      const $warningMsg = $deadline.closest('.form-group').find('.deadline-warning');
+      
+      if (!deadlineValue) {
+        if ($warningMsg.length) {
+          $warningMsg.remove();
+        }
+        $deadline.removeClass('error-field');
+        return true;
+      }
+      
+      const selectedDate = new Date(deadlineValue);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Kiểm tra nếu ngày chọn nhỏ hơn ngày hiện tại
+      if (selectedDate < today) {
+        // Tạo hoặc cập nhật message warning
+        if (!$warningMsg.length) {
+          const $newWarning = $('<small>')
+            .addClass('deadline-warning')
+            .css({
+              'color': '#dc2626',
+              'font-size': '12px',
+              'margin-top': '5px',
+              'display': 'block'
+            })
+            .html('⚠️ Hạn nộp hồ sơ không được nhỏ hơn ngày hiện tại');
+          
+          $deadline.after($newWarning);
+        } else {
+          $warningMsg.show();
+        }
+        
+        $deadline.addClass('error-field');
+        return false;
+      } else {
+        // Xóa warning nếu có
+        if ($warningMsg.length) {
+          $warningMsg.remove();
+        }
+        $deadline.removeClass('error-field');
+        return true;
+      }
+    }
+    
+    // Lắng nghe sự kiện change và input
+    $deadline.on('change input', function() {
+      validateDeadline();
+      
+      // Xóa custom validity của browser
+      this.setCustomValidity('');
+      
+      // Xóa error message cũ nếu có
+      $(this).closest('.form-group').find('.field-error-msg').remove();
+      $(this).removeClass('error-field');
+    });
+    
+    // Trả về hàm validate để sử dụng trong form submit
+    return validateDeadline;
+  }
+
   // Kiểm tra và hiển thị lỗi từ server (PHP session errors)
   function displayServerErrors(errors, $form) {
     if (!errors || errors.length === 0) return false;
@@ -249,7 +323,7 @@
         $element = $('input[name="quantity"]');
         fieldLabel = 'Số lượng cần tuyển';
       } else if (errorLower.includes('hạn nộp') || errorLower.includes('deadline')) {
-        $element = $('input[name="deadline"]');
+        $element = $('#deadline');
         fieldLabel = 'Hạn nộp hồ sơ';
       } else if (errorLower.includes('mô tả') || errorLower.includes('description')) {
         $element = $('#job_description');
@@ -359,10 +433,20 @@
           isValid = false;
           errorMessage = 'Số lượng cần tuyển phải lớn hơn 0';
         }
-      } else if ($field.attr('name') === 'deadline') {
+      } else if ($field.attr('id') === 'deadline' || $field.attr('name') === 'deadline') {
         if (!value) {
           isValid = false;
           errorMessage = 'Vui lòng chọn hạn nộp hồ sơ';
+        } else {
+          // Kiểm tra ngày không được nhỏ hơn ngày hiện tại
+          const selectedDate = new Date(value);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          if (selectedDate < today) {
+            isValid = false;
+            errorMessage = 'Hạn nộp hồ sơ không được nhỏ hơn ngày hiện tại';
+          }
         }
       } else if ($field.attr('type') === 'number') {
         if (!value || parseInt(value, 10) <= 0) {
@@ -606,10 +690,18 @@
       return false;
     });
 
+    // Khởi tạo deadline validation
+    initDeadlineValidation($form);
+
     // Xóa lỗi khi người dùng nhập vào các field required
     $form.find('input, textarea, select').on('input change', function() {
       $(this).removeClass('error-field');
       $(this).closest('.form-group').find('.field-error-msg').remove();
+      
+      // Xóa deadline warning riêng nếu có
+      if ($(this).attr('id') === 'deadline') {
+        $(this).closest('.form-group').find('.deadline-warning').remove();
+      }
     });
 
     $form.on('submit', function(e) {

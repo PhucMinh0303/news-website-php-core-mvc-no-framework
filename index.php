@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Front Controller - MVC Application Entry Point
  * All requests are routed through this file
@@ -28,7 +29,10 @@ require_once 'app/controllers/RecruitmentController.php';
 require_once 'app/controllers/ContactController.php';
 require_once 'app/controllers/NotFoundController.php';
 require_once 'app/controllers/UserController.php';
+// Admin Controllers
 require_once 'app/controllers/Admin/AdminController.php';
+require_once 'app/controllers/Admin/AdminNewsController.php';
+require_once 'app/controllers/Admin/AdminRecruitmentController.php';
 
 // Create router instance
 $router = new Router();
@@ -61,7 +65,6 @@ try {
 
     // Output the view
     $controller->output();
-
 } catch (Exception $e) {
     // Error handling
     if (DEBUG) {
@@ -83,5 +86,3 @@ try {
 // requests) and break the DOM structure for client-side scripts.
 
 exit;
-
-?>

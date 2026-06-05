@@ -73,6 +73,56 @@ class NewsModel extends Model
         return $stmt->fetchAll();
     }
 
+    public function createNews($data)
+    {
+        try {
+            $sql = "INSERT INTO news (category_id, author, views, status, created_at, updated_at) 
+                    VALUES (:category_id, :author, :views, :status, NOW(), NOW())";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([
+                ':category_id' => $data['category_id'],
+                ':author' => $data['author_name'],
+                ':views' => $data['views'] ?? 0,
+                ':status' => $data['status']
+            ]);
+            return $this->conn->lastInsertId();
+        } catch (PDOException $e) {
+            error_log("Error creating news: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getCategories()
+    {
+        try {
+            $stmt = $this->conn->query("SELECT id, name, slug FROM categories WHERE status = 'active' ORDER BY name");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error getting categories: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getAuthors()
+    {
+        try {
+            $stmt = $this->conn->query("SELECT id, name, email, bio FROM authors WHERE status = 'active' ORDER BY name");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error getting authors: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function calculateReadingTime($content)
+    {
+        $text = strip_tags($content);
+        $wordCount = str_word_count($text, 0, 'áàạảãâấầậẩẫăắằặẳẵéèẹẻẽêếềệểễóòọỏõôốồộổỗơớờợởỡúùụủũưứừựửữýỳỵỷỹđ');
+        $wordsPerMinute = 200;
+        $readingTime = ceil($wordCount / $wordsPerMinute);
+        return max(1, $readingTime);
+    }
+
     public function incrementViews($id)
     {
         $sql = "UPDATE news SET views = views + 1 WHERE id = :id";
@@ -80,5 +130,3 @@ class NewsModel extends Model
         return $stmt->execute(['id' => $id]);
     }
 }
-
-?>

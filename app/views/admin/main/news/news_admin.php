@@ -39,7 +39,7 @@
 
         <div class="topbar">
             <input type="text" placeholder="Search articles..." />
-
+            
             <button class="btn-primary" data-page="create-news">
                 <i class="fa-solid fa-plus"></i> Create News
             </button>

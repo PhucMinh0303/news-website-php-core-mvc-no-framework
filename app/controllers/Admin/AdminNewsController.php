@@ -1,33 +1,38 @@
 <?php
-// controllers/admin/AdminRecruitmentController.php
-require_once __DIR__ . '/../../models/RecruitmentModel.php';
+// controllers/admin/AdminNewsController.php
+require_once __DIR__ . '/../../models/NewsModel.php';
 
 class AdminNewsController extends Controller
 {
-    private $recruitmentModel;
+    private $newsModel;
 
     public function __construct()
     {
-        $this->recruitmentModel = new RecruitmentModel();
+        $this->newsModel = new NewsTitleModel();
     }
 
     /**
-     * Danh sách tin tuyển dụng (Admin)
+     * Dashboard - Hiển thị thống kê và danh sách bài viết (Admin)
      */
     public function index()
     {
+        // Lấy thống kê số lượng theo trạng thái
+        $stats = $this->newsModel->getStats();
+        
+        // Lấy danh sách bài viết
         $page = isset($_GET['p']) ? (int)$_GET['p'] : 1;
         $limit = 10;
         $offset = ($page - 1) * $limit;
         $status = isset($_GET['status']) ? $_GET['status'] : null;
         $search = isset($_GET['search']) ? trim($_GET['search']) : null;
 
-        $jobs = $this->recruitmentModel->getAllAdmin($status, $limit, $offset, $search);
-        $total = $this->recruitmentModel->countAdmin($status, $search);
+        $articles = $this->newsModel->getAllAdmin($status, $limit, $offset, $search);
+        $total = $this->newsModel->countAdmin($status, $search);
         $totalPages = ceil($total / $limit);
 
         $data = [
-            'recruitments' => $jobs,
+            'stats' => $stats,
+            'articles' => $articles,
             'current_page' => $page,
             'total_pages' => $totalPages,
             'total_records' => $total,
@@ -40,15 +45,24 @@ class AdminNewsController extends Controller
     }
 
     /**
-     * Form tạo tin tuyển dụng
+     * Form tạo bài viết mới
      */
     public function create()
     {
-        $this->view('admin/main/news/create');
+        // Lấy danh sách categories và authors
+        $categories = $this->newsModel->getCategories();
+        $authors = $this->newsModel->getAuthors();
+        
+        $data = [
+            'categories' => $categories,
+            'authors' => $authors
+        ];
+        
+        $this->view('admin/main/news/create', $data);
     }
 
     /**
-     * Xử lý lưu tin tuyển dụng mới
+     * Xử lý lưu bài viết mới
      */
     public function store()
     {
@@ -57,162 +71,233 @@ class AdminNewsController extends Controller
             return;
         }
 
-        $errors = $this->validateRecruitmentData($_POST);
+        // Validate dữ liệu
+        $errors = [];
+        if (empty($_POST['title'])) {
+            $errors[] = 'Tiêu đề bài viết không được để trống';
+        }
+        if (empty($_POST['category_id'])) {
+            $errors[] = 'Vui lòng chọn chuyên mục';
+        }
+        if (empty($_POST['author_name'])) {
+            $errors[] = 'Tên tác giả không được để trống';
+        }
 
-        // Xử lý upload ảnh
-        $imageName = 'default-job.webp';
-        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-            $uploadedImage = $this->uploadImage($_FILES['image']);
+        if (!empty($errors)) {
+            $_SESSION['errors'] = $errors;
+            $_SESSION['old_input'] = $_POST;
+            header('Location: /admin/main/news/create');
+            return;
+        }
+
+        // Xử lý upload ảnh đại diện
+        $featuredImage = null;
+        if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadedImage = $this->newsModel->uploadImage($_FILES['featured_image']);
             if ($uploadedImage['success']) {
-                $imageName = $uploadedImage['filename'];
-            } else {
-                $errors[] = $uploadedImage['error'];
+                $featuredImage = $uploadedImage['path'];
             }
         }
 
-        if (empty($errors)) {
-            $data = [
-                'title' => $_POST['title'],
-                'image' => $imageName,
-                'work_location' => $_POST['work_location'],
-                'degree' => $_POST['degree'],
-                'quantity' => (int)$_POST['quantity'],
-                'salary_range' => $_POST['salary_range'],
-                'deadline' => $_POST['deadline'],
-                'description' => $_POST['description'],
-                'requirements' => $_POST['requirements'],
-                'benefits' => $_POST['benefits'],
-                'status' => (int)$_POST['status']
-            ];
-
-            $result = $this->recruitmentModel->create($data);
-
-            if ($result) {
-                $_SESSION['success'] = 'Thêm tin tuyển dụng thành công!';
-                header('Location: /admin/main/recruitment');
-                return;
-            } else {
-                $errors[] = 'Có lỗi xảy ra, vui lòng thử lại!';
-            }
+        // Tạo slug từ tiêu đề nếu chưa có
+        $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->newsModel->createSlug($_POST['title']);
+        
+        // Xác định status và action
+        $action = $_POST['action'] ?? 'draft';
+        $status = $_POST['status'] ?? 'draft';
+        
+        // Nếu click nút "Đăng bài" thì chuyển thành published
+        if ($action === 'publish') {
+            $status = 'published';
+        }
+        
+        // Nếu status là draft và click nút "Đăng bài" thì publish
+        if ($status === 'draft' && $action === 'publish') {
+            $status = 'published';
         }
 
-        $_SESSION['errors'] = $errors;
-        $_SESSION['old_input'] = $_POST;
-        header('Location: /admin/main/recruitment/create');
+        // Chuẩn bị dữ liệu cho bảng news
+        $newsData = [
+            'category_id' => $_POST['category_id'],
+            'author_name' => $_POST['author_name'],
+            'views' => (int)($_POST['views'] ?? 0),
+            'status' => $status
+        ];
+
+        // Tạo bản ghi trong bảng news
+        $newsId = $this->newsModel->createNews($newsData);
+        
+        if (!$newsId) {
+            $_SESSION['error'] = 'Có lỗi xảy ra khi tạo bài viết!';
+            header('Location: /admin/main/news/create');
+            return;
+        }
+
+        // Chuẩn bị dữ liệu cho bảng news_title
+        $content = $_POST['content'] ?? '';
+        
+        $newsTitleData = [
+            'title' => $_POST['title'],
+            'slug' => $slug,
+            'description' => $_POST['description'] ?? '',
+            'content' => $content,
+            'meta_title' => $_POST['meta_title'] ?? '',
+            'meta_description' => $_POST['meta_description'] ?? '',
+            'meta_keywords' => $_POST['meta_keywords'] ?? '',
+            'featured_image' => $featuredImage,
+            'featured_image_caption' => $_POST['featured_image_caption'] ?? '',
+            'video_url' => $_POST['video_url'] ?? null,
+            'audio_url' => $_POST['audio_url'] ?? null,
+            'gallery_images' => $_POST['gallery_images'] ?? null,
+            'source' => $_POST['source'] ?? '',
+            'source_url' => $_POST['source_url'] ?? '',
+            'author_note' => $_POST['author_note'] ?? '',
+            'reading_time' => isset($_POST['reading_time']) ? (int)$_POST['reading_time'] : $this->newsModel->calculateReadingTime($content),
+            'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
+            'is_breaking' => isset($_POST['is_breaking']) ? 1 : 0,
+            'is_hot' => isset($_POST['is_hot']) ? 1 : 0,
+            'views' => (int)($_POST['views'] ?? 0),
+            'share_count' => 0,
+            'like_count' => 0,
+            'comment_count' => 0,
+            'status' => $status,
+            'published_at' => $_POST['published_at'] ?? null,
+            'scheduled_at' => $_POST['scheduled_at'] ?? null
+        ];
+
+        // Tạo bản ghi trong bảng news_title
+        $result = $this->newsModel->createNewsTitle($newsId, $newsTitleData);
+
+        if ($result) {
+            $_SESSION['success'] = $status === 'published' ? 'Đăng bài viết thành công!' : 'Lưu bản nháp thành công!';
+        } else {
+            $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại!';
+        }
+
+        header('Location: /admin/main/news');
     }
 
     /**
-     * Form chỉnh sửa tin tuyển dụng
+     * Form chỉnh sửa bài viết
      */
     public function edit($id)
     {
-        $job = $this->recruitmentModel->getById($id);
-
-        if (!$job) {
+        $article = $this->newsModel->getById($id);
+        
+        if (!$article) {
             header('HTTP/1.0 404 Not Found');
             $this->view('errors/404');
             return;
         }
-
-        $this->view('admin/main/recruitment/edit', ['job' => $job]);
+        
+        $categories = $this->newsModel->getCategories();
+        $authors = $this->newsModel->getAuthors();
+        
+        $data = [
+            'article' => $article,
+            'categories' => $categories,
+            'authors' => $authors
+        ];
+        
+        $this->view('admin/main/news/edit', $data);
     }
 
     /**
-     * Xử lý cập nhật tin tuyển dụng
+     * Xử lý cập nhật bài viết
      */
     public function update($id)
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/main/recruitment');
+            header('Location: /admin/main/news');
             return;
         }
 
-        $job = $this->recruitmentModel->getById($id);
-        if (!$job) {
-            $_SESSION['error'] = 'Tin tuyển dụng không tồn tại!';
-            header('Location: /admin/main/recruitment');
+        $article = $this->newsModel->getById($id);
+        if (!$article) {
+            $_SESSION['error'] = 'Bài viết không tồn tại!';
+            header('Location: /admin/main/news');
             return;
         }
-
-        $errors = $this->validateRecruitmentData($_POST, true);
 
         // Xử lý upload ảnh mới
-        $imageName = $job['image'];
-        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-            $uploadedImage = $this->uploadImage($_FILES['image']);
+        $featuredImage = $article['featured_image'];
+        if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadedImage = $this->newsModel->uploadImage($_FILES['featured_image']);
             if ($uploadedImage['success']) {
-                $imageName = $uploadedImage['filename'];
-                // Xóa ảnh cũ nếu không phải ảnh mặc định
-                if ($job['image'] !== 'default-job.webp') {
-                    $oldImagePath = __DIR__ . '/../../public/uploads/recruitments/' . $job['image'];
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                    }
+                $featuredImage = $uploadedImage['path'];
+                // Xóa ảnh cũ nếu có
+                if ($article['featured_image'] && file_exists($_SERVER['DOCUMENT_ROOT'] . $article['featured_image'])) {
+                    unlink($_SERVER['DOCUMENT_ROOT'] . $article['featured_image']);
                 }
-            } else {
-                $errors[] = $uploadedImage['error'];
             }
         }
 
-        if (empty($errors)) {
-            $data = [
-                'title' => $_POST['title'],
-                'image' => $imageName,
-                'work_location' => $_POST['work_location'],
-                'degree' => $_POST['degree'],
-                'quantity' => (int)$_POST['quantity'],
-                'salary_range' => $_POST['salary_range'],
-                'deadline' => $_POST['deadline'],
-                'description' => $_POST['description'],
-                'requirements' => $_POST['requirements'],
-                'benefits' => $_POST['benefits'],
-                'status' => (int)$_POST['status']
-            ];
-
-            $result = $this->recruitmentModel->update($id, $data);
-
-            if ($result) {
-                $_SESSION['success'] = 'Cập nhật tin tuyển dụng thành công!';
-                header('Location: /admin/main/recruitment');
-                return;
-            } else {
-                $errors[] = 'Có lỗi xảy ra, vui lòng thử lại!';
-            }
+        // Tạo slug nếu tiêu đề thay đổi
+        $slug = $article['slug'];
+        if ($_POST['title'] !== $article['title']) {
+            $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->newsModel->createSlug($_POST['title']);
         }
 
-        $_SESSION['errors'] = $errors;
-        $_SESSION['old_input'] = $_POST;
-        header("Location: /admin/main/recruitment/edit/{$id}");
+        $content = $_POST['content'] ?? '';
+        
+        $data = [
+            'category_id' => $_POST['category_id'],
+            'author_name' => $_POST['author_name'],
+            'title' => $_POST['title'],
+            'slug' => $slug,
+            'description' => $_POST['description'] ?? '',
+            'content' => $content,
+            'meta_title' => $_POST['meta_title'] ?? '',
+            'meta_description' => $_POST['meta_description'] ?? '',
+            'meta_keywords' => $_POST['meta_keywords'] ?? '',
+            'featured_image' => $featuredImage,
+            'featured_image_caption' => $_POST['featured_image_caption'] ?? '',
+            'video_url' => $_POST['video_url'] ?? null,
+            'audio_url' => $_POST['audio_url'] ?? null,
+            'gallery_images' => $_POST['gallery_images'] ?? null,
+            'source' => $_POST['source'] ?? '',
+            'source_url' => $_POST['source_url'] ?? '',
+            'author_note' => $_POST['author_note'] ?? '',
+            'reading_time' => isset($_POST['reading_time']) ? (int)$_POST['reading_time'] : $this->newsModel->calculateReadingTime($content),
+            'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
+            'is_breaking' => isset($_POST['is_breaking']) ? 1 : 0,
+            'is_hot' => isset($_POST['is_hot']) ? 1 : 0,
+            'status' => $_POST['status'],
+            'published_at' => $_POST['published_at'] ?? null,
+            'scheduled_at' => $_POST['scheduled_at'] ?? null
+        ];
+
+        $result = $this->newsModel->updateNews($article['news_id'], $data);
+
+        if ($result) {
+            $_SESSION['success'] = 'Cập nhật bài viết thành công!';
+        } else {
+            $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại!';
+        }
+
+        header('Location: /admin/main/news');
     }
 
     /**
-     * Xóa tin tuyển dụng
+     * Xóa bài viết
      */
     public function destroy($id)
     {
-        $job = $this->recruitmentModel->getById($id);
+        $article = $this->newsModel->getById($id);
 
-        if ($job) {
-            // Xóa ảnh nếu không phải ảnh mặc định
-            if ($job['image'] !== 'default-job.webp') {
-                $imagePath = __DIR__ . '/../../public/uploads/recruitments/' . $job['image'];
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
-                }
+        if ($article) {
+            // Xóa ảnh đại diện nếu có
+            if ($article['featured_image'] && file_exists($_SERVER['DOCUMENT_ROOT'] . $article['featured_image'])) {
+                unlink($_SERVER['DOCUMENT_ROOT'] . $article['featured_image']);
             }
 
-            $result = $this->recruitmentModel->delete($id);
-
-            if ($result) {
-                $_SESSION['success'] = 'Xóa tin tuyển dụng thành công!';
-            } else {
-                $_SESSION['error'] = 'Xóa tin tuyển dụng thất bại!';
-            }
+            $result = $this->newsModel->deleteNews($article['news_id']);
+            $_SESSION['success'] = $result ? 'Xóa bài viết thành công!' : 'Xóa bài viết thất bại!';
         } else {
-            $_SESSION['error'] = 'Tin tuyển dụng không tồn tại!';
+            $_SESSION['error'] = 'Bài viết không tồn tại!';
         }
 
-        header('Location: /admin/main/recruitment');
+        header('Location: /admin/main/news');
     }
 
     /**
@@ -220,81 +305,45 @@ class AdminNewsController extends Controller
      */
     public function toggleStatus($id)
     {
-        $job = $this->recruitmentModel->getById($id);
+        $article = $this->newsModel->getById($id);
 
-        if ($job) {
-            $newStatus = $job['status'] == 1 ? 0 : 1;
-            $result = $this->recruitmentModel->updateStatus($id, $newStatus);
-
+        if ($article) {
+            $newStatus = '';
+            switch ($article['status']) {
+                case 'draft':
+                    $newStatus = 'published';
+                    break;
+                case 'published':
+                    $newStatus = 'archived';
+                    break;
+                case 'archived':
+                    $newStatus = 'draft';
+                    break;
+                default:
+                    $newStatus = 'draft';
+            }
+            
+            $result = $this->newsModel->updateStatus($article['news_id'], $newStatus);
+            
             if ($result) {
-                $_SESSION['success'] = $newStatus == 1 ? 'Đã bật tin tuyển dụng!' : 'Đã tắt tin tuyển dụng!';
+                $statusText = '';
+                switch ($newStatus) {
+                    case 'published':
+                        $statusText = 'Đã đăng';
+                        break;
+                    case 'archived':
+                        $statusText = 'Đã lưu trữ';
+                        break;
+                    default:
+                        $statusText = 'Bản nháp';
+                }
+                $_SESSION['success'] = "Đã chuyển trạng thái sang {$statusText}!";
             } else {
                 $_SESSION['error'] = 'Cập nhật trạng thái thất bại!';
             }
         }
 
-        header('Location: /admin/main/recruitment');
-    }
-
-    /**
-     * Validate dữ liệu tuyển dụng
-     */
-    private function validateRecruitmentData($data, $isUpdate = false)
-    {
-        $errors = [];
-
-        if (empty($data['title'])) {
-            $errors[] = 'Tiêu đề không được để trống!';
-        } elseif (strlen($data['title']) < 5) {
-            $errors[] = 'Tiêu đề phải có ít nhất 5 ký tự!';
-        }
-
-        if (empty($data['work_location'])) {
-            $errors[] = 'Địa điểm làm việc không được để trống!';
-        }
-
-        if (empty($data['deadline'])) {
-            $errors[] = 'Hạn nộp hồ sơ không được để trống!';
-        } elseif (strtotime($data['deadline']) < strtotime(date('Y-m-d'))) {
-            $errors[] = 'Hạn nộp hồ sơ phải lớn hơn hoặc bằng ngày hiện tại!';
-        }
-
-        if (isset($data['quantity']) && (int)$data['quantity'] <= 0) {
-            $errors[] = 'Số lượng tuyển phải lớn hơn 0!';
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Upload ảnh
-     */
-    private function uploadImage($file)
-    {
-        $uploadDir = __DIR__ . '/../../public/uploads/recruitments/';
-        if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-        $maxSize = 2 * 1024 * 1024; // 2MB
-
-        if (!in_array($file['type'], $allowedTypes)) {
-            return ['success' => false, 'error' => 'Chỉ chấp nhận file ảnh (JPG, PNG, WEBP)'];
-        }
-
-        if ($file['size'] > $maxSize) {
-            return ['success' => false, 'error' => 'Kích thước ảnh không được vượt quá 2MB'];
-        }
-
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $filename = uniqid() . '_' . time() . '.' . $ext;
-        $destination = $uploadDir . $filename;
-
-        if (move_uploaded_file($file['tmp_name'], $destination)) {
-            return ['success' => true, 'filename' => $filename];
-        }
-
-        return ['success' => false, 'error' => 'Upload ảnh thất bại!'];
+        header('Location: /admin/main/news');
     }
 }
+?>

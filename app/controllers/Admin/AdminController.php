@@ -36,6 +36,9 @@ class AdminController extends Controller
             'recruitment' => 'admin/main/recruitment/recruitment_admin',
             'create-recruitment' => 'admin/main/recruitment/create',
             'contact' => 'admin/main/contact_admin',
+            'test-db' => 'admin/main/test_db',
+            // Thêm các trang khác nếu cần
+
 
 
         ];

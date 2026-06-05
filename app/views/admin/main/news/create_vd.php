@@ -1,22 +1,28 @@
 <?php
-
 /**
- * add_recruitment.php - View thêm tin tuyển dụng mới trong admin panel
- * Form gửi dữ liệu đến route /admin/main/news/store
+ * add articles management view for admin panel
  */
-
 // Lấy dữ liệu từ session (nếu có lỗi từ controller)
 $formData = $_SESSION['old_input'] ?? [];
 $errors = $_SESSION['errors'] ?? [];
+$success = $_SESSION['success'] ?? null;
+$categories = $categories ?? [];
+$authors = $authors ?? [];
 
 // Xóa session data sau khi lấy
 unset($_SESSION['old_input']);
 unset($_SESSION['errors']);
+unset($_SESSION['success']);
 ?>
 
 <main class="main news-create-page">
 
-    
+    <!-- Hiển thị thông báo -->
+    <?php if ($success): ?>
+        <div class="alert alert-success">
+            <strong>Thành công!</strong> <?php echo htmlspecialchars($success); ?>
+        </div>
+    <?php endif; ?>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-error">
@@ -41,22 +47,22 @@ unset($_SESSION['errors']);
                     <label>Tiêu đề bài viết: <span class="required">*</span></label>
                     <span class="ai-btn" type="button">✨ Gợi ý bằng AI</span>
                 </div>
-                <input class="input-title" type="text"
-                    name="title"
-                    id="newsTitle"
-                    value="<?php echo htmlspecialchars($formData['title'] ?? ''); ?>"
-                    placeholder="[ Nhập tiêu đề bài viết tại đây... ]"
-                    required>
+                <input class="input-title" type="text" 
+                       name="title" 
+                       id="newsTitle"
+                       value="<?php echo htmlspecialchars($formData['title'] ?? ''); ?>"
+                       placeholder="[ Nhập tiêu đề bài viết tại đây... ]"
+                       required>
             </div>
 
             <!-- SLUG (auto-generated from title) -->
             <div class="form-group">
                 <label>Slug (URL):</label>
-                <input class="input-slug" type="text"
-                    name="slug"
-                    id="newsSlug"
-                    value="<?php echo htmlspecialchars($formData['slug'] ?? ''); ?>"
-                    placeholder="[ Tự động tạo từ tiêu đề ]">
+                <input class="input-slug" type="text" 
+                       name="slug" 
+                       id="newsSlug"
+                       value="<?php echo htmlspecialchars($formData['slug'] ?? ''); ?>"
+                       placeholder="[ Tự động tạo từ tiêu đề ]">
                 <small>(Slug sẽ được tạo tự động từ tiêu đề)</small>
             </div>
 
@@ -93,55 +99,55 @@ unset($_SESSION['errors']);
             <!-- AUTHOR NAME -->
             <div class="form-group">
                 <label>Tên tác giả hiển thị: <span class="required">*</span></label>
-                <input class="input-author" type="text"
-                    name="author_name"
-                    id="authorName"
-                    value="<?php echo htmlspecialchars($formData['author_name'] ?? ''); ?>"
-                    placeholder="[ Tên tác giả hiển thị trên bài viết ]"
-                    required>
+                <input class="input-author" type="text" 
+                       name="author_name" 
+                       id="authorName"
+                       value="<?php echo htmlspecialchars($formData['author_name'] ?? ''); ?>"
+                       placeholder="[ Tên tác giả hiển thị trên bài viết ]"
+                       required>
                 <small>(Tên sẽ được lưu trực tiếp vào cột author)</small>
             </div>
 
             <!-- PUBLISH DATE -->
             <div class="form-group">
                 <label>Ngày xuất bản:</label>
-                <input class="input-publish-date" type="datetime-local"
-                    name="published_at"
-                    value="<?php echo htmlspecialchars($formData['published_at'] ?? date('Y-m-d\TH:i')); ?>">
+                <input class="input-publish-date" type="datetime-local" 
+                       name="published_at"
+                       value="<?php echo htmlspecialchars($formData['published_at'] ?? date('Y-m-d\TH:i')); ?>">
             </div>
 
             <!-- META SEO -->
             <div class="form-group">
                 <label>Meta Title:</label>
-                <input class="input-meta-title" type="text"
-                    name="meta_title"
-                    value="<?php echo htmlspecialchars($formData['meta_title'] ?? ''); ?>"
-                    placeholder="SEO Title (để trống sẽ lấy tiêu đề)">
+                <input class="input-meta-title" type="text" 
+                       name="meta_title"
+                       value="<?php echo htmlspecialchars($formData['meta_title'] ?? ''); ?>"
+                       placeholder="SEO Title (để trống sẽ lấy tiêu đề)">
             </div>
 
             <div class="form-group">
                 <label>Meta Description:</label>
-                <textarea class="input-meta-description"
-                    name="meta_description"
-                    rows="3"
-                    placeholder="Mô tả SEO (tối đa 160 ký tự)"><?php echo htmlspecialchars($formData['meta_description'] ?? ''); ?></textarea>
+                <textarea class="input-meta-description" 
+                          name="meta_description" 
+                          rows="3"
+                          placeholder="Mô tả SEO (tối đa 160 ký tự)"><?php echo htmlspecialchars($formData['meta_description'] ?? ''); ?></textarea>
             </div>
 
             <div class="form-group">
                 <label>Meta Keywords:</label>
-                <input class="input-meta-keywords" type="text"
-                    name="meta_keywords"
-                    value="<?php echo htmlspecialchars($formData['meta_keywords'] ?? ''); ?>"
-                    placeholder="Từ khóa SEO, cách nhau bằng dấu phẩy">
+                <input class="input-meta-keywords" type="text" 
+                       name="meta_keywords"
+                       value="<?php echo htmlspecialchars($formData['meta_keywords'] ?? ''); ?>"
+                       placeholder="Từ khóa SEO, cách nhau bằng dấu phẩy">
             </div>
 
             <!-- DESCRIPTION -->
             <div class="form-group">
                 <label>Mô tả ngắn:</label>
-                <textarea class="input-description"
-                    name="description"
-                    rows="4"
-                    placeholder="Mô tả ngắn về bài viết (hiển thị ở trang danh sách)"><?php echo htmlspecialchars($formData['description'] ?? ''); ?></textarea>
+                <textarea class="input-description" 
+                          name="description" 
+                          rows="4"
+                          placeholder="Mô tả ngắn về bài viết (hiển thị ở trang danh sách)"><?php echo htmlspecialchars($formData['description'] ?? ''); ?></textarea>
             </div>
 
             <!-- CONTENT -->
@@ -198,39 +204,39 @@ unset($_SESSION['errors']);
                     <div id="scheduledDatetime" style="display: none;">
                         <label>THỜI GIAN HẸN GIỜ</label>
                         <input class="input-scheduled" type="datetime-local" name="scheduled_at"
-                            value="<?php echo htmlspecialchars($formData['scheduled_at'] ?? ''); ?>">
+                               value="<?php echo htmlspecialchars($formData['scheduled_at'] ?? ''); ?>">
                     </div>
 
                     <label>LƯỢT XEM (VIEWS)</label>
-                    <input class="input-views" type="number" name="views"
-                        value="<?php echo htmlspecialchars($formData['views'] ?? 0); ?>"
-                        placeholder="Số lượt xem">
+                    <input class="input-views" type="number" name="views" 
+                           value="<?php echo htmlspecialchars($formData['views'] ?? 0); ?>"
+                           placeholder="Số lượt xem">
                     <small>(Sẽ tự động cập nhật khi có người xem)</small>
 
                     <label>NỔI BẬT</label>
-                    <input type="checkbox" name="is_featured" value="1"
-                        <?php echo isset($formData['is_featured']) && $formData['is_featured'] ? 'checked' : ''; ?>>
+                    <input type="checkbox" name="is_featured" value="1" 
+                           <?php echo isset($formData['is_featured']) && $formData['is_featured'] ? 'checked' : ''; ?>>
                     <label class="inline-label">Hiển thị ở mục nổi bật</label>
 
                     <label>TIN NÓNG</label>
                     <input type="checkbox" name="is_breaking" value="1"
-                        <?php echo isset($formData['is_breaking']) && $formData['is_breaking'] ? 'checked' : ''; ?>>
+                           <?php echo isset($formData['is_breaking']) && $formData['is_breaking'] ? 'checked' : ''; ?>>
                     <label class="inline-label">Đánh dấu là tin nóng</label>
 
                     <label>TIN HOT</label>
                     <input type="checkbox" name="is_hot" value="1"
-                        <?php echo isset($formData['is_hot']) && $formData['is_hot'] ? 'checked' : ''; ?>>
+                           <?php echo isset($formData['is_hot']) && $formData['is_hot'] ? 'checked' : ''; ?>>
                     <label class="inline-label">Đánh dấu là tin hot</label>
 
                     <label>NGUỒN BÀI VIẾT</label>
                     <input class="input-source" type="text" name="source"
-                        value="<?php echo htmlspecialchars($formData['source'] ?? ''); ?>"
-                        placeholder="Tên nguồn (VD: EMIR, Reuters, ...)">
-
+                           value="<?php echo htmlspecialchars($formData['source'] ?? ''); ?>"
+                           placeholder="Tên nguồn (VD: EMIR, Reuters, ...)">
+                    
                     <label>URL NGUỒN</label>
                     <input class="input-source-url" type="url" name="source_url"
-                        value="<?php echo htmlspecialchars($formData['source_url'] ?? ''); ?>"
-                        placeholder="https://...">
+                           value="<?php echo htmlspecialchars($formData['source_url'] ?? ''); ?>"
+                           placeholder="https://...">
                 </div>
 
                 <!-- RIGHT -->
@@ -249,9 +255,9 @@ unset($_SESSION['errors']);
                         <img id="previewImg" src="" alt="Preview" style="max-width: 100%; border-radius: 8px;">
                         <button type="button" id="removeImage" style="margin-top: 5px;">Xóa ảnh</button>
                     </div>
-                    <input type="text" name="featured_image_caption"
-                        value="<?php echo htmlspecialchars($formData['featured_image_caption'] ?? ''); ?>"
-                        placeholder="Chú thích ảnh" style="margin-top: 10px; width: 100%;">
+                    <input type="text" name="featured_image_caption" 
+                           value="<?php echo htmlspecialchars($formData['featured_image_caption'] ?? ''); ?>"
+                           placeholder="Chú thích ảnh" style="margin-top: 10px; width: 100%;">
                 </div>
 
             </div>
@@ -259,10 +265,10 @@ unset($_SESSION['errors']);
             <!-- Ghi chú tác giả -->
             <div class="form-group">
                 <label>Ghi chú tác giả:</label>
-                <textarea class="input-author-note"
-                    name="author_note"
-                    rows="3"
-                    placeholder="Ghi chú đặc biệt từ tác giả"><?php echo htmlspecialchars($formData['author_note'] ?? ''); ?></textarea>
+                <textarea class="input-author-note" 
+                          name="author_note" 
+                          rows="3"
+                          placeholder="Ghi chú đặc biệt từ tác giả"><?php echo htmlspecialchars($formData['author_note'] ?? ''); ?></textarea>
             </div>
 
             <!-- ACTION BUTTON -->
@@ -277,3 +283,176 @@ unset($_SESSION['errors']);
     </form>
 
 </main>
+
+<script>
+// Auto generate slug from title
+document.getElementById('newsTitle').addEventListener('blur', function() {
+    let title = this.value;
+    if (title && !document.getElementById('newsSlug').value) {
+        fetch('index.php?controller=news&action=generateSlug', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'title=' + encodeURIComponent(title)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.slug) {
+                document.getElementById('newsSlug').value = data.slug;
+            }
+        });
+    }
+});
+
+// Auto fill author name when select author
+document.getElementById('authorId').addEventListener('change', function() {
+    let authorId = this.value;
+    if (authorId) {
+        let selectedOption = this.options[this.selectedIndex];
+        document.getElementById('authorName').value = selectedOption.text;
+    }
+});
+
+// Preview image
+document.getElementById('uploadBox').addEventListener('click', function() {
+    document.getElementById('featuredImage').click();
+});
+
+document.getElementById('featuredImage').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+        let reader = new FileReader();
+        reader.onload = function(ev) {
+            document.getElementById('previewImg').src = ev.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+            document.getElementById('uploadBox').style.display = 'none';
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+});
+
+document.getElementById('removeImage').addEventListener('click', function() {
+    document.getElementById('featuredImage').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('uploadBox').style.display = 'flex';
+});
+
+// Show/hide scheduled datetime
+document.querySelector('select[name="status"]').addEventListener('change', function() {
+    let scheduledDiv = document.getElementById('scheduledDatetime');
+    if (this.value === 'scheduled') {
+        scheduledDiv.style.display = 'block';
+    } else {
+        scheduledDiv.style.display = 'none';
+    }
+});
+
+// Update content hidden input before submit
+document.getElementById('articleForm').addEventListener('submit', function() {
+    document.getElementById('contentInput').value = document.getElementById('editor').innerHTML;
+});
+
+// Simple editor functions
+document.querySelectorAll('[data-cmd]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        let cmd = this.dataset.cmd;
+        let value = this.dataset.value || null;
+        document.execCommand(cmd, false, value);
+        document.getElementById('editor').focus();
+    });
+});
+
+document.querySelectorAll('[data-heading]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        let level = this.dataset.heading;
+        document.execCommand('formatBlock', false, 'H' + level);
+        document.getElementById('editor').focus();
+    });
+});
+
+document.getElementById('textColor').addEventListener('input', function() {
+    document.execCommand('foreColor', false, this.value);
+});
+
+document.getElementById('addLink').addEventListener('click', function() {
+    let url = prompt('Nhập URL:', 'https://');
+    if (url) {
+        document.execCommand('createLink', false, url);
+    }
+});
+
+document.getElementById('insertImage').addEventListener('click', function() {
+    let fileInput = document.getElementById('imageUpload');
+    fileInput.onchange = function(e) {
+        let file = e.target.files[0];
+        let formData = new FormData();
+        formData.append('image', file);
+        
+        fetch('index.php?controller=news&action=uploadEditorImage', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.execCommand('insertImage', false, data.url);
+            } else {
+                alert('Lỗi upload: ' + data.error);
+            }
+        });
+    };
+    fileInput.click();
+});
+
+document.getElementById('insertVideo').addEventListener('click', function() {
+    let embedCode = prompt('Nhập mã nhúng video (YouTube/Vimeo):', '<iframe src="https://www.youtube.com/embed/..."></iframe>');
+    if (embedCode) {
+        document.execCommand('insertHTML', false, embedCode);
+    }
+});
+
+document.getElementById('fontFamily').addEventListener('change', function() {
+    document.execCommand('fontName', false, this.value);
+});
+</script>
+
+<style>
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.required {
+    color: red;
+}
+
+.inline-label {
+    display: inline;
+    margin-left: 5px;
+    font-weight: normal;
+}
+
+#scheduledDatetime {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.input-scheduled {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+</style>
