@@ -19,6 +19,10 @@
   <!-- CSS chính -->
   <link rel="stylesheet" href="<?php echo View::asset('css/admin/admin.css'); ?>" />
   <link rel="stylesheet" href="<?php echo View::asset('css/admin/recruitment-create.css'); ?>" />
+  <link rel="stylesheet" href="<?php echo View::asset('css/admin/news-recruitment_admin.css'); ?>" />
+  <link rel="stylesheet" href="<?php echo View::asset('css/admin/contact-application_admin.css'); ?>" />
+
+
 
   <!-- Font Awesome -->
   <link

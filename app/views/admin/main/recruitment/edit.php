@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Edit recruitment view
  */
@@ -24,7 +25,7 @@ if (!$job) {
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-error" style="background: #fee2e2; color: #991b1b; padding: 12px; margin: 10px 0; border-radius: 6px;">
-            <?php foreach($errors as $err): ?>
+            <?php foreach ($errors as $err): ?>
                 <div><?php echo htmlspecialchars($err); ?></div>
             <?php endforeach; ?>
         </div>
@@ -33,17 +34,17 @@ if (!$job) {
     <form method="POST" action="?page=update-recruitment&id=<?php echo $job['id']; ?>" enctype="multipart/form-data" class="recruitment-form">
         <div class="form-group">
             <label for="title">Job Title <span class="required">*</span></label>
-            <input type="text" id="title" name="title" required 
-                   value="<?php echo htmlspecialchars($old_input['title'] ?? $job['title']); ?>"
-                   placeholder="Enter job title">
+            <input type="text" id="title" name="title" required
+                value="<?php echo htmlspecialchars($old_input['title'] ?? $job['title']); ?>"
+                placeholder="Enter job title">
         </div>
 
         <div class="form-row">
             <div class="form-group">
                 <label for="work_location">Work Location <span class="required">*</span></label>
                 <input type="text" id="work_location" name="work_location" required
-                       value="<?php echo htmlspecialchars($old_input['work_location'] ?? $job['work_location']); ?>"
-                       placeholder="e.g., Ho Chi Minh City, Ha Noi">
+                    value="<?php echo htmlspecialchars($old_input['work_location'] ?? $job['work_location']); ?>"
+                    placeholder="e.g., Ho Chi Minh City, Ha Noi">
             </div>
 
             <div class="form-group">
@@ -61,14 +62,14 @@ if (!$job) {
             <div class="form-group">
                 <label for="quantity">Quantity <span class="required">*</span></label>
                 <input type="number" id="quantity" name="quantity" required min="1"
-                       value="<?php echo htmlspecialchars($old_input['quantity'] ?? $job['quantity']); ?>">
+                    value="<?php echo htmlspecialchars($old_input['quantity'] ?? $job['quantity']); ?>">
             </div>
 
             <div class="form-group">
                 <label for="salary_range">Salary Range</label>
                 <input type="text" id="salary_range" name="salary_range"
-                       value="<?php echo htmlspecialchars($old_input['salary_range'] ?? $job['salary_range']); ?>"
-                       placeholder="e.g., $1000 - $2000 or Negotiable">
+                    value="<?php echo htmlspecialchars($old_input['salary_range'] ?? $job['salary_range']); ?>"
+                    placeholder="e.g., $1000 - $2000 or Negotiable">
             </div>
         </div>
 
@@ -76,8 +77,8 @@ if (!$job) {
             <div class="form-group">
                 <label for="deadline">Application Deadline <span class="required">*</span></label>
                 <input type="date" id="deadline" name="deadline" required
-                       value="<?php echo htmlspecialchars($old_input['deadline'] ?? $job['deadline']); ?>"
-                       min="<?php echo date('Y-m-d'); ?>">
+                    value="<?php echo htmlspecialchars($old_input['deadline'] ?? $job['deadline']); ?>"
+                    min="<?php echo date('Y-m-d'); ?>">
             </div>
 
             <div class="form-group">
@@ -94,8 +95,8 @@ if (!$job) {
             <div class="form-group">
                 <label>Current Image</label>
                 <div class="current-image">
-                    <img src="/uploads/recruitments/<?php echo htmlspecialchars($job['image']); ?>" 
-                         alt="Current job image" style="max-width: 200px; border-radius: 8px;">
+                    <img src="/uploads/recruitments/<?php echo htmlspecialchars($job['image']); ?>"
+                        alt="Current job image" style="max-width: 200px; border-radius: 8px;">
                 </div>
             </div>
         <?php endif; ?>
@@ -108,20 +109,20 @@ if (!$job) {
 
         <div class="form-group">
             <label for="description">Job Description</label>
-            <textarea id="description" name="description" rows="5" 
-                      placeholder="Describe the job responsibilities, daily tasks..."><?php echo htmlspecialchars($old_input['description'] ?? $job['description']); ?></textarea>
+            <textarea id="description" name="description" rows="5"
+                placeholder="Describe the job responsibilities, daily tasks..."><?php echo htmlspecialchars($old_input['description'] ?? $job['description']); ?></textarea>
         </div>
 
         <div class="form-group">
             <label for="requirements">Requirements</label>
             <textarea id="requirements" name="requirements" rows="5"
-                      placeholder="List the requirements: Education, Experience, Skills..."><?php echo htmlspecialchars($old_input['requirements'] ?? $job['requirements']); ?></textarea>
+                placeholder="List the requirements: Education, Experience, Skills..."><?php echo htmlspecialchars($old_input['requirements'] ?? $job['requirements']); ?></textarea>
         </div>
 
         <div class="form-group">
             <label for="benefits">Benefits</label>
             <textarea id="benefits" name="benefits" rows="4"
-                      placeholder="What benefits do you offer? Salary, insurance, vacation..."><?php echo htmlspecialchars($old_input['benefits'] ?? $job['benefits']); ?></textarea>
+                placeholder="What benefits do you offer? Salary, insurance, vacation..."><?php echo htmlspecialchars($old_input['benefits'] ?? $job['benefits']); ?></textarea>
         </div>
 
         <div class="form-actions">
@@ -140,29 +141,29 @@ if (!$job) {
         border-radius: 12px;
         margin-top: 20px;
     }
-    
+
     .form-group {
         margin-bottom: 20px;
     }
-    
+
     .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 20px;
         margin-bottom: 20px;
     }
-    
+
     .form-group label {
         display: block;
         margin-bottom: 8px;
         font-weight: 500;
         color: #374151;
     }
-    
+
     .required {
         color: #ef4444;
     }
-    
+
     .form-group input,
     .form-group select,
     .form-group textarea {
@@ -173,7 +174,7 @@ if (!$job) {
         font-size: 14px;
         transition: border-color 0.2s;
     }
-    
+
     .form-group input:focus,
     .form-group select:focus,
     .form-group textarea:focus {
@@ -181,23 +182,23 @@ if (!$job) {
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
-    
+
     .form-text {
         display: block;
         margin-top: 5px;
         font-size: 12px;
         color: #6b7280;
     }
-    
+
     .current-image {
         margin-top: 8px;
     }
-    
+
     .current-image img {
         border: 1px solid #e5e7eb;
         padding: 4px;
     }
-    
+
     .form-actions {
         display: flex;
         gap: 12px;
@@ -205,7 +206,7 @@ if (!$job) {
         padding-top: 20px;
         border-top: 1px solid #e5e7eb;
     }
-    
+
     @media (max-width: 768px) {
         .form-row {
             grid-template-columns: 1fr;

@@ -1,5 +1,6 @@
 <?php
 // controllers/admin/AdminNewsController.php
+
 require_once __DIR__ . '/../../models/NewsModel.php';
 
 class AdminNewsController extends Controller
@@ -8,7 +9,7 @@ class AdminNewsController extends Controller
 
     public function __construct()
     {
-        $this->newsModel = new NewsTitleModel();
+        $this->newsModel = new NewsModel();
     }
 
     /**
@@ -23,7 +24,7 @@ class AdminNewsController extends Controller
         $page = isset($_GET['p']) ? (int)$_GET['p'] : 1;
         $limit = 10;
         $offset = ($page - 1) * $limit;
-        $status = isset($_GET['status']) ? $_GET['status'] : null;
+        $status = isset($_GET['status']) && $_GET['status'] !== '' ? $_GET['status'] : null;
         $search = isset($_GET['search']) ? trim($_GET['search']) : null;
 
         $articles = $this->newsModel->getAllAdmin($status, $limit, $offset, $search);
@@ -49,7 +50,6 @@ class AdminNewsController extends Controller
      */
     public function create()
     {
-        // Lấy danh sách categories và authors
         $categories = $this->newsModel->getCategories();
         $authors = $this->newsModel->getAuthors();
         
@@ -76,10 +76,10 @@ class AdminNewsController extends Controller
         if (empty($_POST['title'])) {
             $errors[] = 'Tiêu đề bài viết không được để trống';
         }
-        if (empty($_POST['category_id'])) {
-            $errors[] = 'Vui lòng chọn chuyên mục';
+        if (empty($_POST['content'])) {
+            $errors[] = 'Nội dung bài viết không được để trống';
         }
-        if (empty($_POST['author_name'])) {
+        if (empty($_POST['author'])) {
             $errors[] = 'Tên tác giả không được để trống';
         }
 
@@ -99,76 +99,36 @@ class AdminNewsController extends Controller
             }
         }
 
-        // Tạo slug từ tiêu đề nếu chưa có
+        // Tạo slug
         $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->newsModel->createSlug($_POST['title']);
+        $slug = $this->newsModel->generateUniqueSlug($slug);
         
-        // Xác định status và action
+        // Xác định status
         $action = $_POST['action'] ?? 'draft';
         $status = $_POST['status'] ?? 'draft';
         
-        // Nếu click nút "Đăng bài" thì chuyển thành published
         if ($action === 'publish') {
             $status = 'published';
         }
-        
-        // Nếu status là draft và click nút "Đăng bài" thì publish
-        if ($status === 'draft' && $action === 'publish') {
-            $status = 'published';
-        }
 
-        // Chuẩn bị dữ liệu cho bảng news
+        // Chuẩn bị dữ liệu
         $newsData = [
-            'category_id' => $_POST['category_id'],
-            'author_name' => $_POST['author_name'],
+            'title' => $_POST['title'],
+            'slug' => $slug,
+            'category_id' => !empty($_POST['category_id']) ? $_POST['category_id'] : null,
+            'author_id' => !empty($_POST['author_id']) ? $_POST['author_id'] : null,
+            'author' => $_POST['author'],
+            'publish_date' => !empty($_POST['publish_date']) ? $_POST['publish_date'] : date('Y-m-d'),
+            'image' => $featuredImage,
+            'content' => $_POST['content'],
             'views' => (int)($_POST['views'] ?? 0),
             'status' => $status
         ];
 
-        // Tạo bản ghi trong bảng news
-        $newsId = $this->newsModel->createNews($newsData);
-        
-        if (!$newsId) {
-            $_SESSION['error'] = 'Có lỗi xảy ra khi tạo bài viết!';
-            header('Location: /admin/main/news/create');
-            return;
-        }
+        // Tạo bài viết
+        $newsId = $this->newsModel->create($newsData);
 
-        // Chuẩn bị dữ liệu cho bảng news_title
-        $content = $_POST['content'] ?? '';
-        
-        $newsTitleData = [
-            'title' => $_POST['title'],
-            'slug' => $slug,
-            'description' => $_POST['description'] ?? '',
-            'content' => $content,
-            'meta_title' => $_POST['meta_title'] ?? '',
-            'meta_description' => $_POST['meta_description'] ?? '',
-            'meta_keywords' => $_POST['meta_keywords'] ?? '',
-            'featured_image' => $featuredImage,
-            'featured_image_caption' => $_POST['featured_image_caption'] ?? '',
-            'video_url' => $_POST['video_url'] ?? null,
-            'audio_url' => $_POST['audio_url'] ?? null,
-            'gallery_images' => $_POST['gallery_images'] ?? null,
-            'source' => $_POST['source'] ?? '',
-            'source_url' => $_POST['source_url'] ?? '',
-            'author_note' => $_POST['author_note'] ?? '',
-            'reading_time' => isset($_POST['reading_time']) ? (int)$_POST['reading_time'] : $this->newsModel->calculateReadingTime($content),
-            'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
-            'is_breaking' => isset($_POST['is_breaking']) ? 1 : 0,
-            'is_hot' => isset($_POST['is_hot']) ? 1 : 0,
-            'views' => (int)($_POST['views'] ?? 0),
-            'share_count' => 0,
-            'like_count' => 0,
-            'comment_count' => 0,
-            'status' => $status,
-            'published_at' => $_POST['published_at'] ?? null,
-            'scheduled_at' => $_POST['scheduled_at'] ?? null
-        ];
-
-        // Tạo bản ghi trong bảng news_title
-        $result = $this->newsModel->createNewsTitle($newsId, $newsTitleData);
-
-        if ($result) {
+        if ($newsId) {
             $_SESSION['success'] = $status === 'published' ? 'Đăng bài viết thành công!' : 'Lưu bản nháp thành công!';
         } else {
             $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại!';
@@ -220,15 +180,15 @@ class AdminNewsController extends Controller
         }
 
         // Xử lý upload ảnh mới
-        $featuredImage = $article['featured_image'];
+        $featuredImage = $article['image'];
         if (isset($_FILES['featured_image']) && $_FILES['featured_image']['error'] === UPLOAD_ERR_OK) {
             $uploadedImage = $this->newsModel->uploadImage($_FILES['featured_image']);
             if ($uploadedImage['success']) {
-                $featuredImage = $uploadedImage['path'];
-                // Xóa ảnh cũ nếu có
-                if ($article['featured_image'] && file_exists($_SERVER['DOCUMENT_ROOT'] . $article['featured_image'])) {
-                    unlink($_SERVER['DOCUMENT_ROOT'] . $article['featured_image']);
+                // Xóa ảnh cũ
+                if ($article['image']) {
+                    $this->newsModel->deleteImage($article['image']);
                 }
+                $featuredImage = $uploadedImage['path'];
             }
         }
 
@@ -236,38 +196,23 @@ class AdminNewsController extends Controller
         $slug = $article['slug'];
         if ($_POST['title'] !== $article['title']) {
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->newsModel->createSlug($_POST['title']);
+            $slug = $this->newsModel->generateUniqueSlug($slug, $id);
         }
 
-        $content = $_POST['content'] ?? '';
-        
-        $data = [
-            'category_id' => $_POST['category_id'],
-            'author_name' => $_POST['author_name'],
+        // Chuẩn bị dữ liệu
+        $newsData = [
             'title' => $_POST['title'],
             'slug' => $slug,
-            'description' => $_POST['description'] ?? '',
-            'content' => $content,
-            'meta_title' => $_POST['meta_title'] ?? '',
-            'meta_description' => $_POST['meta_description'] ?? '',
-            'meta_keywords' => $_POST['meta_keywords'] ?? '',
-            'featured_image' => $featuredImage,
-            'featured_image_caption' => $_POST['featured_image_caption'] ?? '',
-            'video_url' => $_POST['video_url'] ?? null,
-            'audio_url' => $_POST['audio_url'] ?? null,
-            'gallery_images' => $_POST['gallery_images'] ?? null,
-            'source' => $_POST['source'] ?? '',
-            'source_url' => $_POST['source_url'] ?? '',
-            'author_note' => $_POST['author_note'] ?? '',
-            'reading_time' => isset($_POST['reading_time']) ? (int)$_POST['reading_time'] : $this->newsModel->calculateReadingTime($content),
-            'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
-            'is_breaking' => isset($_POST['is_breaking']) ? 1 : 0,
-            'is_hot' => isset($_POST['is_hot']) ? 1 : 0,
-            'status' => $_POST['status'],
-            'published_at' => $_POST['published_at'] ?? null,
-            'scheduled_at' => $_POST['scheduled_at'] ?? null
+            'category_id' => !empty($_POST['category_id']) ? $_POST['category_id'] : null,
+            'author_id' => !empty($_POST['author_id']) ? $_POST['author_id'] : null,
+            'author' => $_POST['author'],
+            'publish_date' => !empty($_POST['publish_date']) ? $_POST['publish_date'] : date('Y-m-d'),
+            'image' => $featuredImage,
+            'content' => $_POST['content'],
+            'status' => $_POST['status'] ?? 'draft'
         ];
 
-        $result = $this->newsModel->updateNews($article['news_id'], $data);
+        $result = $this->newsModel->update($id, $newsData);
 
         if ($result) {
             $_SESSION['success'] = 'Cập nhật bài viết thành công!';
@@ -287,11 +232,11 @@ class AdminNewsController extends Controller
 
         if ($article) {
             // Xóa ảnh đại diện nếu có
-            if ($article['featured_image'] && file_exists($_SERVER['DOCUMENT_ROOT'] . $article['featured_image'])) {
-                unlink($_SERVER['DOCUMENT_ROOT'] . $article['featured_image']);
+            if ($article['image']) {
+                $this->newsModel->deleteImage($article['image']);
             }
 
-            $result = $this->newsModel->deleteNews($article['news_id']);
+            $result = $this->newsModel->delete($id);
             $_SESSION['success'] = $result ? 'Xóa bài viết thành công!' : 'Xóa bài viết thất bại!';
         } else {
             $_SESSION['error'] = 'Bài viết không tồn tại!';
@@ -323,7 +268,7 @@ class AdminNewsController extends Controller
                     $newStatus = 'draft';
             }
             
-            $result = $this->newsModel->updateStatus($article['news_id'], $newStatus);
+            $result = $this->newsModel->updateStatus($id, $newStatus);
             
             if ($result) {
                 $statusText = '';

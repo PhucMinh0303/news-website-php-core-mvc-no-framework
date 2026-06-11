@@ -1,0 +1,352 @@
+    /* MAIN LAYOUT - Outlook style */
+
+.search-box input {
+      width: 260px;
+      padding: 8px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 24px;
+      font-size: 0.85rem;
+      background: #f9fafb;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+
+    .new-messages {
+      background: #dc2626;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    /* HEADER area */
+    .contact-header {
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+
+
+    .contact-header-right,
+    .contact-header-left {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .btn-archive {
+      background: #f3f4f6;
+      border: 1px solid #d4d8dd;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #2c3e66;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-archive:hover {
+      background: #e5e7eb;
+      border-color: #9ca3af;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: #f8fafc;
+      padding: 4px;
+      border-radius: 40px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .tab {
+      padding: 6px 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 32px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #4b5563;
+    }
+
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      color: #1e40af;
+      font-weight: 600;
+      border: 0.5px solid #e0e7ff;
+    }
+
+    /* CONTAINER (2 columns like outlook) */
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* LEFT MESSAGE LIST */
+    .message-list {
+      width: 320px;
+      background: #ffffff;
+      border-right: 1px solid #e9edf2;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .message-item {
+      padding: 18px 20px;
+      border-bottom: 1px solid #f0f2f5;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .message-item:hover {
+      background: #fafcff;
+    }
+
+    .message-item.active {
+      background: #eef2ff;
+      border-left: 3px solid #3b82f6;
+    }
+
+    .message-item h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #111827;
+    }
+
+    .message-item .title {
+      font-size: 0.8rem;
+      color: #4b5563;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 8px;
+    }
+
+    .message-item .date {
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    /* empty states */
+    #archiveEmpty,
+    #deletedEmpty {
+      width: 320px;
+      background: #fff;
+      border-right: 1px solid #e9edf2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px 20px;
+      color: #6c757d;
+    }
+
+    #archiveEmpty h3,
+    #deletedEmpty h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .empty-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f9fafc;
+      color: #6c757d;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 24px;
+    }
+
+    /* RIGHT DETAIL PANEL */
+    .detail-panel {
+      flex: 1;
+      background: #ffffff;
+      overflow-y: auto;
+      padding: 28px 32px;
+      display: none;
+      flex-direction: column;
+    }
+
+    .detail-panel.active-panel {
+      display: flex;
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .tools {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: #6c86a3;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      background: #f1f5f9;
+      color: #1f2937;
+    }
+
+    .reply-btn {
+      background: #2563eb;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 30px;
+      color: white;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .reply-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .detail-title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin: 12px 0 8px 0;
+      color: #0f172a;
+    }
+
+    .sender-info {
+      font-size: 0.8rem;
+      color: #5b6e8c;
+      border-bottom: 1px solid #eef2ff;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+
+    .message-content {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #1e293b;
+      background: #fafcff;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid #eef2ff;
+    }
+
+    /* NOTES SECTION */
+    .notes-section {
+      margin-top: 28px;
+      background: #fefce8;
+      border-left: 4px solid #eab308;
+      padding: 18px 20px;
+      border-radius: 14px;
+    }
+
+    .notes-section h4 {
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      color: #854d0e;
+      margin-bottom: 14px;
+    }
+
+    .note-box {
+      background: #fffbe6;
+      border: 1px solid #ffe6a3;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-bottom: 16px;
+    }
+
+    .add-note {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .add-note input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 26px;
+      font-size: 0.8rem;
+      font-family: inherit;
+    }
+
+    .add-note button {
+      background: #334155;
+      color: white;
+      border: none;
+      padding: 6px 20px;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    /* METADATA */
+    .metadata {
+      margin-top: 24px;
+      background: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 16px;
+      font-size: 0.7rem;
+      color: #475569;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      border: 1px solid #eef2ff;
+    }
+
+    .metadata p {
+      margin: 0;
+    }
+
+    hr {
+      margin: 25px 0;
+      border: none;
+      border-top: 1px solid #eef2ff;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }

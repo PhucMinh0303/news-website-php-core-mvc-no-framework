@@ -11,11 +11,11 @@
     </div>
 
     <ul class="menu-items">
-        <li class="menu-item active" data-page="main">Dashboard Overview</li>
-        <li class="menu-item" data-page="news">News</li>
-        <li class="menu-item" data-page="recruitment">Recruitment</li>
-        <li class="menu-item" data-page="contact">Contact</li>
-        <li class="menu-item" data-page="media-library">Media Library</li>
+        <li class="menu-item active" data-page="dashboard">Dashboard Overview</li>
+        <li class="menu-item" data-page="news">Tin tức</li>
+        <li class="menu-item" data-page="recruitment">Tuyển dụng</li>
+        <li class="menu-item" data-page="contact">Phản hồi</li>
+        <li class="menu-item" data-page="application">Thư tuyển dụng</li>
         <li class="menu-item" data-page="analytics">Analytics</li>
         <li class="menu-item" data-page="test-db">Test SQL</li>
     </ul>

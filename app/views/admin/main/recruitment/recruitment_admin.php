@@ -15,24 +15,21 @@ $total_records = $data['total_records'] ?? 0;
 
 // Hiển thị thông báo
 if (isset($_SESSION['success'])): ?>
-    <div class="alert alert-success"
-        style="background: #d1fae5; color: #065f46; padding: 12px; margin: 10px 0; border-radius: 6px;">
+    <div class="alert alert-success" style="background: #d1fae5; color: #065f46; padding: 12px; margin: 10px 0; border-radius: 6px;">
         <?php echo $_SESSION['success'];
         unset($_SESSION['success']); ?>
     </div>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['error'])): ?>
-    <div class="alert alert-error"
-        style="background: #fee2e2; color: #991b1b; padding: 12px; margin: 10px 0; border-radius: 6px;">
+    <div class="alert alert-error" style="background: #fee2e2; color: #991b1b; padding: 12px; margin: 10px 0; border-radius: 6px;">
         <?php echo $_SESSION['error'];
         unset($_SESSION['error']); ?>
     </div>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['errors']) && is_array($_SESSION['errors'])): ?>
-    <div class="alert alert-error"
-        style="background: #fee2e2; color: #991b1b; padding: 12px; margin: 10px 0; border-radius: 6px;">
+    <div class="alert alert-error" style="background: #fee2e2; color: #991b1b; padding: 12px; margin: 10px 0; border-radius: 6px;">
         <?php foreach ($_SESSION['errors'] as $err): ?>
             <div><?php echo $err; ?></div>
         <?php endforeach; ?>
@@ -46,13 +43,13 @@ function getStatusInfo($status)
 {
     switch ((int)$status) {
         case 1:
-            return ['text' => 'Open', 'class' => 'status-published'];
+            return ['text' => 'Published', 'class' => 'status-published', 'dot' => '#10b981'];
         case 0:
-            return ['text' => 'Draft', 'class' => 'status-draft'];
+            return ['text' => 'Draft', 'class' => 'status-draft', 'dot' => '#f59e0b'];
         case 2:
-            return ['text' => 'Closed', 'class' => 'status-archived'];
+            return ['text' => 'Archived', 'class' => 'status-archived', 'dot' => '#6b7280'];
         default:
-            return ['text' => 'Unknown', 'class' => 'status-unknown'];
+            return ['text' => 'Unknown', 'class' => 'status-unknown', 'dot' => '#9ca3af'];
     }
 }
 
@@ -60,7 +57,7 @@ function getStatusInfo($status)
 function formatDeadline($deadline)
 {
     if (empty($deadline))
-        return 'N/A';
+        return ['date' => 'N/A', 'badge' => '', 'is_expired' => false];
     $deadline_date = new DateTime($deadline);
     $now = new DateTime();
     $interval = $now->diff($deadline_date);
@@ -88,68 +85,112 @@ function formatDeadline($deadline)
         ];
     }
 }
+
+// Format ngày
+function formatDate($date)
+{
+    if (empty($date)) return 'N/A';
+    $datetime = new DateTime($date);
+    return $datetime->format('d/m/Y');
+}
 ?>
 
+
+
 <main class="main">
-    <div class="main-header">
-        <h1>Recruitment Management</h1>
-        <div class="filters">
-            <!-- STATUS FILTER -->
-            <form method="GET" action="" id="filterForm" style="display: inline;">
-                <select name="status" class="filter-select" onchange="this.form.submit()">
-                    <option value="">All Statuses</option>
-                    <option value="1" <?php echo $status_filter == '1' ? 'selected' : ''; ?>>Open</option>
-                    <option value="0" <?php echo $status_filter == '0' ? 'selected' : ''; ?>>Draft</option>
-                    <option value="2" <?php echo $status_filter == '2' ? 'selected' : ''; ?>>Closed</option>
-                </select>
-                <input type="hidden" name="search" value="<?php echo htmlspecialchars($search_keyword); ?>">
-                <input type="hidden" name="page" value="recruitment">
-            </form>
+    <div class="main-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <h1>Quản lý Tuyển dụng</h1>
+        <button type="button" class="btn-primary" data-page="create-recruitment">
+            <i class="fa-solid fa-plus"></i> Đăng tin mới
+        </button>
+    </div>
+
+    <!-- Stats Cards - Bổ sung từ news_admin -->
+    <div class="stats-container">
+        <div class="stat-card total">
+            <div class="stat-number"><?php echo $total_records; ?></div>
+            <div class="stat-label">Tổng số tin</div>
+        </div>
+        <div class="stat-card published">
+            <div class="stat-number">
+                <?php
+                $published_count = count(array_filter($recruitments, function ($job) {
+                    return $job['status'] == 1;
+                }));
+                echo $published_count;
+                ?>
+            </div>
+            <div class="stat-label">Đang tuyển</div>
+        </div>
+        <div class="stat-card draft">
+            <div class="stat-number">
+                <?php
+                $draft_count = count(array_filter($recruitments, function ($job) {
+                    return $job['status'] == 0;
+                }));
+                echo $draft_count;
+                ?>
+            </div>
+            <div class="stat-label">Bản nháp</div>
+        </div>
+        <div class="stat-card archived">
+            <div class="stat-number">
+                <?php
+                $archived_count = count(array_filter($recruitments, function ($job) {
+                    return $job['status'] == 2;
+                }));
+                echo $archived_count;
+                ?>
+            </div>
+            <div class="stat-label">Đã đóng</div>
         </div>
     </div>
 
-    <!-- Topbar -->
-    <div class="topbar">
-        <form method="GET" action="" style="display: flex; gap: 10px; flex: 1;">
-            <input type="text" name="search" placeholder="Search by title or description..."
+    <!-- Filter Bar - Cải tiến từ news_admin -->
+    <div class="filter-bar">
+        <form method="GET" action="" class="search-form">
+            <input type="text" name="search" placeholder="Tìm kiếm theo tiêu đề hoặc mô tả..."
                 value="<?php echo htmlspecialchars($search_keyword); ?>" />
             <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter); ?>">
             <input type="hidden" name="page" value="recruitment">
             <button type="submit" class="btn-secondary">
-                <i class="fa-solid fa-magnifying-glass"></i> Search
+                <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
             </button>
-            <?php if (!empty($search_keyword) || $status_filter !== ''): ?>
-                <a href="?page=recruitment" class="btn-secondary">Clear Filter</a>
-            <?php endif; ?>
         </form>
-        <button class="btn-primary" data-page="create-recruitment">
-            <i class="fa-solid fa-plus"></i> Post New Job
-        </button>
+
+        <select class="filter-select" onchange="window.location.href=this.value">
+            <option value="?page=recruitment&p=1<?php echo $search_keyword ? '&search=' . urlencode($search_keyword) : ''; ?>">Tất cả trạng thái</option>
+            <option value="?page=recruitment&status=1&p=1<?php echo $search_keyword ? '&search=' . urlencode($search_keyword) : ''; ?>" <?php echo $status_filter == '1' ? 'selected' : ''; ?>>Đang tuyển</option>
+            <option value="?page=recruitment&status=0&p=1<?php echo $search_keyword ? '&search=' . urlencode($search_keyword) : ''; ?>" <?php echo $status_filter == '0' ? 'selected' : ''; ?>>Bản nháp</option>
+            <option value="?page=recruitment&status=2&p=1<?php echo $search_keyword ? '&search=' . urlencode($search_keyword) : ''; ?>" <?php echo $status_filter == '2' ? 'selected' : ''; ?>>Đã đóng</option>
+        </select>
+
+        <?php if (!empty($search_keyword) || $status_filter !== ''): ?>
+            <a href="?page=recruitment&p=1" class="btn-secondary">Xóa bộ lọc</a>
+        <?php endif; ?>
     </div>
+    <div class="posts-table">
+        <div class="table-header">
+            <div>TIÊU ĐỀ</div>
+            <div>ĐỊA ĐIỂM</div>
+            <div>YÊU CẦU</div>
+            <div>HẠN NỘP</div>
+            <div>TRẠNG THÁI</div>
+            <div>THAO TÁC</div>
 
-    <!-- Hiển thị thông báo nếu không có dữ liệu -->
-    <?php if (empty($recruitments)): ?>
-        <div class="empty-state" style="text-align: center; padding: 50px; background: #f9fafb; border-radius: 8px;">
-            <i class="fa-solid fa-briefcase" style="font-size: 48px; color: #9ca3af;"></i>
-            <p style="margin-top: 16px; color: #6b7280;">No recruitment posts found.</p>
-            <?php if (!empty($search_keyword) || $status_filter !== ''): ?>
-                <a href="?page=recruitment" class="btn-primary" style="margin-top: 16px;">View All Jobs</a>
-            <?php else: ?>
-                <button class="btn-primary" data-page="create-recruitment" style="margin-top: 16px;">Create First Job Post
-                </button>
-            <?php endif; ?>
         </div>
-    <?php else: ?>
-        <div class="posts-table">
-            <div class="table-header">
-                <div class="col-title">TITLE & INFO</div>
-                <div class="col-location">WORK LOCATION</div>
-                <div class="col-degree">DEGREE</div>
-                <div class="col-deadline">DEADLINE</div>
-                <div class="col-status">STATUS</div>
-                <div class="col-actions">ACTIONS</div>
+        <!-- Hiển thị thông báo nếu không có dữ liệu -->
+        <?php if (empty($recruitments)): ?>
+            <div class="empty-state">
+                <i class="fa-solid fa-briefcase" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                <p>Chưa có tin tuyển dụng nào.</p>
+                <?php if (!empty($search_keyword) || $status_filter !== ''): ?>
+                    <a href="?page=recruitment&p=1" class="btn-primary" style="margin-top: 10px;">Xem tất cả tin</a>
+                <?php else: ?>
+                    <button class="btn-primary" data-page="create-recruitment" style="margin-top: 10px;">Tạo tin đầu tiên</button>
+                <?php endif; ?>
             </div>
-
+        <?php else: ?>
             <?php foreach ($recruitments as $job): ?>
                 <?php
                 // Xác định đường dẫn ảnh đúng
@@ -162,42 +203,45 @@ function formatDeadline($deadline)
                 $quantity = (int)($job['quantity'] ?? 1);
                 $degree = $job['degree'] ?? 'Cao Đẳng - Đại Học';
                 $salary_range = $job['salary_range'] ?? 'Thỏa thuận';
+                $statusInfo = getStatusInfo($job['status']);
                 ?>
                 <div class="table-row">
-                    <div class="col-title title-box">
-                        <img src="<?php echo htmlspecialchars($image_path); ?>" class="thumb"
-                            style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"
-                            onerror="this.src='assets/images/default-job.webp'" />
-
+                    <div class="col-title">
+                        <?php if ($image_path && $image_path != 'assets/images/default-job.webp'): ?>
+                            <img src="<?php echo htmlspecialchars($image_path); ?>" class="post-thumb" alt="Thumbnail" onerror="this.src='assets/images/default-job.webp'">
+                        <?php else: ?>
+                            <div class="post-thumb" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-image" style="color: #9ca3af;"></i>
+                            </div>
+                        <?php endif; ?>
                         <div class="title-info">
                             <div class="post-title">
-                                <a href="?page=edit-recruitment&id=<?php echo $job['id']; ?>"
-                                    style="text-decoration: none; color: #1f2937; font-weight: 500;">
+                                <a href="/recruitment/<?php echo htmlspecialchars($job['slug'] ?? $job['id']); ?>" target="_blank">
                                     <?php echo htmlspecialchars($job['title']); ?>
                                 </a>
                             </div>
                             <div class="post-meta">
                                 <span class="meta-item">
-                                    <i class="fa-solid fa-users"></i> Qty: <?php echo $quantity; ?>
+                                    <i class="fa-solid fa-users"></i> SL: <?php echo $quantity; ?>
                                 </span>
                                 <span class="meta-item">
-                                    <i class="fa-solid fa-chart-simple"></i> Salary: <?php echo htmlspecialchars($salary_range); ?>
+                                    <i class="fa-solid fa-chart-simple"></i> Lương: <?php echo htmlspecialchars($salary_range); ?>
                                 </span>
-                                <?php if (!empty($job['slug'])): ?>
-                                    <span class="meta-item">
-                                        <i class="fa-solid fa-link"></i> slug: <?php echo htmlspecialchars($job['slug']); ?>
-                                    </span>
-                                <?php endif; ?>
+                                <span class="meta-item">
+                                    <i class="fa-regular fa-calendar"></i> Đăng: <?php echo formatDate($job['created_at'] ?? $job['publish_date'] ?? ''); ?>
+                                </span>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-location">
-                        <i class="fa-solid fa-location-dot" style="color: #6b7280;"></i>
-                        <?php
-                        $location = $job['work_location'] ?? '';
-                        echo htmlspecialchars(strlen($location) > 60 ? substr($location, 0, 60) . '...' : ($location ?: 'Not set'));
-                        ?>
+                        <span class="location-badge">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <?php
+                            $location = $job['work_location'] ?? '';
+                            echo htmlspecialchars(strlen($location) > 60 ? substr($location, 0, 60) . '...' : ($location ?: 'Chưa đặt'));
+                            ?>
+                        </span>
                     </div>
 
                     <div class="col-degree">
@@ -206,364 +250,106 @@ function formatDeadline($deadline)
                     </div>
 
                     <div class="col-deadline">
-                        <span class="deadline <?php echo $deadline_info['is_expired'] ? 'expired' : ''; ?>">
+                        <div class="deadline <?php echo $deadline_info['is_expired'] ? 'expired' : ''; ?>">
                             <i class="fa-regular fa-calendar"></i> <?php echo $deadline_info['date']; ?>
                             <?php echo $deadline_info['badge']; ?>
-                        </span>
+                        </div>
                     </div>
 
                     <div class="col-status">
-                        <?php $status_info = getStatusInfo($job['status']); ?>
-                        <span class="badge status <?php echo $status_info['class']; ?>">
-                            <span class="dot"></span>
-                            <?php echo $status_info['text']; ?>
+                        <span class="status-badge <?php echo $statusInfo['class']; ?>">
+                            <span class="dot" style="background: <?php echo $statusInfo['dot']; ?>"></span>
+                            <?php echo $statusInfo['text']; ?>
                         </span>
                     </div>
 
                     <div class="col-actions">
-                        <button class="icon-btn" onclick="toggleStatus(<?php echo $job['id']; ?>, <?php echo $job['status']; ?>)"
-                            title="<?php echo $job['status'] == 1 ? 'Close job' : 'Open job'; ?>">
-                            <i class="fa-solid <?php echo $job['status'] == 1 ? 'fa-eye' : 'fa-eye-slash'; ?>"></i>
-                        </button>
-                        <button class="icon-btn" onclick="editRecruitment(<?php echo $job['id']; ?>)"
-                            title="Edit">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button class="icon-btn" onclick="deleteRecruitment(<?php echo $job['id']; ?>, '<?php echo htmlspecialchars($job['title']); ?>')"
-                            title="Delete">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        <div class="action-buttons">
+                            <a href="/admin/main/recruitment/edit/<?php echo $job['id']; ?>" class="icon-btn edit" title="Sửa">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <a href="/admin/main/recruitment/toggle-status/<?php echo $job['id']; ?>" class="icon-btn status" title="Đổi trạng thái" onclick="return confirm('Bạn có chắc muốn đổi trạng thái tin này?')">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </a>
+                            <a href="/admin/main/recruitment/delete/<?php echo $job['id']; ?>" class="icon-btn delete" title="Xóa" onclick="return confirm('Bạn có chắc muốn xóa tin này? Hành động này không thể hoàn tác.')">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
-        </div>
 
+
+
+            <div style="margin-top: 16px; text-align: center; color: #6b7280; font-size: 13px;">
+                <i class="fa-regular fa-file-lines"></i> Hiển thị <?php echo count($recruitments); ?> / <?php echo $total_records; ?> tin tuyển dụng
+                <?php if ($status_filter !== ''): ?>
+                    <span style="margin-left: 10px;">
+                        <a href="?page=recruitment" style="color: #3b82f6;">Xem tất cả</a>
+                    </span>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
         <!-- Phân trang -->
         <?php if ($total_pages > 1): ?>
-            <div class="pagination" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+            <div class="pagination">
                 <?php if ($page > 1): ?>
-                    <a href="?page=recruitment&p=<?php echo $page - 1; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>"
-                        class="pagination-link">&laquo; Previous</a>
+                    <a href="?page=recruitment&p=<?php echo $page - 1; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
                 <?php endif; ?>
 
                 <?php
-                $start_page = max(1, $page - 2);
-                $end_page = min($total_pages, $page + 2);
-                for ($i = $start_page; $i <= $end_page; $i++): ?>
+                $start = max(1, $page - 2);
+                $end = min($total_pages, $page + 2);
+                for ($i = $start; $i <= $end; $i++):
+                ?>
                     <a href="?page=recruitment&p=<?php echo $i; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>"
-                        class="pagination-link <?php echo $i == $page ? 'active' : ''; ?>">
+                        class="<?php echo $i == $page ? 'active' : ''; ?>">
                         <?php echo $i; ?>
                     </a>
                 <?php endfor; ?>
 
                 <?php if ($page < $total_pages): ?>
-                    <a href="?page=recruitment&p=<?php echo $page + 1; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>"
-                        class="pagination-link">Next &raquo;</a>
+                    <a href="?page=recruitment&p=<?php echo $page + 1; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
+    </div>
+    <div style="margin-top: 16px; text-align: center; color: #6b7280; font-size: 13px;">
+        Hiển thị <?php echo count($recruitments); ?> / <?php echo $total_records; ?> bài viết
+    </div>
 
-        <div style="margin-top: 15px; text-align: center; color: #6b7280; font-size: 14px;">
-            <i class="fa-regular fa-file-lines"></i> Total: <?php echo $total_records; ?> records
-            <?php if ($status_filter !== ''): ?>
-                <span style="margin-left: 10px;">
-                    <a href="?page=recruitment" style="color: #3b82f6;">Show all</a>
-                </span>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
 </main>
 
 <script>
+    // Hàm hỗ trợ cho các action (giữ lại từ original)
     function editRecruitment(id) {
-        window.location.href = '?page=edit-recruitment&id=' + id;
+        window.location.href = '/admin/main/recruitment/edit/' + id;
     }
 
     function deleteRecruitment(id, title) {
-        if (confirm('Are you sure you want to delete "' + title + '"? This action cannot be undone.')) {
-            window.location.href = '?page=delete-recruitment&id=' + id;
+        if (confirm('Bạn có chắc muốn xóa tin "' + title + '"? Hành động này không thể hoàn tác.')) {
+            window.location.href = '/admin/main/recruitment/delete/' + id;
         }
     }
 
     function toggleStatus(id, currentStatus) {
-        var action = currentStatus == 1 ? 'close' : 'open';
-        if (confirm('Are you sure you want to ' + action + ' this recruitment?')) {
-            window.location.href = '?page=toggle-recruitment-status&id=' + id;
+        var action = currentStatus == 1 ? 'đóng' : 'mở';
+        if (confirm('Bạn có chắc muốn ' + action + ' tin tuyển dụng này?')) {
+            window.location.href = '/admin/main/recruitment/toggle-status/' + id;
         }
     }
+
+    // Xử lý sự kiện cho các button có data-page
+    document.querySelectorAll('[data-page]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const page = this.getAttribute('data-page');
+            if (page === 'create-recruitment') {
+                window.location.href = '/admin/main/recruitment/create';
+            }
+        });
+    });
 </script>
-
-<style>
-    .status-published .dot {
-        background-color: #10b981;
-        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-    }
-
-    .status-draft .dot {
-        background-color: #f59e0b;
-        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-    }
-
-    .status-archived .dot {
-        background-color: #6b7280;
-        box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
-    }
-
-    .deadline.expired {
-        color: #ef4444;
-    }
-
-    .deadline {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .badge.expired {
-        background: #fee2e2;
-        color: #ef4444;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 500;
-    }
-
-    .badge.soon {
-        background: #fed7aa;
-        color: #f59e0b;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 500;
-    }
-
-    .pagination {
-        margin: 20px 0;
-        flex-wrap: wrap;
-    }
-
-    .pagination-link {
-        padding: 8px 14px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        text-decoration: none;
-        color: #374151;
-        transition: all 0.2s;
-    }
-
-    .pagination-link:hover {
-        background: #f3f4f6;
-        border-color: #d1d5db;
-    }
-
-    .pagination-link.active {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-    }
-
-    .btn-secondary {
-        padding: 8px 16px;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        cursor: pointer;
-        text-decoration: none;
-        color: #374151;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-
-    .btn-secondary:hover {
-        background: #e5e7eb;
-    }
-
-    .btn-primary {
-        padding: 8px 20px;
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-
-    .btn-primary:hover {
-        background: #2563eb;
-    }
-
-    .icon-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 6px 10px;
-        border-radius: 6px;
-        transition: background 0.2s;
-    }
-
-    .icon-btn:hover {
-        background: #f3f4f6;
-    }
-
-    /* Table Grid - 6 columns */
-    .table-header,
-    .table-row {
-        display: grid;
-        grid-template-columns: 3fr 2fr 1fr 1.2fr 0.8fr 0.6fr;
-        gap: 12px;
-        padding: 12px 16px;
-        align-items: center;
-    }
-
-    .table-header {
-        background: #f9fafb;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-        color: #6b7280;
-        letter-spacing: 0.5px;
-    }
-
-    .table-row {
-        border-bottom: 1px solid #f0f0f0;
-        transition: background 0.2s;
-    }
-
-    .table-row:hover {
-        background: #fafafa;
-    }
-
-    .title-box {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .thumb {
-        width: 50px;
-        height: 50px;
-        object-fit: cover;
-        border-radius: 8px;
-    }
-
-    .title-info {
-        flex: 1;
-    }
-
-    .post-title {
-        font-weight: 500;
-        color: #1f2937;
-        margin-bottom: 6px;
-    }
-
-    .post-meta {
-        display: flex;
-        gap: 12px;
-        font-size: 12px;
-        color: #6b7280;
-    }
-
-    .meta-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .badge.status {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 500;
-    }
-
-    .status-published {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .status-draft {
-        background: #fed7aa;
-        color: #92400e;
-    }
-
-    .status-archived {
-        background: #e5e7eb;
-        color: #374151;
-    }
-
-    .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-
-    /* Responsive */
-    @media (max-width: 1024px) {
-
-        .table-header,
-        .table-row {
-            grid-template-columns: 2fr 1.5fr 1fr 1fr 0.7fr 0.5fr;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .table-header {
-            display: none;
-        }
-
-        .table-row {
-            display: block;
-            padding: 16px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            margin-bottom: 12px;
-        }
-
-        .table-row>div {
-            margin-bottom: 8px;
-        }
-
-        .col-degree,
-        .col-location,
-        .col-deadline,
-        .col-status,
-        .col-actions {
-            padding-left: 62px;
-        }
-
-        .col-actions {
-            margin-bottom: 0;
-        }
-
-        .topbar {
-            flex-direction: column;
-        }
-
-        .topbar form {
-            width: 100%;
-        }
-
-        .btn-primary {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-
-    .filter-select {
-        padding: 8px 12px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        background: white;
-    }
-</style>

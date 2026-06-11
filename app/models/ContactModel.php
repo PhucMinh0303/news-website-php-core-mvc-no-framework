@@ -12,6 +12,7 @@ class ContactModel extends Model
         $sql = "CALL AddNewContact(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $params = [
+            $data['customer_id'] ?? null,
             $data['customer_name'],
             $data['phone'],
             $data['email'] ?? null,
@@ -22,7 +23,10 @@ class ContactModel extends Model
             $data['ip_address'] ?? null,
             $data['user_agent'] ?? null,
             $data['page_url'] ?? null,
-            $data['referrer_url'] ?? null
+            $data['referrer_url'] ?? null,
+            $data['priority'] ?? 'medium',
+            $data['created_by'] ?? null,
+            $data['created_at'] ?? date('Y-m-d H:i:s'),
         ];
 
         $stmt = $this->conn->query($sql, $params);

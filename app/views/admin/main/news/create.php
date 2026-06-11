@@ -1,7 +1,7 @@
 <?php
 
 /**
- * add_recruitment.php - View thêm tin tuyển dụng mới trong admin panel
+ * create.php - View thêm bài viết mới trong admin panel
  * Form gửi dữ liệu đến route /admin/main/news/store
  */
 
@@ -14,9 +14,306 @@ unset($_SESSION['old_input']);
 unset($_SESSION['errors']);
 ?>
 
-<main class="main news-create-page">
+<style>
+    .alert {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
 
-    
+    .alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .label-row label {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .required {
+        color: #ef4444;
+    }
+
+    .ai-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        cursor: pointer;
+        border: none;
+    }
+
+    .input-title,
+    .input-slug,
+    .input-author,
+    .input-meta-title,
+    .input-meta-keywords,
+    .input-source,
+    .input-source-url,
+    .input-views,
+    .input-scheduled {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+
+    .input-title:focus,
+    .input-slug:focus,
+    .input-author:focus,
+    .input-meta-title:focus,
+    .input-meta-keywords:focus,
+    .input-source:focus,
+    .input-source-url:focus,
+    .input-views:focus,
+    .input-scheduled:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+
+    select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+    }
+
+    textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 14px;
+        resize: vertical;
+    }
+
+    small {
+        font-size: 12px;
+        color: #6b7280;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .editor-box {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .editor-toolbar {
+        background: #f9fafb;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .editor-toolbar button {
+        background: white;
+        border: 1px solid #e5e7eb;
+        padding: 4px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .editor-toolbar button:hover {
+        background: #f3f4f6;
+    }
+
+    .divider {
+        width: 1px;
+        height: 24px;
+        background: #e5e7eb;
+    }
+
+    .editor-area {
+        min-height: 400px;
+        padding: 16px;
+        background: white;
+        overflow-y: auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .editor-area:focus {
+        outline: none;
+    }
+
+    .editor-area[placeholder]:empty:before {
+        content: attr(placeholder);
+        color: #9ca3af;
+    }
+
+    .bottom-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin: 20px 0;
+    }
+
+    .publish-settings {
+        background: #f9fafb;
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    .publish-settings h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 16px;
+        color: #374151;
+    }
+
+    .publish-settings label {
+        display: block;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .publish-settings .inline-label {
+        display: inline-block;
+        margin-left: 8px;
+        font-weight: normal;
+        margin-top: 0;
+    }
+
+    .publish-settings input[type="checkbox"] {
+        width: auto;
+        margin-top: 15px;
+    }
+
+    .thumbnail-box {
+        background: #f9fafb;
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    .thumb-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        font-weight: 500;
+    }
+
+    .upload-box {
+        border: 2px dashed #e5e7eb;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+
+    .upload-box:hover {
+        border-color: #3b82f6;
+    }
+
+    .upload-box span {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .btn-draft {
+        background: #f59e0b;
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-publish {
+        background: #10b981;
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-draft:hover,
+    .btn-publish:hover {
+        opacity: 0.9;
+    }
+
+    .cancel-text {
+        text-align: center;
+        margin-top: 20px;
+        color: #6b7280;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .cancel-text:hover {
+        color: #ef4444;
+    }
+
+    #imagePreview {
+        margin-top: 15px;
+    }
+
+    #previewImg {
+        max-width: 100%;
+        border-radius: 8px;
+    }
+
+    #removeImage {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .bottom-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<main class="main news-create-page">
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-error">
@@ -27,10 +324,10 @@ unset($_SESSION['errors']);
         </div>
     <?php endif; ?>
 
-    <form id="articleForm" action="index.php?controller=news&action=store" method="POST" enctype="multipart/form-data">
+    <form id="articleForm" action="/admin/main/news/store" method="POST" enctype="multipart/form-data">
         <!-- HEADER -->
         <div class="add-header">
-            TRANG ADMIN - ĐĂNG BÀI VIẾT
+            <h1 style="margin: 0;">ĐĂNG BÀI VIẾT MỚI</h1>
         </div>
 
         <div class="add-container">
@@ -39,13 +336,13 @@ unset($_SESSION['errors']);
             <div class="form-group">
                 <div class="label-row">
                     <label>Tiêu đề bài viết: <span class="required">*</span></label>
-                    <span class="ai-btn" type="button">✨ Gợi ý bằng AI</span>
+                    <span class="ai-btn" type="button" onclick="generateAITitle()">✨ Gợi ý bằng AI</span>
                 </div>
                 <input class="input-title" type="text"
                     name="title"
                     id="newsTitle"
                     value="<?php echo htmlspecialchars($formData['title'] ?? ''); ?>"
-                    placeholder="[ Nhập tiêu đề bài viết tại đây... ]"
+                    placeholder="Nhập tiêu đề bài viết tại đây..."
                     required>
             </div>
 
@@ -56,83 +353,56 @@ unset($_SESSION['errors']);
                     name="slug"
                     id="newsSlug"
                     value="<?php echo htmlspecialchars($formData['slug'] ?? ''); ?>"
-                    placeholder="[ Tự động tạo từ tiêu đề ]">
-                <small>(Slug sẽ được tạo tự động từ tiêu đề)</small>
+                    placeholder="Tự động tạo từ tiêu đề">
+                <small>Slug sẽ được tạo tự động từ tiêu đề nếu để trống</small>
             </div>
 
             <!-- CATEGORY -->
             <div class="form-group">
-                <label>Chuyên mục: <span class="required">*</span></label>
-                <select class="input-category" name="category_id" required>
+                <label>Chuyên mục:</label>
+                <select class="input-category" name="category_id">
                     <option value="">-- Chọn chuyên mục --</option>
-                    <?php foreach ($categories as $category): ?>
+                    <?php foreach (($categories ?? []) as $category): ?>
                         <option value="<?php echo $category['id']; ?>"
                             <?php echo (($formData['category_id'] ?? '') == $category['id']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($category['name']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <small>(Liên kết với bảng categories)</small>
             </div>
 
-            <!-- AUTHOR -->
+            <!-- AUTHOR SELECT -->
             <div class="form-group">
-                <label>Tác giả:</label>
+                <label>Tác giả (từ danh sách):</label>
                 <select class="input-author-id" name="author_id" id="authorId">
                     <option value="">-- Chọn tác giả --</option>
-                    <?php foreach ($authors as $author): ?>
+                    <?php foreach (($authors ?? []) as $author): ?>
                         <option value="<?php echo $author['id']; ?>"
                             <?php echo (($formData['author_id'] ?? '') == $author['id']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($author['name']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <small>(Liên kết với bảng authors)</small>
             </div>
 
             <!-- AUTHOR NAME -->
             <div class="form-group">
                 <label>Tên tác giả hiển thị: <span class="required">*</span></label>
                 <input class="input-author" type="text"
-                    name="author_name"
+                    name="author"
                     id="authorName"
-                    value="<?php echo htmlspecialchars($formData['author_name'] ?? ''); ?>"
-                    placeholder="[ Tên tác giả hiển thị trên bài viết ]"
+                    value="<?php echo htmlspecialchars($formData['author'] ?? ''); ?>"
+                    placeholder="Tên tác giả hiển thị trên bài viết"
                     required>
-                <small>(Tên sẽ được lưu trực tiếp vào cột author)</small>
+                <small>Tên sẽ được lưu trực tiếp vào cột author của bảng news</small>
             </div>
 
             <!-- PUBLISH DATE -->
             <div class="form-group">
                 <label>Ngày xuất bản:</label>
-                <input class="input-publish-date" type="datetime-local"
-                    name="published_at"
-                    value="<?php echo htmlspecialchars($formData['published_at'] ?? date('Y-m-d\TH:i')); ?>">
-            </div>
-
-            <!-- META SEO -->
-            <div class="form-group">
-                <label>Meta Title:</label>
-                <input class="input-meta-title" type="text"
-                    name="meta_title"
-                    value="<?php echo htmlspecialchars($formData['meta_title'] ?? ''); ?>"
-                    placeholder="SEO Title (để trống sẽ lấy tiêu đề)">
-            </div>
-
-            <div class="form-group">
-                <label>Meta Description:</label>
-                <textarea class="input-meta-description"
-                    name="meta_description"
-                    rows="3"
-                    placeholder="Mô tả SEO (tối đa 160 ký tự)"><?php echo htmlspecialchars($formData['meta_description'] ?? ''); ?></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Meta Keywords:</label>
-                <input class="input-meta-keywords" type="text"
-                    name="meta_keywords"
-                    value="<?php echo htmlspecialchars($formData['meta_keywords'] ?? ''); ?>"
-                    placeholder="Từ khóa SEO, cách nhau bằng dấu phẩy">
+                <input class="input-publish-date" type="date"
+                    name="publish_date"
+                    value="<?php echo htmlspecialchars($formData['publish_date'] ?? date('Y-m-d')); ?>">
             </div>
 
             <!-- DESCRIPTION -->
@@ -146,10 +416,10 @@ unset($_SESSION['errors']);
 
             <!-- CONTENT -->
             <div class="form-group">
-                <label>Nội dung bài viết (hỗ trợ chèn hình ảnh vào giữa văn bản):</label>
+                <label>Nội dung bài viết: <span class="required">*</span></label>
                 <div class="editor-box">
                     <div class="editor-toolbar">
-                        <select id="fontFamily">
+                        <select id="fontFamily" onchange="changeFontFamily(this.value)">
                             <option value="serif">Font: Serif</option>
                             <option value="arial">Arial</option>
                             <option value="times-new-roman">Times New Roman</option>
@@ -158,26 +428,25 @@ unset($_SESSION['errors']);
                             <option value="monospace">Monospace</option>
                         </select>
                         <span class="divider"></span>
-                        <button type="button" data-cmd="bold"><b>B</b></button>
-                        <button type="button" data-cmd="italic"><i>I</i></button>
-                        <button type="button" data-cmd="underline"><u>U</u></button>
+                        <button type="button" onclick="execCmd('bold')"><b>B</b></button>
+                        <button type="button" onclick="execCmd('italic')"><i>I</i></button>
+                        <button type="button" onclick="execCmd('underline')"><u>U</u></button>
                         <span class="divider"></span>
-                        <input type="color" id="textColor">
+                        <input type="color" id="textColor" onchange="changeTextColor(this.value)">
                         <span class="divider"></span>
-                        <button type="button" data-heading="1">H1</button>
-                        <button type="button" data-heading="2">H2</button>
+                        <button type="button" onclick="formatHeading(1)">H1</button>
+                        <button type="button" onclick="formatHeading(2)">H2</button>
                         <span class="divider"></span>
-                        <button type="button" data-cmd="formatBlock" data-value="blockquote">❝</button>
-                        <button type="button" id="addLink"><i class="fas fa-link"></i></button>
+                        <button type="button" onclick="execCmd('formatBlock', 'blockquote')">❝</button>
+                        <button type="button" onclick="addLink()"><i class="fas fa-link"></i></button>
                         <span class="divider"></span>
-                        <button type="button" id="insertImage"><i class="fas fa-image"></i> Chèn hình ảnh</button>
-                        <button type="button" id="insertVideo"><i class="fa-solid fa-video"></i> Chèn video</button>
+                        <button type="button" onclick="insertImageFromUrl()"><i class="fas fa-image"></i> Chèn hình ảnh</button>
+                        <button type="button" onclick="insertVideo()"><i class="fa-solid fa-video"></i> Chèn video</button>
                     </div>
                     <div id="editor" class="editor-area" contenteditable="true"
                         placeholder="Đây là nội dung bài viết. Có thể gõ trực tiếp hoặc dán nội dung từ nguồn khác..."><?php echo htmlspecialchars_decode($formData['content'] ?? ''); ?></div>
                     <input type="hidden" name="content" id="contentInput">
                 </div>
-                <input type="file" id="imageUpload" accept="image/*" hidden>
             </div>
 
             <!-- BOTTOM LAYOUT -->
@@ -188,39 +457,17 @@ unset($_SESSION['errors']);
                     <h3>CẤU HÌNH XUẤT BẢN</h3>
 
                     <label>TRẠNG THÁI</label>
-                    <select class="input-status" name="status">
-                        <option value="draft" <?php echo (($formData['status'] ?? '') == 'draft') ? 'selected' : ''; ?>>Bản nháp (Draft)</option>
-                        <option value="published" <?php echo (($formData['status'] ?? 'published') == 'published') ? 'selected' : ''; ?>>Đã đăng (Published)</option>
-                        <option value="scheduled" <?php echo (($formData['status'] ?? '') == 'scheduled') ? 'selected' : ''; ?>>Hẹn giờ (Scheduled)</option>
+                    <select class="input-status" name="status" id="statusSelect">
+                        <option value="draft" <?php echo (($formData['status'] ?? 'draft') == 'draft') ? 'selected' : ''; ?>>Bản nháp (Draft)</option>
+                        <option value="published" <?php echo (($formData['status'] ?? '') == 'published') ? 'selected' : ''; ?>>Đã đăng (Published)</option>
                         <option value="archived" <?php echo (($formData['status'] ?? '') == 'archived') ? 'selected' : ''; ?>>Lưu trữ (Archived)</option>
                     </select>
-
-                    <div id="scheduledDatetime" style="display: none;">
-                        <label>THỜI GIAN HẸN GIỜ</label>
-                        <input class="input-scheduled" type="datetime-local" name="scheduled_at"
-                            value="<?php echo htmlspecialchars($formData['scheduled_at'] ?? ''); ?>">
-                    </div>
 
                     <label>LƯỢT XEM (VIEWS)</label>
                     <input class="input-views" type="number" name="views"
                         value="<?php echo htmlspecialchars($formData['views'] ?? 0); ?>"
                         placeholder="Số lượt xem">
-                    <small>(Sẽ tự động cập nhật khi có người xem)</small>
-
-                    <label>NỔI BẬT</label>
-                    <input type="checkbox" name="is_featured" value="1"
-                        <?php echo isset($formData['is_featured']) && $formData['is_featured'] ? 'checked' : ''; ?>>
-                    <label class="inline-label">Hiển thị ở mục nổi bật</label>
-
-                    <label>TIN NÓNG</label>
-                    <input type="checkbox" name="is_breaking" value="1"
-                        <?php echo isset($formData['is_breaking']) && $formData['is_breaking'] ? 'checked' : ''; ?>>
-                    <label class="inline-label">Đánh dấu là tin nóng</label>
-
-                    <label>TIN HOT</label>
-                    <input type="checkbox" name="is_hot" value="1"
-                        <?php echo isset($formData['is_hot']) && $formData['is_hot'] ? 'checked' : ''; ?>>
-                    <label class="inline-label">Đánh dấu là tin hot</label>
+                    <small>Sẽ tự động cập nhật khi có người xem</small>
 
                     <label>NGUỒN BÀI VIẾT</label>
                     <input class="input-source" type="text" name="source"
@@ -237,17 +484,17 @@ unset($_SESSION['errors']);
                 <div class="thumbnail-box">
                     <div class="thumb-header">
                         ẢNH ĐẠI DIỆN BÀI VIẾT
-                        <span class="ai-btn" type="button">✨ Tạo bằng AI</span>
+                        <span class="ai-btn" type="button" onclick="generateAIImage()">✨ Tạo bằng AI</span>
                     </div>
-                    <div class="upload-box" id="uploadBox">
+                    <div class="upload-box" id="uploadBox" onclick="document.getElementById('featuredImage').click()">
                         <span>📷</span>
                         <p>Tải lên ảnh đại diện (JPG, PNG, WEBP)</p>
                         <small>Định dạng: JPG, PNG, WEBP (max 5MB)</small>
-                        <input type="file" name="featured_image" id="featuredImage" accept="image/jpeg,image/png,image/webp" hidden>
+                        <input type="file" name="featured_image" id="featuredImage" accept="image/jpeg,image/png,image/webp" hidden onchange="previewImage(this)">
                     </div>
                     <div id="imagePreview" style="display: none; margin-top: 10px;">
                         <img id="previewImg" src="" alt="Preview" style="max-width: 100%; border-radius: 8px;">
-                        <button type="button" id="removeImage" style="margin-top: 5px;">Xóa ảnh</button>
+                        <button type="button" id="removeImage" onclick="removeImage()">Xóa ảnh</button>
                     </div>
                     <input type="text" name="featured_image_caption"
                         value="<?php echo htmlspecialchars($formData['featured_image_caption'] ?? ''); ?>"
@@ -256,24 +503,137 @@ unset($_SESSION['errors']);
 
             </div>
 
-            <!-- Ghi chú tác giả -->
-            <div class="form-group">
-                <label>Ghi chú tác giả:</label>
-                <textarea class="input-author-note"
-                    name="author_note"
-                    rows="3"
-                    placeholder="Ghi chú đặc biệt từ tác giả"><?php echo htmlspecialchars($formData['author_note'] ?? ''); ?></textarea>
-            </div>
-
             <!-- ACTION BUTTON -->
             <div class="action-buttons">
                 <button type="submit" name="action" value="draft" class="btn-draft">Lưu nháp</button>
                 <button type="submit" name="action" value="publish" class="btn-publish">Đăng bài</button>
             </div>
 
-            <div class="cancel-text">Hủy bỏ và quay lại</div>
+            <div class="cancel-text" onclick="window.location.href='/admin/main/news'">Hủy bỏ và quay lại</div>
 
         </div>
     </form>
 
 </main>
+
+<script>
+    // Editor functions
+    function execCmd(command, value = null) {
+        document.execCommand(command, false, value);
+        updateContentInput();
+    }
+
+    function changeFontFamily(font) {
+        document.execCommand('fontName', false, font);
+        updateContentInput();
+    }
+
+    function changeTextColor(color) {
+        document.execCommand('foreColor', false, color);
+        updateContentInput();
+    }
+
+    function formatHeading(level) {
+        document.execCommand('formatBlock', false, 'H' + level);
+        updateContentInput();
+    }
+
+    function addLink() {
+        const url = prompt('Nhập URL liên kết:', 'https://');
+        if (url) {
+            document.execCommand('createLink', false, url);
+            updateContentInput();
+        }
+    }
+
+    function insertImageFromUrl() {
+        const url = prompt('Nhập URL hình ảnh:', 'https://');
+        if (url) {
+            document.execCommand('insertImage', false, url);
+            updateContentInput();
+        }
+    }
+
+    function insertVideo() {
+        const embedCode = prompt('Nhập mã nhúng video (YouTube/Vimeo):', '<iframe src="https://www.youtube.com/embed/..."></iframe>');
+        if (embedCode) {
+            document.execCommand('insertHTML', false, embedCode);
+            updateContentInput();
+        }
+    }
+
+    function updateContentInput() {
+        const editor = document.getElementById('editor');
+        document.getElementById('contentInput').value = editor.innerHTML;
+    }
+
+    // Auto update content input on editor change
+    document.getElementById('editor').addEventListener('input', updateContentInput);
+    document.getElementById('editor').addEventListener('blur', updateContentInput);
+
+    // Ensure editor HTML is synced before the form submits
+    document.getElementById('articleForm').addEventListener('submit', function() {
+        updateContentInput();
+    });
+
+    // Slug generation from title
+    function generateSlug(text) {
+        return text
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[đĐ]/g, function(match) {
+                return match === 'đ' ? 'd' : 'd';
+            })
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    document.getElementById('newsTitle').addEventListener('blur', function() {
+        const slugInput = document.getElementById('newsSlug');
+        if (!slugInput.value.trim()) {
+            slugInput.value = generateSlug(this.value);
+        }
+    });
+
+    // Author selection
+    document.getElementById('authorId').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+            document.getElementById('authorName').value = selectedOption.text;
+        }
+    });
+
+    // Image preview
+    function previewImage(input) {
+        const preview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImage() {
+        document.getElementById('featuredImage').value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('previewImg').src = '';
+    }
+
+    // AI functions (mock)
+    function generateAITitle() {
+        alert('Tính năng gợi ý tiêu đề bằng AI sẽ sớm ra mắt!');
+    }
+
+    function generateAIImage() {
+        alert('Tính năng tạo ảnh bằng AI sẽ sớm ra mắt!');
+    }
+
+    // Initialize
+    updateContentInput();
+</script>

@@ -22,9 +22,9 @@ class AdminRecruitmentController extends Controller
             'drafts' => $this->recruitmentModel->countAdmin('0'),   // Bản nháp
             'closed' => $this->recruitmentModel->countAdmin('2'),   // Đã đóng
             'total' => $this->recruitmentModel->countAdmin(),       // Tổng số
-            'applicants' => 0 // Tạm thời để 0, có thể thêm sau
+            'applicants' => 0
         ];
-        
+
         // Lấy danh sách tin tuyển dụng
         $page = isset($_GET['p']) ? (int)$_GET['p'] : 1;
         $limit = 10;
@@ -59,12 +59,72 @@ class AdminRecruitmentController extends Controller
     }
 
     /**
+     * Validate dữ liệu đầu vào
+     */
+    private function validateData($data)
+    {
+        $errors = [];
+
+        if (empty($data['title'])) {
+            $errors[] = 'Tiêu đề không được để trống';
+        } elseif (strlen($data['title']) < 5) {
+            $errors[] = 'Tiêu đề phải có ít nhất 5 ký tự';
+        }
+
+        if (empty($data['work_location'])) {
+            $errors[] = 'Địa điểm làm việc không được để trống';
+        }
+
+        if (empty($data['degree'])) {
+            $errors[] = 'Trình độ yêu cầu không được để trống';
+        }
+
+        if (empty($data['quantity']) || $data['quantity'] < 1) {
+            $errors[] = 'Số lượng cần tuyển phải lớn hơn 0';
+        }
+
+        if (empty($data['salary_range'])) {
+            $errors[] = 'Mức lương không được để trống';
+        }
+
+        if (empty($data['deadline'])) {
+            $errors[] = 'Hạn nộp hồ sơ không được để trống';
+        } elseif (strtotime($data['deadline']) < strtotime(date('Y-m-d'))) {
+            $errors[] = 'Hạn nộp hồ sơ phải từ hôm nay trở đi';
+        }
+
+        if (empty($data['description'])) {
+            $errors[] = 'Mô tả công việc không được để trống';
+        }
+
+        if (empty($data['requirements'])) {
+            $errors[] = 'Yêu cầu ứng viên không được để trống';
+        }
+
+        if (empty($data['benefits'])) {
+            $errors[] = 'Quyền lợi được hưởng không được để trống';
+        }
+
+        return $errors;
+    }
+
+    /**
      * Xử lý lưu tin tuyển dụng mới từ create.php
      */
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/main/recruitment/recruitment_admin');
+            header('Location: /admin/recruitment/recruitment_admin');
+            return;
+        }
+
+        // Validate dữ liệu
+        $errors = $this->validateData($_POST);
+
+        if (!empty($errors)) {
+            $_SESSION['errors'] = $errors;
+            $_SESSION['old_input'] = $_POST;
+            header('Location: /admin/recruitment/create');
             return;
         }
 
@@ -74,6 +134,11 @@ class AdminRecruitmentController extends Controller
             $uploadedImage = $this->uploadImage($_FILES['image']);
             if ($uploadedImage['success']) {
                 $imageName = $uploadedImage['filename'];
+            } else {
+                $_SESSION['errors'] = [$uploadedImage['error']];
+                $_SESSION['old_input'] = $_POST;
+                header('Location: /admin/recruitment/create');
+                return;
             }
         }
 
@@ -82,14 +147,18 @@ class AdminRecruitmentController extends Controller
         if (isset($_POST['publish']) && $_POST['publish'] == 1) {
             $status = 1;
         }
+        if (isset($_POST['save_draft']) && $_POST['save_draft'] == 0) {
+            $status = 0;
+        }
 
         $data = [
-            'title' => $_POST['title'],
+            'title' => trim($_POST['title']),
             'image' => $imageName,
-            'work_location' => $_POST['work_location'],
+            'work_location' => trim($_POST['work_location']),
             'degree' => $_POST['degree'],
+            'work_type' => $_POST['work_type'] ?? 'Toàn thời gian',
             'quantity' => (int)$_POST['quantity'],
-            'salary_range' => $_POST['salary_range'] ?? $_POST['salary_display'] ?? '',
+            'salary_range' => $_POST['salary_display'] ?? $_POST['salary_range'] ?? '',
             'deadline' => $_POST['deadline'],
             'description' => $_POST['description'],
             'requirements' => $_POST['requirements'],
@@ -100,12 +169,18 @@ class AdminRecruitmentController extends Controller
         $result = $this->recruitmentModel->create($data);
 
         if ($result) {
-            $_SESSION['success'] = 'Thêm tin tuyển dụng thành công!';
+            $_SESSION['success'] = 'Thêm tin tuyển dụng "' . htmlspecialchars($data['title']) . '" thành công!';
         } else {
-            $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại!';
+            $_SESSION['error'] = 'Có lỗi xảy ra khi thêm tin tuyển dụng, vui lòng thử lại!';
         }
 
-        header('Location: /admin/main/recruitment/recruitment_admin');
+        // Xử lý "Lưu và tiếp tục" - quay lại form edit
+        if (isset($_POST['save_and_continue']) && $_POST['save_and_continue'] == 1 && $result) {
+            header('Location: /admin/recruitment/edit?id=' . $result);
+            return;
+        }
+
+        header('Location: /admin/recruitment/recruitment_admin');
     }
 
     /**
@@ -130,14 +205,22 @@ class AdminRecruitmentController extends Controller
     public function update($id)
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/main/recruitment/recruitment_admin');
+            header('Location: /admin/recruitment');
             return;
         }
 
         $job = $this->recruitmentModel->getById($id);
         if (!$job) {
             $_SESSION['error'] = 'Tin tuyển dụng không tồn tại!';
-            header('Location: /admin/main/recruitment/recruitment_admin');
+            header('Location: /admin/recruitment');
+            return;
+        }
+
+        // Validate dữ liệu
+        $errors = $this->validateData($_POST);
+        if (!empty($errors)) {
+            $_SESSION['errors'] = $errors;
+            header('Location: /admin/recruitment/edit?id=' . $id);
             return;
         }
 
@@ -158,12 +241,13 @@ class AdminRecruitmentController extends Controller
         }
 
         $data = [
-            'title' => $_POST['title'],
+            'title' => trim($_POST['title']),
             'image' => $imageName,
-            'work_location' => $_POST['work_location'],
+            'work_location' => trim($_POST['work_location']),
             'degree' => $_POST['degree'],
+            'work_type' => $_POST['work_type'] ?? 'Toàn thời gian',
             'quantity' => (int)$_POST['quantity'],
-            'salary_range' => $_POST['salary_range'] ?? $_POST['salary_display'] ?? $job['salary_range'],
+            'salary_range' => $_POST['salary_display'] ?? $_POST['salary_range'] ?? $job['salary_range'],
             'deadline' => $_POST['deadline'],
             'description' => $_POST['description'],
             'requirements' => $_POST['requirements'],
@@ -174,12 +258,12 @@ class AdminRecruitmentController extends Controller
         $result = $this->recruitmentModel->update($id, $data);
 
         if ($result) {
-            $_SESSION['success'] = 'Cập nhật tin tuyển dụng thành công!';
+            $_SESSION['success'] = 'Cập nhật tin tuyển dụng "' . htmlspecialchars($data['title']) . '" thành công!';
         } else {
             $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại!';
         }
 
-        header('Location: /admin/main/recruitment');
+        header('Location: /admin/recruitment');
     }
 
     /**
@@ -199,12 +283,12 @@ class AdminRecruitmentController extends Controller
             }
 
             $result = $this->recruitmentModel->delete($id);
-            $_SESSION['success'] = $result ? 'Xóa tin tuyển dụng thành công!' : 'Xóa tin tuyển dụng thất bại!';
+            $_SESSION['success'] = $result ? 'Xóa tin tuyển dụng "' . htmlspecialchars($job['title']) . '" thành công!' : 'Xóa tin tuyển dụng thất bại!';
         } else {
             $_SESSION['error'] = 'Tin tuyển dụng không tồn tại!';
         }
 
-        header('Location: /admin/main/recruitment');
+        header('Location: /admin/recruitment');
     }
 
     /**
@@ -217,15 +301,16 @@ class AdminRecruitmentController extends Controller
         if ($job) {
             $newStatus = $job['status'] == 1 ? 0 : 1;
             $result = $this->recruitmentModel->updateStatus($id, $newStatus);
-            
+
             if ($result) {
-                $_SESSION['success'] = $newStatus == 1 ? 'Đã bật tin tuyển dụng!' : 'Đã tắt tin tuyển dụng!';
+                $message = $newStatus == 1 ? 'Đã bật tin tuyển dụng "' . htmlspecialchars($job['title']) . '"!' : 'Đã tắt tin tuyển dụng "' . htmlspecialchars($job['title']) . '"!';
+                $_SESSION['success'] = $message;
             } else {
                 $_SESSION['error'] = 'Cập nhật trạng thái thất bại!';
             }
         }
 
-        header('Location: /admin/main/recruitment');
+        header('Location: /admin/recruitment');
     }
 
     /**
@@ -234,8 +319,21 @@ class AdminRecruitmentController extends Controller
     private function uploadImage($file)
     {
         $uploadDir = __DIR__ . '/../../public/uploads/recruitments/';
+        
+        // Tạo thư mục nếu chưa tồn tại
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
+        }
+
+        // Kiểm tra kích thước file (max 2MB)
+        if ($file['size'] > 2 * 1024 * 1024) {
+            return ['success' => false, 'filename' => 'default-job.webp', 'error' => 'File ảnh không được vượt quá 2MB'];
+        }
+
+        // Kiểm tra loại file
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!in_array($file['type'], $allowedTypes)) {
+            return ['success' => false, 'filename' => 'default-job.webp', 'error' => 'Chỉ chấp nhận file JPG, PNG, WEBP'];
         }
 
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -246,6 +344,6 @@ class AdminRecruitmentController extends Controller
             return ['success' => true, 'filename' => $filename];
         }
 
-        return ['success' => false, 'filename' => 'default-job.webp'];
+        return ['success' => false, 'filename' => 'default-job.webp', 'error' => 'Upload ảnh thất bại'];
     }
 }
