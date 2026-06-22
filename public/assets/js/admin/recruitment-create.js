@@ -86,7 +86,7 @@
 
     return result;
   }
-
+  // Tạo slug từ tiêu đề, loại bỏ dấu tiếng Việt, chuyển thành chữ thường, thay khoảng trắng bằng dấu gạch ngang, và loại bỏ ký tự đặc biệt
   function generateSlugFromTitle(title) {
     if (!title || title.trim() === '') {
       return '';
@@ -102,7 +102,7 @@
 
     return slug;
   }
-
+  // Kiểm tra slug hợp lệ (chỉ chứa chữ thường, số và dấu gạch ngang)
   function isValidSlug(slug) {
     if (!slug || slug.trim() === '') {
       return false;
@@ -110,7 +110,7 @@
 
     return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug);
   }
-
+  // Hiển thị toast message với kiểu (success, error, info)
   function showToast(message, type) {
     $('.toast').remove();
 
@@ -189,7 +189,7 @@
         }
       }
     });
-    
+
     return $requiredFields;
   }
 
@@ -497,7 +497,7 @@
     
     return true;
   }
-
+  // Cập nhật slug tự động khi người dùng nhập tiêu đề
   function updateSlug($form) {
     const $title = $form.find('#recruitment_title');
     const $slug = $form.find('#slug');
@@ -530,7 +530,7 @@
       $slug.css('backgroundColor', '#f3f4f6');
     }, 500);
   }
-
+  // Preview ảnh khi người dùng chọn file, đồng thời validate kích thước ảnh không vượt quá 2MB
   function previewImage(input, $form) {
     const $preview = $form.find('#imagePreview');
     const $previewImg = $form.find('#previewImg');

@@ -50,6 +50,7 @@ class AdminNewsController extends Controller
      */
     public function create()
     {
+        // Lấy danh sách categories và authors cho form
         $categories = $this->newsModel->getCategories();
         $authors = $this->newsModel->getAuthors();
         
@@ -121,7 +122,7 @@ class AdminNewsController extends Controller
             'publish_date' => !empty($_POST['publish_date']) ? $_POST['publish_date'] : date('Y-m-d'),
             'image' => $featuredImage,
             'content' => $_POST['content'],
-            'views' => (int)($_POST['views'] ?? 0),
+            'views' => 0, // Khởi tạo views = 0
             'status' => $status
         ];
 

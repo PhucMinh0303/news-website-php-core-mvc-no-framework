@@ -12,26 +12,21 @@
   <meta property="og:url" content="<?php echo BASE_URL; ?>" />
   <title><?php echo isset($view_page_title) ? View::escape($view_page_title) . ' - ' . View::escape(SITE_NAME) : View::escape(SITE_TITLE); ?></title>
 
-  <!-- Quill CSS library -->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <!-- Thẻ chứa các thư viện css -->
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+
 
   <!-- CSS chính -->
   <link rel="stylesheet" href="<?php echo View::asset('css/admin/admin.css'); ?>" />
-  <link rel="stylesheet" href="<?php echo View::asset('css/admin/recruitment-create.css'); ?>" />
+  <link rel="stylesheet" href="<?php echo View::asset('css/admin/news-recruitment_create.css'); ?>" />
   <link rel="stylesheet" href="<?php echo View::asset('css/admin/news-recruitment_admin.css'); ?>" />
   <link rel="stylesheet" href="<?php echo View::asset('css/admin/contact-application_admin.css'); ?>" />
-
-
 
   <!-- Font Awesome -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  
 </head>
 
 <body>

@@ -11,11 +11,11 @@
     </div>
 
     <ul class="menu-items">
-        <li class="menu-item active" data-page="dashboard">Dashboard Overview</li>
+        <li class="menu-item active" data-page="dashboard">Thống kê</li>
         <li class="menu-item" data-page="news">Tin tức</li>
         <li class="menu-item" data-page="recruitment">Tuyển dụng</li>
         <li class="menu-item" data-page="contact">Phản hồi</li>
-        <li class="menu-item" data-page="application">Thư tuyển dụng</li>
+        <li class="menu-item" data-page="application">Đơn ứng tuyển</li>
         <li class="menu-item" data-page="analytics">Analytics</li>
         <li class="menu-item" data-page="test-db">Test SQL</li>
     </ul>

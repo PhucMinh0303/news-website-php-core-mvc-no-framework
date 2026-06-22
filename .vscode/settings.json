@@ -104,7 +104,9 @@
   // Mixed language formatting (HTML trong PHP)
   // ========================
   
-
+  // Gõ tiếng việt có dấu không bị lỗi font (mã hóa UTF-8)
+  "files.encoding": "utf8bom",
+  "files.autoGuessEncoding": true,
 
   // ========================
   // Hiển thị lỗi realtime

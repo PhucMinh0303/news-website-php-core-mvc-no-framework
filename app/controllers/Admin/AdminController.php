@@ -32,9 +32,9 @@ class AdminController extends Controller
         $allowedPages = [
             'dashboard' => 'admin/main/dashboard_admin',
             'news' => 'admin/main/news/news_admin',
-            'create-news' => 'admin/main/news/create',
+            'create-news' => 'admin/main/news/create-news',
             'recruitment' => 'admin/main/recruitment/recruitment_admin',
-            'create-recruitment' => 'admin/main/recruitment/create',
+            'create-recruitment' => 'admin/main/recruitment/create-recruitment',
             'contact' => 'admin/main/contact_admin',
             'application' => 'admin/main/application_admin',
             'test-db' => 'admin/main/test_db',
