@@ -205,7 +205,7 @@ unset($_SESSION['errors']);
 
                 <div class="action-buttons">
                     <button type="submit" name="save_draft" value="0" class="btn-draft">Lưu nháp</button>
-                    <button type="submit" name="publish" value="1" class="btn-publish">Đăng tin</button>
+                    <button type="submit" name="publish" value="1" class="btn-publish">Đăng tin ngay</button>
                     <button type="submit" name="save_and_continue" value="1" class="btn-secondary">Lưu và tiếp tục</button>
                 </div>
 

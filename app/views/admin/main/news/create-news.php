@@ -24,6 +24,279 @@ unset($_SESSION['errors']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+        /* ==================== VIDEO MODAL STYLES ==================== */
+        #videoModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: videoModalFadeIn 0.3s ease;
+        }
+
+        #videoModal.show {
+            display: flex !important;
+        }
+
+        @keyframes videoModalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .video-modal-content {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px 35px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .video-modal-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 25px 0;
+            letter-spacing: 0.5px;
+        }
+
+        /* YouTube Input Section */
+        .video-input-section {
+            margin-bottom: 20px;
+        }
+
+        .video-input-label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        .video-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .video-input-field {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: #ffffff;
+            color: #1e293b;
+            outline: none;
+        }
+
+        .video-input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .video-input-field::placeholder {
+            color: #94a3b8;
+        }
+
+        .video-insert-btn {
+            padding: 10px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .video-insert-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .video-insert-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Divider */
+        .video-divider {
+            text-align: center;
+            color: #94a3b8;
+            margin: 20px 0;
+            position: relative;
+            font-weight: 300;
+            font-size: 13px;
+        }
+
+        .video-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .video-divider span {
+            background: #ffffff;
+            padding: 0 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* File Upload Section */
+        .video-file-section {
+            margin-bottom: 20px;
+        }
+
+        .video-file-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #334155;
+            margin-bottom: 10px;
+        }
+
+        .video-upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 25px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafbfc;
+        }
+
+        .video-upload-box:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .video-upload-box:active {
+            transform: translateY(0);
+        }
+
+        .video-upload-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .video-upload-text {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .video-file-name {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #3b82f6;
+            display: none;
+            padding: 8px 12px;
+            background: #eff6ff;
+            border-radius: 6px;
+            word-break: break-all;
+            font-weight: 500;
+        }
+
+        /* Cancel Button */
+        .video-cancel-btn {
+            width: 100%;
+            padding: 10px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 5px;
+        }
+
+        .video-cancel-btn:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+        }
+
+        .video-cancel-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Scrollbar styling */
+        .video-modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .video-modal-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .video-modal-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .video-modal-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .video-modal-content {
+                padding: 20px;
+                max-width: 100%;
+                margin: 10px;
+            }
+
+            .video-modal-title {
+                font-size: 18px;
+                margin-bottom: 20px;
+            }
+
+            .video-input-wrapper {
+                flex-direction: column;
+            }
+
+            .video-insert-btn {
+                width: 100%;
+            }
+
+            .video-upload-box {
+                padding: 20px 15px;
+            }
+
+            .video-upload-icon {
+                font-size: 32px;
+            }
+        }
+
         /* Rich Text Editor Styles */
         .rich-editor-toolbar {
             background: #f8f9fa;
@@ -361,6 +634,40 @@ unset($_SESSION['errors']);
     </style>
 </head>
 
+<!-- ==================== VIDEO MODAL ==================== -->
+<div id="videoModal" style="display: none;">
+    <div class="video-modal-content">
+        <h2 class="video-modal-title">CHÈN VIDEO</h2>
+
+        <!-- Nhập URL YouTube -->
+        <div class="video-input-section">
+            <label class="video-input-label">Nhập URL YouTube</label>
+            <div class="video-input-wrapper">
+                <input type="text" id="youtubeUrl" class="video-input-field" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+                <button class="video-insert-btn" onclick="insertYoutubeVideo()">Chèn</button>
+            </div>
+        </div>
+
+        <div class="video-divider">
+            <span>HOẶC</span>
+        </div>
+
+        <!-- Chọn từ Video File Explorer -->
+        <div class="video-file-section">
+            <p class="video-file-label">Chọn từ Video File Explorer</p>
+            <div class="video-upload-box" onclick="document.getElementById('videoFileInput').click();">
+                <div class="video-upload-icon">📹</div>
+                <p class="video-upload-text">Mở File Explorer</p>
+            </div>
+            <div class="video-file-name" id="videoFileName"></div>
+            <input type="file" id="videoFileInput" accept="video/*" style="display: none;" onchange="handleVideoFileUpload(event)">
+        </div>
+
+        <!-- Nút hủy bỏ -->
+        <button class="video-cancel-btn" onclick="closeVideoModal()">Hủy bỏ</button>
+    </div>
+</div>
+
 <body>
     <main class="main create-page">
 
@@ -397,9 +704,9 @@ unset($_SESSION['errors']);
                 <!-- Slug (URL) -->
                 <div class="form-group">
                     <label>Slug (URL):</label>
-                    <input type="hidden" name="slug_original" id="slug_original" >
+                    <input type="hidden" name="slug_original" id="slug_original">
                     <input class="input-slug" type="text" name="slug" id="slug" placeholder="[ Tự động tạo từ tiêu đề ]"
-                         readonly>
+                        readonly>
                     <small>(Slug được tạo tự động từ tiêu đề, chỉ gồm chữ cái, số và dấu gạch ngang)</small>
                 </div>
 
@@ -437,8 +744,7 @@ unset($_SESSION['errors']);
                         <label>Tên tác giả hiển thị: <span class="required">*</span></label>
                         <input type="text" name="author"
                             placeholder="VD: Nguyễn Văn A"
-                            value="<?php echo htmlspecialchars($formData['author'] ?? ''); ?>"
-                            >
+                            value="<?php echo htmlspecialchars($formData['author'] ?? ''); ?>">
                         <small>Tên sẽ hiển thị trên bài viết</small>
                     </div>
                     <div class="form-group">
@@ -631,6 +937,8 @@ unset($_SESSION['errors']);
             </div>
         </form>
     </main>
+
 </body>
+
 
 </html>

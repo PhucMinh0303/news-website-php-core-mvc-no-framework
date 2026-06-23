@@ -11,6 +11,8 @@
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+    
     <!-- jQuery chính cho admin -->
     <script src="<?php echo View::asset('js/admin/contact-application_admin.js'); ?>"></script>
     <script src="<?php echo View::asset('js/admin/recruitment-create.js'); ?>"></script>
