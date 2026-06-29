@@ -110,6 +110,39 @@
 
     return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug);
   }
+  // Cập nhật slug tự động khi người dùng nhập tiêu đề
+  function updateSlug($form) {
+    const $title = $form.find('#recruitment_title');
+    const $slug = $form.find('#slug');
+    const $slugOriginal = $form.find('#slug_original');
+
+    if (!$title.length || !$slug.length) {
+      return;
+    }
+
+    const title = $title.val();
+    const newSlug = generateSlugFromTitle(title);
+    const oldSlug = $slug.val();
+    // Nếu slug không thay đổi thì không làm gì
+    if (newSlug === oldSlug) {
+      return;
+    }
+    // Cập nhật slug
+    $slug.val(newSlug);
+    // Cập nhật slug_original (hidden field)
+    if ($slugOriginal.length) {
+      $slugOriginal.val(newSlug);
+    }
+    // Hiệu ứng highlight khi cập nhật
+    $slug.css({
+      backgroundColor: '#fef3c7',
+      transition: 'all 0.3s ease'
+    });
+
+    setTimeout(() => {
+      $slug.css('backgroundColor', '#f3f4f6');
+    }, 500);
+  }
   // Hiển thị toast message với kiểu (success, error, info)
   function showToast(message, type) {
     $('.toast').remove();
@@ -497,39 +530,7 @@
     
     return true;
   }
-  // Cập nhật slug tự động khi người dùng nhập tiêu đề
-  function updateSlug($form) {
-    const $title = $form.find('#recruitment_title');
-    const $slug = $form.find('#slug');
-    const $slugOriginal = $form.find('#slug_original');
-
-    if (!$title.length || !$slug.length) {
-      return;
-    }
-
-    const title = $title.val();
-    const newSlug = generateSlugFromTitle(title);
-    const oldSlug = $slug.val();
-
-    if (newSlug === oldSlug) {
-      return;
-    }
-
-    $slug.val(newSlug);
-
-    if ($slugOriginal.length) {
-      $slugOriginal.val(newSlug);
-    }
-
-    $slug.css({
-      backgroundColor: '#fef3c7',
-      transition: 'all 0.3s ease'
-    });
-
-    setTimeout(() => {
-      $slug.css('backgroundColor', '#f3f4f6');
-    }, 500);
-  }
+  
   // Preview ảnh khi người dùng chọn file, đồng thời validate kích thước ảnh không vượt quá 2MB
   function previewImage(input, $form) {
     const $preview = $form.find('#imagePreview');
@@ -703,8 +704,9 @@
         $(this).closest('.form-group').find('.deadline-warning').remove();
       }
     });
-
+    // Xử lý submit form
     $form.on('submit', function(e) {
+      // Cập nhật slug lần cuối trước khi submit
       updateSlug($form);
       
       // Validate client trước khi submit

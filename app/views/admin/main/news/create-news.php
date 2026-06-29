@@ -339,6 +339,21 @@ unset($_SESSION['errors']);
         .rich-editor-toolbar button.active {
             background: #3b82f6;
             color: white;
+            border-radius: 4px;
+        }
+
+        .rich-editor-toolbar button.active i {
+            color: white;
+        }
+
+        /* Căn lề button group */
+        .rich-editor-toolbar button.align-active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .rich-editor-toolbar button.align-active i {
+            color: white;
         }
 
         .rich-editor-toolbar select {
@@ -791,7 +806,6 @@ unset($_SESSION['errors']);
                                 <button type="button" onclick="wrapText('justifyLeft')" title="Căn trái"><i class="fa-solid fa-align-left"></i></button>
                                 <button type="button" onclick="wrapText('justifyCenter')" title="Căn giữa"><i class="fa-solid fa-align-center"></i></button>
                                 <button type="button" onclick="wrapText('justifyRight')" title="Căn phải"><i class="fa-solid fa-align-right"></i></button>
-                                <button type="button" onclick="wrapText('justifyFull')" title="Căn đều"><i class="fa-solid fa-align-justify"></i></button>
                             </div>
 
                             <div class="tool-group">

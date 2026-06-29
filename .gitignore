@@ -1,7 +1,6 @@
-# Environment configuration
-.env
-.env.local
-.env.*.local
+# Environment files
+config/.env
+config/.env.backup.*
 
 # Logs
 logs/

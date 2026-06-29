@@ -13,8 +13,9 @@
   <title><?php echo isset($view_page_title) ? View::escape($view_page_title) . ' - ' . View::escape(SITE_NAME) : View::escape(SITE_TITLE); ?></title>
 
   <!-- Thẻ chứa các thư viện css -->
-  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+  
 
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
 
   <!-- CSS chính -->
   <link rel="stylesheet" href="<?php echo View::asset('css/admin/admin.css'); ?>" />
