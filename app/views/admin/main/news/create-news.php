@@ -463,17 +463,21 @@ unset($_SESSION['errors']);
             min-width: 220px;
         }
 
-        .color-section {
-            margin-bottom: 12px;
-        }
-
         .color-title {
             font-size: 11px;
-            color: #6b7280;
+            color: #475569;
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.08em;
+        }
+
+        .color-section.theme-section .color-title {
+            color: #4338ca;
+        }
+
+        .color-section.standard-section .color-title {
+            color: #b45309;
         }
 
         .color-grid {
@@ -826,11 +830,11 @@ unset($_SESSION['errors']);
                                         <div class="color-indicator" id="colorIndicator" style="background-color: #000000;"></div>
                                     </button>
                                     <div class="color-dropdown" id="colorDropdown" style="display: none;">
-                                        <div class="color-section">
+                                        <div class="color-section theme-section">
                                             <div class="color-title">Theme Colors</div>
                                             <div class="color-grid theme-colors"></div>
                                         </div>
-                                        <div class="color-section">
+                                        <div class="color-section standard-section">
                                             <div class="color-title">Standard Colors</div>
                                             <div class="color-grid standard-colors"></div>
                                         </div>
@@ -851,11 +855,11 @@ unset($_SESSION['errors']);
                                         <div class="color-indicator" id="highlightIndicator" style="background-color: #ffffff;"></div>
                                     </button>
                                     <div class="color-dropdown" id="highlightDropdown" style="display: none;">
-                                        <div class="color-section">
+                                        <div class="color-section theme-section">
                                             <div class="color-title">Theme Colors</div>
                                             <div class="color-grid highlight-theme-colors"></div>
                                         </div>
-                                        <div class="color-section">
+                                        <div class="color-section standard-section">
                                             <div class="color-title">Standard Colors</div>
                                             <div class="color-grid highlight-standard-colors"></div>
                                         </div>

@@ -57,7 +57,7 @@ unset($_SESSION['errors']);
                 <!-- Slug (URL) -->
                 <div class="form-group">
                     <label>Slug (URL):</label>
-                    <input type="hidden" name="slug_original" id="slug_original" >
+                    <input type="hidden" name="slug_original" id="slug_original">
                     <input class="input-slug" type="text" name="slug" id="slug" placeholder="[ Tự động tạo từ tiêu đề ]" readonly>
                     <small>(Slug được tạo tự động từ tiêu đề, chỉ gồm chữ cái, số và dấu gạch ngang)</small>
                 </div>
@@ -113,7 +113,7 @@ unset($_SESSION['errors']);
                     </div>
                     <div class="form-group">
                         <label>Mức lương: <span class="required">*</span></label>
-                        <input type="text" name="salary_display" id="salary_display"
+                        <input type="text" name="salary_range" id="salary_range"
                             placeholder="VD: 15.000.000 - 20.000.000 VNĐ hoặc Thỏa thuận"
                             value="<?php echo htmlspecialchars($formData['salary_range'] ?? ''); ?>">
                         <input type="hidden" name="salary" id="salary_value">
@@ -126,7 +126,7 @@ unset($_SESSION['errors']);
                     <label>Hạn nộp hồ sơ: <span class="required">*</span></label>
                     <input class="input-deadline" name="deadline" id="deadline" type="date"
                         value="<?php echo htmlspecialchars($formData['deadline'] ?? ''); ?>"
-                        min="<?php echo date('Y-m-d'); ?>" >
+                        min="<?php echo date('Y-m-d'); ?>">
                     <!-- Thêm container để hiển thị thông báo lỗi -->
                     <small class="error-message deadline-error" style="display: none; color: #dc2626; font-size: 12px; margin-top: 5px;"></small>
                 </div>
@@ -217,3 +217,8 @@ unset($_SESSION['errors']);
 </body>
 
 </html>
+<!-- Cuối file create-recruitment.php, trước </body> -->
+<script>
+    // Truyền lỗi từ PHP session sang JavaScript
+    window.serverErrors = <?php echo json_encode($_SESSION['errors'] ?? []); ?>;
+</script>

@@ -111,10 +111,13 @@ class AdminRecruitmentController extends Controller
     /**
      * Xử lý lưu tin tuyển dụng mới từ create.php
      */
+    /**
+     * Xử lý lưu tin tuyển dụng mới từ create.php
+     */
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/recruitment/recruitment_admin');
+            header('Location: /admin/main/recruitment');
             return;
         }
 
@@ -124,7 +127,7 @@ class AdminRecruitmentController extends Controller
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
             $_SESSION['old_input'] = $_POST;
-            header('Location: /admin/recruitment/create');
+            header('Location: /admin/main/recruitment/create');
             return;
         }
 
@@ -137,19 +140,28 @@ class AdminRecruitmentController extends Controller
             } else {
                 $_SESSION['errors'] = [$uploadedImage['error']];
                 $_SESSION['old_input'] = $_POST;
-                header('Location: /admin/recruitment/create');
+                header('Location: /admin/main/recruitment/create');
                 return;
             }
         }
 
-        // Xác định trạng thái dựa trên action từ form
+        // 🔥 QUAN TRỌNG: Xác định trạng thái dựa trên action từ form
         $status = 0; // Mặc định draft
+
+        // Kiểm tra nút "Đăng tin ngay" được click
         if (isset($_POST['publish']) && $_POST['publish'] == 1) {
-            $status = 1;
+            $status = 1; // Open - Đang tuyển
         }
-        if (isset($_POST['save_draft']) && $_POST['save_draft'] == 0) {
-            $status = 0;
+
+        // Kiểm tra nút "Lưu nháp" được click
+        if (isset($_POST['save_draft']) && $_POST['save_draft'] == 1) {
+            $status = 0; // Draft - Bản nháp
         }
+
+        // Ghi log để debug (xóa sau khi chạy tốt)
+        error_log('Store - publish: ' . ($_POST['publish'] ?? 'null'));
+        error_log('Store - save_draft: ' . ($_POST['save_draft'] ?? 'null'));
+        error_log('Store - status: ' . $status);
 
         $data = [
             'title' => trim($_POST['title']),
@@ -158,7 +170,7 @@ class AdminRecruitmentController extends Controller
             'degree' => $_POST['degree'],
             'work_type' => $_POST['work_type'] ?? 'Toàn thời gian',
             'quantity' => (int)$_POST['quantity'],
-            'salary_range' => $_POST['salary_display'] ?? $_POST['salary_range'] ?? '',
+            'salary_range' => trim($_POST['salary_range'] ?? ''), // SỬA: lấy từ salary_range
             'deadline' => $_POST['deadline'],
             'description' => $_POST['description'],
             'requirements' => $_POST['requirements'],
@@ -170,17 +182,22 @@ class AdminRecruitmentController extends Controller
 
         if ($result) {
             $_SESSION['success'] = 'Thêm tin tuyển dụng "' . htmlspecialchars($data['title']) . '" thành công!';
+
+            // Nếu là "Đăng tin ngay", set success message rõ ràng
+            if ($status == 1) {
+                $_SESSION['success'] = 'Đã đăng tin tuyển dụng "' . htmlspecialchars($data['title']) . '" lên trang chủ!';
+            }
         } else {
             $_SESSION['error'] = 'Có lỗi xảy ra khi thêm tin tuyển dụng, vui lòng thử lại!';
         }
 
         // Xử lý "Lưu và tiếp tục" - quay lại form edit
         if (isset($_POST['save_and_continue']) && $_POST['save_and_continue'] == 1 && $result) {
-            header('Location: /admin/recruitment/edit?id=' . $result);
+            header('Location: /admin/main/recruitment/edit?id=' . $result);
             return;
         }
 
-        header('Location: /admin/recruitment/recruitment_admin');
+        header('Location: /admin/main/recruitment');
     }
 
     /**
@@ -205,14 +222,14 @@ class AdminRecruitmentController extends Controller
     public function update($id)
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /admin/recruitment');
+            header('Location: /admin/main/recruitment');
             return;
         }
 
         $job = $this->recruitmentModel->getById($id);
         if (!$job) {
             $_SESSION['error'] = 'Tin tuyển dụng không tồn tại!';
-            header('Location: /admin/recruitment');
+            header('Location: /admin/main/recruitment');
             return;
         }
 
@@ -220,7 +237,7 @@ class AdminRecruitmentController extends Controller
         $errors = $this->validateData($_POST);
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
-            header('Location: /admin/recruitment/edit?id=' . $id);
+            header('Location: /admin/main/recruitment/edit?id=' . $id);
             return;
         }
 
@@ -263,7 +280,7 @@ class AdminRecruitmentController extends Controller
             $_SESSION['error'] = 'Có lỗi xảy ra, vui lòng thử lại!';
         }
 
-        header('Location: /admin/recruitment');
+        header('Location: /admin/main/recruitment');
     }
 
     /**
@@ -288,7 +305,7 @@ class AdminRecruitmentController extends Controller
             $_SESSION['error'] = 'Tin tuyển dụng không tồn tại!';
         }
 
-        header('Location: /admin/recruitment');
+        header('Location: /admin/main/recruitment');
     }
 
     /**
@@ -310,7 +327,7 @@ class AdminRecruitmentController extends Controller
             }
         }
 
-        header('Location: /admin/recruitment');
+        header('Location: /admin/main/recruitment');
     }
 
     /**
@@ -319,7 +336,7 @@ class AdminRecruitmentController extends Controller
     private function uploadImage($file)
     {
         $uploadDir = __DIR__ . '/../../public/uploads/recruitments/';
-        
+
         // Tạo thư mục nếu chưa tồn tại
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);

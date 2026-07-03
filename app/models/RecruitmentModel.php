@@ -54,7 +54,7 @@ class RecruitmentModel extends Model
     /**
      * Lấy tất cả tin tuyển dụng active cho User
      */
-    public function getActiveJobs($limit = null, $offset = 0, $search = null)
+    public function getActiveJobs($limit = null, $offset = 0, $search = null, $workType = null)
     {
         $sql = "SELECT * FROM {$this->table} 
                 WHERE status = 1 AND deadline >= CURDATE()";
@@ -63,6 +63,11 @@ class RecruitmentModel extends Model
         if (!empty($search)) {
             $sql .= " AND (title LIKE :search OR description LIKE :search)";
             $params['search'] = "%{$search}%";
+        }
+
+        if (!empty($workType)) {
+            $sql .= " AND work_type = :work_type";
+            $params['work_type'] = $workType;
         }
 
         $sql .= " ORDER BY created_at DESC";
@@ -164,11 +169,11 @@ class RecruitmentModel extends Model
         $data['slug'] = $this->generateUniqueSlug($data['title']);
 
         $sql = "INSERT INTO {$this->table} 
-                (title, slug, image, work_location, degree,work_type, quantity, salary_range, 
-                 deadline, description, requirements, benefits, status, created_at, updated_at) 
+                (title, slug, image, work_location, degree, work_type, quantity, salary_range, 
+                 deadline, description, requirements, benefits, status) 
                 VALUES 
-                (:title, :slug, :image, :work_location, :degree,:work_type, :quantity, :salary_range, 
-                 :deadline, :description, :requirements, :benefits, :status, NOW(), NOW())";
+                (:title, :slug, :image, :work_location, :degree, :work_type, :quantity, :salary_range, 
+                 :deadline, :description, :requirements, :benefits, :status)";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -185,7 +190,7 @@ class RecruitmentModel extends Model
             'description' => $data['description'] ?? null,
             'requirements' => $data['requirements'] ?? null,
             'benefits' => $data['benefits'] ?? null,
-            'status' => (int)($data['status'] ?? 1)
+            'status' => (int)($data['status'] ?? 0)
         ]);
 
         return $this->conn->lastInsertId();
@@ -292,7 +297,7 @@ class RecruitmentModel extends Model
     /**
      * Đếm số tin active cho User
      */
-    public function countActive($search = null)
+    public function countActive($search = null, $workType = null)
     {
         $sql = "SELECT COUNT(*) as total FROM {$this->table} 
                 WHERE status = 1 AND deadline >= CURDATE()";
@@ -301,6 +306,11 @@ class RecruitmentModel extends Model
         if (!empty($search)) {
             $sql .= " AND (title LIKE :search OR description LIKE :search)";
             $params['search'] = "%{$search}%";
+        }
+
+        if (!empty($workType)) {
+            $sql .= " AND work_type = :work_type";
+            $params['work_type'] = $workType;
         }
 
         $stmt = $this->conn->prepare($sql);
@@ -312,15 +322,6 @@ class RecruitmentModel extends Model
         return $result['total'];
     }
 
-    /**
-     * Tăng lượt xem
-     */
-    public function incrementViews($id)
-    {
-        // Nếu có cột views thì thêm, hiện tại chưa có trong SQL
-        // Có thể bỏ qua hoặc thêm cột views sau
-        return true;
-    }
     /**
      * Lấy tin tuyển dụng sắp hết hạn (trong vòng 7 ngày)
      */
@@ -338,6 +339,7 @@ class RecruitmentModel extends Model
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     /**
      * Lấy tin tuyển dụng đã quá hạn nộp
      */
@@ -356,6 +358,23 @@ class RecruitmentModel extends Model
         }
 
         $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tin tuyển dụng mới nhất
+     */
+    public function getLatestJobs($limit = 5)
+    {
+        $sql = "SELECT * FROM {$this->table} 
+            WHERE status = 1 AND deadline >= CURDATE()
+            ORDER BY created_at DESC 
+            LIMIT :limit";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

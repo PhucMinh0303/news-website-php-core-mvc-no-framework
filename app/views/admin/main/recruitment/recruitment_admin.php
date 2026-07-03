@@ -9,7 +9,7 @@
 $recruitments = $data['recruitments'] ?? [];
 $status_filter = $data['status_filter'] ?? '';
 $search_keyword = $data['search_keyword'] ?? '';
-$page = $data['page'] ?? 1;
+$current_page = $data['current_page'] ?? 1;  // Đổi tên từ $page thành $current_page
 $total_pages = $data['total_pages'] ?? 1;
 $total_records = $data['total_records'] ?? 0;
 
@@ -172,8 +172,6 @@ function formatDate($date)
     <div class="posts-table">
         <div class="table-header">
             <div>TIÊU ĐỀ</div>
-            <div>ĐỊA ĐIỂM</div>
-            <div>YÊU CẦU</div>
             <div>HẠN NỘP</div>
             <div>TRẠNG THÁI</div>
             <div>THAO TÁC</div>
@@ -293,25 +291,25 @@ function formatDate($date)
         <!-- Phân trang -->
         <?php if ($total_pages > 1): ?>
             <div class="pagination">
-                <?php if ($page > 1): ?>
-                    <a href="?page=recruitment&p=<?php echo $page - 1; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>">
+                <?php if ($current_page > 1): ?>
+                    <a href="?page=recruitment&p=<?php echo $current_page - 1; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>">
                         <i class="fa-solid fa-chevron-left"></i>
                     </a>
                 <?php endif; ?>
 
                 <?php
-                $start = max(1, $page - 2);
-                $end = min($total_pages, $page + 2);
+                $start = max(1, $current_page - 2);
+                $end = min($total_pages, $current_page + 2);
                 for ($i = $start; $i <= $end; $i++):
                 ?>
                     <a href="?page=recruitment&p=<?php echo $i; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>"
-                        class="<?php echo $i == $page ? 'active' : ''; ?>">
+                        class="<?php echo $i == $current_page ? 'active' : ''; ?>">
                         <?php echo $i; ?>
                     </a>
                 <?php endfor; ?>
 
-                <?php if ($page < $total_pages): ?>
-                    <a href="?page=recruitment&p=<?php echo $page + 1; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>">
+                <?php if ($current_page < $total_pages): ?>
+                    <a href="?page=recruitment&p=<?php echo $current_page + 1; ?>&status=<?php echo urlencode($status_filter); ?>&search=<?php echo urlencode($search_keyword); ?>">
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
                 <?php endif; ?>

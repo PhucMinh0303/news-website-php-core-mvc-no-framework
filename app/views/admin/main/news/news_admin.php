@@ -117,7 +117,6 @@ function formatDate($date)
     <div class="posts-table">
         <div class="table-header">
             <div>TIÊU ĐỀ</div>
-            <div>CHUYÊN MỤC</div>
             <div>TRẠNG THÁI</div>
             <div>TÁC GIẢ</div>
             <div>THAO TÁC</div>
