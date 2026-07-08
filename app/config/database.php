@@ -1,64 +1,92 @@
 <?php
-define('BASE_PATH', dirname(__DIR__));
+// Định nghĩa hằng số BASE_PATH nếu chưa được định nghĩa
+// Points to project root directory
+if (!defined('BASE_PATH')) {
+    define('BASE_PATH', dirname(dirname(__DIR__)));
+}
 
 /**
- * Load environment variables from .env file
- * 
- * @param string $path Path to .env file
- * @return array Environment variables
+ * Hàm đọc file .env và parse thành mảng
+ * @param string $filePath Đường dẫn đến file .env
+ * @return array Mảng các cặp key-value từ file .env
  */
-function loadEnv($path)
+function loadEnvFile($filePath)
 {
-    if (!file_exists($path)) {
-        // Tạo file .env từ .env.example nếu chưa tồn tại
-        $examplePath = dirname($path) . '/.env.example';
-        if (file_exists($examplePath)) {
-            copy($examplePath, $path);
-        } else {
-            // Tạo file .env mặc định
-            $defaultEnv = "# Database Configuration\n";
-            $defaultEnv .= "DB_HOST=localhost:3306\n";
-            $defaultEnv .= "DB_NAME=quanlytintuc\n";
-            $defaultEnv .= "DB_USER=root\n";
-            $defaultEnv .= "DB_PASS=\n";
-            $defaultEnv .= "DB_CHARSET=utf8mb4\n";
-            file_put_contents($path, $defaultEnv);
-        }
+    $variables = [];
+
+    if (!file_exists($filePath)) {
+        die("File .env không tồn tại: " . $filePath);
     }
 
-    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    $env = [];
-    
+    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
     foreach ($lines as $line) {
-        // Bỏ qua comment
-        $line = trim($line);
-        if (empty($line) || strpos($line, '#') === 0) {
+        // Bỏ qua comment (dòng bắt đầu bằng #)
+        if (strpos(trim($line), '#') === 0) {
             continue;
         }
-        
-        // Phân tích key=value
+
+        // Phân tích cú pháp KEY=value
         $parts = explode('=', $line, 2);
         if (count($parts) === 2) {
             $key = trim($parts[0]);
             $value = trim($parts[1]);
-            
-            // Xóa dấu quotes nếu có
+
+            // Xóa dấu ngoặc kép nếu có
             $value = trim($value, '"\'');
-            
-            $env[$key] = $value;
+
+            $variables[$key] = $value;
+        }
+    }
+
+    return $variables;
+}
+
+// Đường dẫn đến file .env tại root của project
+$envFile = BASE_PATH . '/app/config/.env';
+
+
+// Load cấu hình từ file .env
+$env = loadEnvFile($envFile);
+
+// Validate required database configuration keys
+$requiredKeys = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_CHARSET'];
+foreach ($requiredKeys as $key) {
+    if (!isset($env[$key])) {
+        die("Missing required environment variable: " . $key . " in .env file");
+    }
+}
+
+// Cấu hình kết nối database
+define('DB_HOST', $env['DB_HOST']);
+define('DB_NAME', $env['DB_NAME']); // Tên database trong phpMyAdmin
+define('DB_USER', $env['DB_USER']);               // Username MySQL
+define('DB_PASS', $env['DB_PASS']);                   // Password MySQL
+define('DB_CHARSET', $env['DB_CHARSET']);
+
+function getDatabaseConfig()
+{
+    // Đường dẫn đến file .env tại root của project
+    $envFile = BASE_PATH . '/app/config/.env';
+
+    
+    // Load cấu hình từ file .env
+    $env = loadEnvFile($envFile);
+    
+    // Validate required database configuration keys
+    $requiredKeys = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_CHARSET'];
+    foreach ($requiredKeys as $key) {
+        if (!isset($env[$key])) {
+            die("Missing required environment variable: " . $key . " in .env file");
         }
     }
     
-    return $env;
+    // Trả về mảng cấu hình
+    return [
+        'DB_HOST' => $env['DB_HOST'],
+        'DB_NAME' => $env['DB_NAME'],
+        'DB_USER' => $env['DB_USER'],
+        'DB_PASS' => $env['DB_PASS'],
+        'DB_CHARSET' => $env['DB_CHARSET']
+    ];
 }
-
-// Load cấu hình từ .env
-$envPath = __DIR__ . '/.env';
-$env = loadEnv($envPath);
-
-// Định nghĩa hằng số
-define('DB_HOST', $env['DB_HOST'] ?? 'localhost:3306');
-define('DB_NAME', $env['DB_NAME'] ?? 'quanlytintuc');
-define('DB_USER', $env['DB_USER'] ?? 'root');
-define('DB_PASS', $env['DB_PASS'] ?? '');
-define('DB_CHARSET', $env['DB_CHARSET'] ?? 'utf8mb4');

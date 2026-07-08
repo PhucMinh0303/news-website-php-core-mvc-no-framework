@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../../core/Database.php';
+require_once __DIR__ . '/../../../config/database.php';
 
 // Bật hiển thị lỗi chi tiết
 error_reporting(E_ALL);
@@ -10,35 +11,8 @@ $connection = null;
 $isConnected = false;
 $errorMessage = '';
 
-// Hàm lấy thông tin cấu hình database một cách an toàn
-function getDbConfig()
-{
-    $config = [
-        'DB_HOST' => defined('DB_HOST') ? DB_HOST : 'localhost:3306',
-        'DB_NAME' => defined('DB_NAME') ? DB_NAME : 'quanlytintuc',
-        'DB_USER' => defined('DB_USER') ? DB_USER : 'root',
-        'DB_PASS' => defined('DB_PASS') ? DB_PASS : '',
-        'DB_CHARSET' => defined('DB_CHARSET') ? DB_CHARSET : 'utf8mb4'
-    ];
-
-    // Nếu các hằng số chưa được định nghĩa, thử load từ file cấu hình
-    if (!defined('DB_HOST')) {
-        $configPath = __DIR__ . '/../../../config/database.php';
-        if (file_exists($configPath)) {
-            include_once $configPath;
-            $config['DB_HOST'] = defined('DB_HOST') ? DB_HOST : $config['DB_HOST'];
-            $config['DB_NAME'] = defined('DB_NAME') ? DB_NAME : $config['DB_NAME'];
-            $config['DB_USER'] = defined('DB_USER') ? DB_USER : $config['DB_USER'];
-            $config['DB_PASS'] = defined('DB_PASS') ? DB_PASS : $config['DB_PASS'];
-            $config['DB_CHARSET'] = defined('DB_CHARSET') ? DB_CHARSET : $config['DB_CHARSET'];
-        }
-    }
-
-    return $config;
-}
-
-// Lấy cấu hình hiện tại
-$dbConfig = getDbConfig();
+// Lấy cấu hình database hiện tại từ file .env thông qua Database class
+$dbConfig = getDatabaseConfig();
 
 // Định nghĩa lại các hằng số nếu cần (để hiển thị trong HTML)
 if (!defined('DB_HOST')) define('DB_HOST', $dbConfig['DB_HOST']);
@@ -47,28 +21,8 @@ if (!defined('DB_USER')) define('DB_USER', $dbConfig['DB_USER']);
 if (!defined('DB_PASS')) define('DB_PASS', $dbConfig['DB_PASS']);
 if (!defined('DB_CHARSET')) define('DB_CHARSET', $dbConfig['DB_CHARSET']);
 
-// Hàm kiểm tra kết nối database với cấu hình cụ thể
-function testDatabaseConnection($host, $dbname, $user, $pass, $charset)
-{
-    try {
-        $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
-        $pdo = new PDO($dsn, $user, $pass);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        return ['success' => true, 'connection' => $pdo];
-    } catch (PDOException $e) {
-        return ['success' => false, 'error' => $e->getMessage()];
-    }
-}
-
-// Kiểm tra kết nối với cấu hình hiện tại
-$testResult = testDatabaseConnection(
-    $dbConfig['DB_HOST'],
-    $dbConfig['DB_NAME'],
-    $dbConfig['DB_USER'],
-    $dbConfig['DB_PASS'],
-    $dbConfig['DB_CHARSET']
-);
+// Kiểm tra kết nối với cấu hình hiện tại sử dụng Database class
+$testResult = Database::testConnection($dbConfig);
 
 if ($testResult['success']) {
     $isConnected = true;
@@ -79,61 +33,172 @@ if ($testResult['success']) {
     $errorMessage = $testResult['error'];
 }
 
-// Xử lý khi có dữ liệu POST gửi lên (cập nhật cấu hình)
-$configUpdated = false;
-$updateError = '';
-$updateSuccess = '';
+// Xử lý AJAX request để cập nhật cấu hình
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_POST['ajax_action'] === 'update_config') {
+    header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
-    $newHost = $_POST['db_host'] ?? 'localhost:3306';
-    $newName = $_POST['db_name'] ?? 'quanlytintuc';
-    $newUser = $_POST['db_user'] ?? 'root';
-    $newPass = $_POST['db_pass'] ?? '';
-    $newCharset = $_POST['db_charset'] ?? 'utf8mb4';
+    try {
+        // Lấy dữ liệu từ form
+        $newConfig = [
+            'DB_HOST' => trim($_POST['db_host'] ?? ''),
+            'DB_NAME' => trim($_POST['db_name'] ?? ''),
+            'DB_USER' => trim($_POST['db_user'] ?? ''),
+            'DB_PASS' => $_POST['db_pass'] ?? '',
+            'DB_CHARSET' => trim($_POST['db_charset'] ?? 'utf8mb4')
+        ];
 
-    // Thử kết nối với cấu hình mới
-    $testNewConfig = testDatabaseConnection($newHost, $newName, $newUser, $newPass, $newCharset);
+        // Validate dữ liệu
+        if (empty($newConfig['DB_HOST'])) {
+            throw new Exception('Vui lòng nhập Host (ví dụ: localhost:3306)');
+        }
+        if (empty($newConfig['DB_NAME'])) {
+            throw new Exception('Vui lòng nhập tên Database');
+        }
+        if (empty($newConfig['DB_USER'])) {
+            throw new Exception('Vui lòng nhập Username');
+        }
+        if (empty($newConfig['DB_CHARSET'])) {
+            $newConfig['DB_CHARSET'] = 'utf8mb4';
+        }
 
-    if ($testNewConfig['success']) {
-        // Ghi cấu hình mới vào file
-        $configPath = __DIR__ . '/../../../config/database.php';
-        $configContent = "<?php\ndefine('BASE_PATH', dirname(__DIR__));\n\n\n// Thông tin cấu hình kết nối database cho XAMPP\ndefine('DB_HOST', '$newHost'); // Địa chỉ máy chủ MySQL (thường là localhost) và cổng (3306 hoặc 3307)\ndefine('DB_NAME', '$newName'); // Tên database trong phpMyAdmin\ndefine('DB_USER', '$newUser');               // Username MySQL\ndefine('DB_PASS', '$newPass');                   // Password MySQL\ndefine('DB_CHARSET', '$newCharset');";
+        // KIỂM TRA KẾT NỐI TRƯỚC KHI CẬP NHẬT
+        $testNewConfig = Database::testConnection($newConfig);
 
-        if (file_put_contents($configPath, $configContent)) {
-            $updateSuccess = "Đã cập nhật cấu hình thành công!";
-            // Cập nhật cấu hình hiện tại
-            $dbConfig = getDbConfig();
-            // Định nghĩa lại các hằng số
-            if (!defined('DB_HOST')) define('DB_HOST', $dbConfig['DB_HOST']);
-            if (!defined('DB_NAME')) define('DB_NAME', $dbConfig['DB_NAME']);
-            if (!defined('DB_USER')) define('DB_USER', $dbConfig['DB_USER']);
-            if (!defined('DB_PASS')) define('DB_PASS', $dbConfig['DB_PASS']);
-            if (!defined('DB_CHARSET')) define('DB_CHARSET', $dbConfig['DB_CHARSET']);
+        if ($testNewConfig['success']) {
+            // Lấy thông tin MySQL version và thời gian
+            $mysqlVersion = 'Không xác định';
+            $currentTime = date('Y-m-d H:i:s');
+            try {
+                $stmt = $testNewConfig['connection']->query("SELECT VERSION() as version, NOW() as current_time");
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $mysqlVersion = $result['version'] ?? 'Không xác định';
+                $currentTime = $result['current_time'] ?? date('Y-m-d H:i:s');
+            } catch (Exception $e) {
+                // Bỏ qua lỗi lấy thông tin
+            }
 
-            // Kiểm tra lại kết nối
-            $testResult = testDatabaseConnection(
-                $dbConfig['DB_HOST'],
-                $dbConfig['DB_NAME'],
-                $dbConfig['DB_USER'],
-                $dbConfig['DB_PASS'],
-                $dbConfig['DB_CHARSET']
-            );
+            // Cập nhật cấu hình vào file .env thông qua Database class
+            $updateResult = Database::reinitialize($newConfig);
 
-            if ($testResult['success']) {
-                $isConnected = true;
-                $connection = $testResult['connection'];
-                $errorMessage = '';
+
+
+            if ($updateResult) {
+                // Lấy cấu hình mới sau khi cập nhật
+                $updatedConfig = getDatabaseConfig();
+
+                // Trả về kết quả thành công
+                echo json_encode([
+                    'success' => true,
+                    'message' => '✅ Cập nhật cấu hình thành công!',
+                    'config' => $updatedConfig,
+                    'connection_status' => 'success',
+                    'mysql_version' => $mysqlVersion,
+                    'current_time' => $currentTime,
+                    'reload' => true
+                ]);
             } else {
-                $isConnected = false;
-                $errorMessage = $testResult['error'];
+                throw new Exception('Không thể ghi file .env. Vui lòng kiểm tra quyền thư mục.');
             }
         } else {
-            $updateError = "Không thể ghi file cấu hình. Vui lòng kiểm tra quyền thư mục.";
+            // Trả về lỗi kết nối
+            $errorMsg = $testNewConfig['error'];
+            $suggestion = '';
+
+            // Đưa ra gợi ý dựa trên lỗi
+            if (strpos($errorMsg, 'Unknown database') !== false) {
+                $suggestion = 'Database "' . $newConfig['DB_NAME'] . '" chưa tồn tại. Bạn có thể tạo database trong phpMyAdmin hoặc để hệ thống tự tạo.';
+            } elseif (strpos($errorMsg, 'Access denied') !== false) {
+                $suggestion = 'Sai tên đăng nhập hoặc mật khẩu. Kiểm tra lại username và password.';
+            } elseif (strpos($errorMsg, 'Connection refused') !== false || strpos($errorMsg, 'SQLSTATE[HY000] [2002]') !== false) {
+                $suggestion = 'Không thể kết nối đến MySQL. Kiểm tra host và port, đảm bảo MySQL đang chạy.';
+            }
+
+            echo json_encode([
+                'success' => false,
+                'message' => '❌ Kết nối thất bại với cấu hình mới',
+                'error' => $errorMsg,
+                'suggestion' => $suggestion,
+                'error_type' => 'connection_error'
+            ]);
         }
-    } else {
-        $updateError = "Kết nối thất bại với cấu hình mới: " . $testNewConfig['error'];
+    } catch (Exception $e) {
+        // Trả về lỗi hệ thống
+        echo json_encode([
+            'success' => false,
+            'message' => '❌ Lỗi khi cập nhật cấu hình',
+            'error' => $e->getMessage(),
+            'error_type' => 'system_error'
+        ]);
     }
+    exit;
 }
+
+// Xử lý AJAX request để kiểm tra kết nối với cấu hình hiện tại
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_POST['ajax_action'] === 'test_connection') {
+    header('Content-Type: application/json');
+
+    try {
+        $config = [
+            'DB_HOST' => trim($_POST['db_host']),
+            'DB_NAME' => trim($_POST['db_name']),
+            'DB_USER' => trim($_POST['db_user']),
+            'DB_PASS' => $_POST['db_pass'],
+            'DB_CHARSET' => trim($_POST['db_charset'])
+        ];
+
+        // Kiểm tra kết nối
+        $testResult = Database::testConnection($config);
+
+        if ($testResult['success']) {
+            // Lấy thông tin MySQL version
+            $mysqlVersion = 'Không xác định';
+            $currentTime = date('Y-m-d H:i:s');
+            try {
+                $stmt = $testResult['connection']->query("SELECT VERSION() as version, NOW() as current_time");
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $mysqlVersion = $result['version'] ?? 'Không xác định';
+                $currentTime = $result['current_time'] ?? date('Y-m-d H:i:s');
+            } catch (Exception $e) {
+                // Bỏ qua lỗi lấy thông tin
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => '✅ Kết nối thành công!',
+                'mysql_version' => $mysqlVersion,
+                'current_time' => $currentTime
+            ]);
+        } else {
+            $errorMsg = $testResult['error'];
+            $suggestion = '';
+
+            // Đưa ra gợi ý dựa trên lỗi
+            if (strpos($errorMsg, 'Unknown database') !== false) {
+                $suggestion = 'Database "' . $config['DB_NAME'] . '" chưa tồn tại.';
+            } elseif (strpos($errorMsg, 'Access denied') !== false) {
+                $suggestion = 'Sai username hoặc password.';
+            } elseif (strpos($errorMsg, 'Connection refused') !== false || strpos($errorMsg, 'SQLSTATE[HY000] [2002]') !== false) {
+                $suggestion = 'Không thể kết nối đến MySQL. Kiểm tra host và port.';
+            }
+
+            echo json_encode([
+                'success' => false,
+                'message' => '❌ Kết nối thất bại',
+                'error' => $errorMsg,
+                'suggestion' => $suggestion
+            ]);
+        }
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => '❌ Lỗi kiểm tra kết nối',
+            'error' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -160,6 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
             padding: 30px;
             text-align: center;
             color: white;
+            transition: all 0.3s ease;
         }
 
         .header.success {
@@ -171,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
         }
 
         .testdb-content {
-            padding: 30px;
+            padding: 30px 30px 0 30px;
         }
 
         .icon {
@@ -190,6 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
             padding: 15px;
             margin: 20px 0;
             border-radius: 8px;
+            transition: all 0.3s ease;
         }
 
         .info-item {
@@ -220,6 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
             padding: 15px;
             margin: 20px 0;
             border-radius: 8px;
+            transition: all 0.3s ease;
         }
 
         .error-message {
@@ -246,6 +314,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
 
         button:hover {
             transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .config-form {
@@ -279,6 +353,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
             border-radius: 4px;
             font-family: monospace;
             font-size: 14px;
+            transition: border-color 0.3s ease;
         }
 
         .form-group input:focus {
@@ -286,8 +361,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
             border-color: #667eea;
         }
 
+        .form-group input.error {
+            border-color: #dc3545;
+        }
+
+        .form-group input.success {
+            border-color: #28a745;
+        }
+
         .btn-update {
             background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            margin-top: 10px;
+        }
+
+        .btn-test {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             margin-top: 10px;
         }
 
@@ -298,6 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
             border-radius: 5px;
             margin-bottom: 15px;
             border-left: 4px solid #28a745;
+            animation: slideIn 0.5s ease;
         }
 
         .update-error {
@@ -307,6 +396,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
             border-radius: 5px;
             margin-bottom: 15px;
             border-left: 4px solid #dc3545;
+            animation: slideIn 0.5s ease;
+        }
+
+        .update-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #17a2b8;
+            animation: slideIn 0.5s ease;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease;
+            max-width: 400px;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -315,28 +478,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
     <div class="testdb-container">
         <?php if ($isConnected): ?>
             <!-- TRƯỜNG HỢP 1: KẾT NỐI THÀNH CÔNG -->
-            <div class="header success">
+            <div class="header success" id="header-status">
                 <div class="icon">✅</div>
-                <h2>KẾT NỐI THÀNH CÔNG</h2>
-                <p>Database đã được kết nối thành công!</p>
+                <h2 id="status-title">KẾT NỐI THÀNH CÔNG</h2>
+                <p id="status-description">Database đã được kết nối thành công!</p>
             </div>
             <div class="testdb-content">
-                <div class="info-box">
+                <div class="info-box" id="connection-info">
                     <div class="info-item">
                         <span class="label">Trạng thái:</span>
-                        <span class="value" style="color: #27ae60; font-weight: bold;">● Đã kết nối</span>
+                        <span class="value" style="color: #27ae60; font-weight: bold;" id="connection-status">● Đã kết nối</span>
                     </div>
                     <div class="info-item">
                         <span class="label">Host:</span>
-                        <span class="value"><?php echo DB_HOST; ?></span>
+                        <span class="value" id="display-host"><?php echo DB_HOST; ?></span>
                     </div>
                     <div class="info-item">
                         <span class="label">Database:</span>
-                        <span class="value"><?php echo DB_NAME; ?></span>
+                        <span class="value" id="display-database"><?php echo DB_NAME; ?></span>
                     </div>
                     <div class="info-item">
                         <span class="label">Username:</span>
-                        <span class="value"><?php echo DB_USER; ?></span>
+                        <span class="value" id="display-username"><?php echo DB_USER; ?></span>
                     </div>
                 </div>
 
@@ -346,15 +509,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
                     $testQuery = $connection->query("SELECT VERSION() as version, NOW() as current_time");
                     $result = $testQuery->fetch(PDO::FETCH_ASSOC);
                 ?>
-                    <div class="info-box" style="border-left-color: #27ae60;">
+                    <div class="info-box" style="border-left-color: #27ae60;" id="system-info">
                         <h3 style="margin-top: 0;">📊 Thông tin hệ thống:</h3>
                         <div class="info-item">
                             <span class="label">MySQL Version:</span>
-                            <span class="value"><?php echo $result['version']; ?></span>
+                            <span class="value" id="mysql-version"><?php echo $result['version']; ?></span>
                         </div>
                         <div class="info-item">
                             <span class="label">Thời gian:</span>
-                            <span class="value"><?php echo $result['current_time']; ?></span>
+                            <span class="value" id="current-time"><?php echo $result['current_time']; ?></span>
                         </div>
                     </div>
                 <?php
@@ -366,57 +529,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
                 }
                 ?>
 
-                <button onclick="window.location.href='index.php'">Tiếp tục →</button>
+
             </div>
 
         <?php else: ?>
             <!-- TRƯỜNG HỢP 2: KẾT NỐI THẤT BẠI - HIỂN THỊ THÔNG TIN TỪ DATABASE.PHP -->
-            <div class="header error">
+            <div class="header error" id="header-status">
                 <div class="icon">❌</div>
-                <h2>KẾT NỐI THẤT BẠI</h2>
-                <p>Không thể kết nối đến database</p>
+                <h2 id="status-title">KẾT NỐI THẤT BẠI</h2>
+                <p id="status-description">Không thể kết nối đến database</p>
             </div>
             <div class="testdb-content">
                 <!-- Hiển thị thông báo cập nhật -->
-                <?php if ($updateSuccess): ?>
-                    <div class="update-success">✅ <?php echo htmlspecialchars($updateSuccess); ?></div>
-                <?php endif; ?>
+                <div id="notification-area">
+                    <?php if (isset($updateSuccess) && $updateSuccess): ?>
+                        <div class="update-success" id="update-success">✅ <?php echo htmlspecialchars($updateSuccess); ?></div>
+                    <?php endif; ?>
 
-                <?php if ($updateError): ?>
-                    <div class="update-error">❌ <?php echo htmlspecialchars($updateError); ?></div>
-                <?php endif; ?>
+                    <?php if (isset($updateError) && $updateError): ?>
+                        <div class="update-error" id="update-error">❌ <?php echo htmlspecialchars($updateError); ?></div>
+                    <?php endif; ?>
+                </div>
 
                 <!-- Hiển thị đầy đủ thông tin từ config/database.php -->
-                <div class="info-box">
+                <div class="info-box" id="config-info">
                     <h3 style="margin-top: 0; color: #d63031;">📋 Thông tin cấu hình (từ database.php):</h3>
                     <div class="info-item">
                         <span class="label">Host:</span>
-                        <span class="value"><?php echo DB_HOST; ?></span>
+                        <span class="value" id="display-host"><?php echo DB_HOST; ?></span>
                     </div>
                     <div class="info-item">
                         <span class="label">Database:</span>
-                        <span class="value"><?php echo DB_NAME; ?></span>
+                        <span class="value" id="display-database"><?php echo DB_NAME; ?></span>
                     </div>
                     <div class="info-item">
                         <span class="label">Username:</span>
-                        <span class="value"><?php echo DB_USER; ?></span>
+                        <span class="value" id="display-username"><?php echo DB_USER; ?></span>
                     </div>
                     <div class="info-item">
                         <span class="label">Password:</span>
-                        <span class="value"><?php echo DB_PASS === '' ? '(rỗng)' : str_repeat('•', strlen(DB_PASS)); ?></span>
+                        <span class="value" id="display-password"><?php echo DB_PASS === '' ? '(rỗng)' : str_repeat('•', strlen(DB_PASS)); ?></span>
                     </div>
                     <div class="info-item">
                         <span class="label">Charset:</span>
-                        <span class="value"><?php echo DB_CHARSET; ?></span>
+                        <span class="value" id="display-charset"><?php echo DB_CHARSET; ?></span>
                     </div>
                 </div>
 
-
-
                 <!-- Hiển thị chi tiết lỗi -->
-                <div class="error-detail">
+                <div class="error-detail" id="error-detail">
                     <strong>🔍 Chi tiết lỗi:</strong>
-                    <div class="error-message">
+                    <div class="error-message" id="error-message">
                         <?php echo isset($errorMessage) ? htmlspecialchars($errorMessage) : 'Không thể xác định lỗi'; ?>
                     </div>
 
@@ -456,7 +619,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
                     ?>
                 </div>
 
-                <button onclick="location.reload()">Thử lại 🔄</button>
+
             </div>
 
         <?php endif; ?>
@@ -464,7 +627,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
             <!-- Form cập nhật cấu hình -->
             <div class="config-form">
                 <h3>🔧 Cập nhật cấu hình kết nối</h3>
-                <form method="POST" action="">
+                <div id="update-notification"></div>
+                <form id="config-form" method="POST" action="">
                     <div class="form-group">
                         <label for="db_host">Host:</label>
                         <input type="text" id="db_host" name="db_host" value="<?php echo htmlspecialchars(DB_HOST); ?>" placeholder="Nhập tên host (Ví dụ: localhost:3306)">
@@ -485,12 +649,235 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_config'])) {
                         <label for="db_charset">Charset:</label>
                         <input type="text" id="db_charset" name="db_charset" value="<?php echo htmlspecialchars(DB_CHARSET); ?>" placeholder="utf8mb4">
                     </div>
-                    <button type="submit" name="update_config" class="btn-update">Cập nhật cấu hình</button>
+                    <div class="button-group">
+                        <button type="button" id="update-config-btn" class="btn-update">💾 Cập nhật cấu hình</button>
+                    </div>
                 </form>
             </div>
         </div>
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const updateBtn = document.getElementById('update-config-btn');
+            const form = document.getElementById('config-form');
+            const notificationDiv = document.getElementById('update-notification');
+            const headerStatus = document.getElementById('header-status');
+            const statusTitle = document.getElementById('status-title');
+            const statusDescription = document.getElementById('status-description');
+            const errorDetail = document.getElementById('error-detail');
+            const errorMessage = document.getElementById('error-message');
+
+            // Hàm hiển thị thông báo
+            function showNotification(message, type = 'success') {
+                const className = type === 'success' ? 'update-success' :
+                    type === 'error' ? 'update-error' : 'update-info';
+                notificationDiv.innerHTML = `<div class="${className}">${message}</div>`;
+
+                // Tự động ẩn sau 5 giây
+                setTimeout(() => {
+                    notificationDiv.innerHTML = '';
+                }, 5000);
+            }
+
+            // Hàm hiển thị toast
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 5000);
+            }
+
+            // Hàm cập nhật thông tin hiển thị
+            function updateDisplay(config) {
+                const elements = {
+                    'display-host': config.DB_HOST,
+                    'display-database': config.DB_NAME,
+                    'display-username': config.DB_USER,
+                    'display-charset': config.DB_CHARSET
+                };
+
+                Object.keys(elements).forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = elements[id];
+                    }
+                });
+
+                // Cập nhật password
+                const passwordElement = document.getElementById('display-password');
+                if (passwordElement) {
+                    passwordElement.textContent = config.DB_PASS === '' ? '(rỗng)' : '•'.repeat(config.DB_PASS.length);
+                }
+
+                // Cập nhật input fields
+                document.getElementById('db_host').value = config.DB_HOST;
+                document.getElementById('db_name').value = config.DB_NAME;
+                document.getElementById('db_user').value = config.DB_USER;
+                document.getElementById('db_pass').value = config.DB_PASS;
+                document.getElementById('db_charset').value = config.DB_CHARSET;
+            }
+
+            // Hàm cập nhật trạng thái kết nối
+            function updateConnectionStatus(success, message, config = null) {
+                // Cập nhật header
+                if (headerStatus) {
+                    headerStatus.className = `header ${success ? 'success' : 'error'}`;
+                    if (statusTitle) {
+                        statusTitle.textContent = success ? '✅ KẾT NỐI THÀNH CÔNG' : '❌ KẾT NỐI THẤT BẠI';
+                    }
+                    if (statusDescription) {
+                        statusDescription.textContent = success ? 'Database đã được kết nối thành công!' : (message || 'Không thể kết nối đến database');
+                    }
+                }
+
+                // Cập nhật trạng thái kết nối
+                const statusElement = document.getElementById('connection-status');
+                if (statusElement) {
+                    if (success) {
+                        statusElement.textContent = '● Đã kết nối';
+                        statusElement.style.color = '#27ae60';
+                    } else {
+                        statusElement.textContent = '● Mất kết nối';
+                        statusElement.style.color = '#e74c3c';
+                    }
+                }
+
+                // Cập nhật error detail
+                if (errorDetail) {
+                    if (success) {
+                        errorDetail.style.display = 'none';
+                    } else {
+                        errorDetail.style.display = 'block';
+                        if (errorMessage) {
+                            errorMessage.textContent = message || 'Không thể xác định lỗi';
+                        }
+                    }
+                }
+
+                if (config) {
+                    updateDisplay(config);
+                }
+            }
+
+            // Hàm cập nhật cấu hình
+            async function updateConfig() {
+                // Validate dữ liệu trước khi gửi
+                const host = document.getElementById('db_host').value.trim();
+                const dbname = document.getElementById('db_name').value.trim();
+                const username = document.getElementById('db_user').value.trim();
+
+                if (!host) {
+                    showNotification('❌ Vui lòng nhập Host (ví dụ: localhost:3306)', 'error');
+                    document.getElementById('db_host').classList.add('error');
+                    return;
+                }
+                if (!dbname) {
+                    showNotification('❌ Vui lòng nhập tên Database', 'error');
+                    document.getElementById('db_name').classList.add('error');
+                    return;
+                }
+                if (!username) {
+                    showNotification('❌ Vui lòng nhập Username', 'error');
+                    document.getElementById('db_user').classList.add('error');
+                    return;
+                }
+
+                // Xóa class error nếu có
+                document.querySelectorAll('.form-group input').forEach(input => {
+                    input.classList.remove('error');
+                });
+
+                // Disable button và hiển thị loading
+                updateBtn.disabled = true;
+                const originalText = updateBtn.innerHTML;
+                updateBtn.innerHTML = '<span class="loading-spinner"></span> Đang cập nhật...';
+
+                // Clear previous notifications
+                notificationDiv.innerHTML = '';
+                // 1. Lấy dữ liệu từ form
+                const formData = new FormData(form);
+                formData.append('ajax_action', 'update_config');
+                // 2. Gửi AJAX request đến server
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Cập nhật thông tin hiển thị
+                        updateDisplay(data.config);
+                        updateConnectionStatus(true, '', data.config);
+
+                        // Cập nhật thông tin hệ thống
+                        if (data.mysql_version) {
+                            const versionElement = document.getElementById('mysql-version');
+                            if (versionElement) versionElement.textContent = data.mysql_version;
+                        }
+                        if (data.current_time) {
+                            const timeElement = document.getElementById('current-time');
+                            if (timeElement) timeElement.textContent = data.current_time;
+                        }
+
+                        showNotification('✅ ' + data.message, 'success');
+                        showToast('✅ Cập nhật thành công!', 'success');
+
+                        // Nếu có yêu cầu reload
+                        if (data.reload) {
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
+                        }
+                    } else {
+                        // Hiển thị lỗi
+                        let errorMsg = data.message;
+                        if (data.error) {
+                            errorMsg += ': ' + data.error;
+                        }
+                        if (data.suggestion) {
+                            errorMsg += '<br><br>💡 ' + data.suggestion;
+                        }
+
+                        updateConnectionStatus(false, data.error || data.message);
+                        showNotification(errorMsg, 'error');
+                        showToast('❌ Cập nhật thất bại!', 'error');
+                    }
+                } catch (error) {
+                    showNotification('❌ Lỗi hệ thống: ' + error.message, 'error');
+                    showToast('❌ Lỗi hệ thống!', 'error');
+                } finally {
+                    // Enable button
+                    updateBtn.disabled = false;
+                    updateBtn.innerHTML = originalText;
+                }
+            }
+
+            // Event listeners
+            updateBtn.addEventListener('click', updateConfig);
+
+            // Enter key support
+            form.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    updateConfig();
+                }
+            });
+
+            // Clear error class on focus
+            document.querySelectorAll('.form-group input').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.classList.remove('error');
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
