@@ -33,124 +33,216 @@ if ($testResult['success']) {
     $errorMessage = $testResult['error'];
 }
 
-// Xử lý AJAX request để cập nhật cấu hình
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_POST['ajax_action'] === 'update_config') {
-    header('Content-Type: application/json');
+/**
+ * Hàm cập nhật file .env
+ */
+function updateEnvFile($config)
+{
+    $envFile = function_exists('getEnvFilePath') ? getEnvFilePath() : (BASE_PATH . '/app/config/.env');
 
-    try {
-        // Lấy dữ liệu từ form
-        $newConfig = [
-            'DB_HOST' => trim($_POST['db_host'] ?? ''),
-            'DB_NAME' => trim($_POST['db_name'] ?? ''),
-            'DB_USER' => trim($_POST['db_user'] ?? ''),
-            'DB_PASS' => $_POST['db_pass'] ?? '',
-            'DB_CHARSET' => trim($_POST['db_charset'] ?? 'utf8mb4')
-        ];
-
-        // Validate dữ liệu
-        if (empty($newConfig['DB_HOST'])) {
-            throw new Exception('Vui lòng nhập Host (ví dụ: localhost:3306)');
-        }
-        if (empty($newConfig['DB_NAME'])) {
-            throw new Exception('Vui lòng nhập tên Database');
-        }
-        if (empty($newConfig['DB_USER'])) {
-            throw new Exception('Vui lòng nhập Username');
-        }
-        if (empty($newConfig['DB_CHARSET'])) {
-            $newConfig['DB_CHARSET'] = 'utf8mb4';
-        }
-
-        // KIỂM TRA KẾT NỐI TRƯỚC KHI CẬP NHẬT
-        $testNewConfig = Database::testConnection($newConfig);
-
-        if ($testNewConfig['success']) {
-            // Lấy thông tin MySQL version và thời gian
-            $mysqlVersion = 'Không xác định';
-            $currentTime = date('Y-m-d H:i:s');
-            try {
-                $stmt = $testNewConfig['connection']->query("SELECT VERSION() as version, NOW() as current_time");
-                $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                $mysqlVersion = $result['version'] ?? 'Không xác định';
-                $currentTime = $result['current_time'] ?? date('Y-m-d H:i:s');
-            } catch (Exception $e) {
-                // Bỏ qua lỗi lấy thông tin
-            }
-
-            // Cập nhật cấu hình vào file .env thông qua Database class
-            $updateResult = Database::reinitialize($newConfig);
-
-
-
-            if ($updateResult) {
-                // Lấy cấu hình mới sau khi cập nhật
-                $updatedConfig = getDatabaseConfig();
-
-                // Trả về kết quả thành công
-                echo json_encode([
-                    'success' => true,
-                    'message' => '✅ Cập nhật cấu hình thành công!',
-                    'config' => $updatedConfig,
-                    'connection_status' => 'success',
-                    'mysql_version' => $mysqlVersion,
-                    'current_time' => $currentTime,
-                    'reload' => true
-                ]);
-            } else {
-                throw new Exception('Không thể ghi file .env. Vui lòng kiểm tra quyền thư mục.');
-            }
-        } else {
-            // Trả về lỗi kết nối
-            $errorMsg = $testNewConfig['error'];
-            $suggestion = '';
-
-            // Đưa ra gợi ý dựa trên lỗi
-            if (strpos($errorMsg, 'Unknown database') !== false) {
-                $suggestion = 'Database "' . $newConfig['DB_NAME'] . '" chưa tồn tại. Bạn có thể tạo database trong phpMyAdmin hoặc để hệ thống tự tạo.';
-            } elseif (strpos($errorMsg, 'Access denied') !== false) {
-                $suggestion = 'Sai tên đăng nhập hoặc mật khẩu. Kiểm tra lại username và password.';
-            } elseif (strpos($errorMsg, 'Connection refused') !== false || strpos($errorMsg, 'SQLSTATE[HY000] [2002]') !== false) {
-                $suggestion = 'Không thể kết nối đến MySQL. Kiểm tra host và port, đảm bảo MySQL đang chạy.';
-            }
-
-            echo json_encode([
-                'success' => false,
-                'message' => '❌ Kết nối thất bại với cấu hình mới',
-                'error' => $errorMsg,
-                'suggestion' => $suggestion,
-                'error_type' => 'connection_error'
-            ]);
-        }
-    } catch (Exception $e) {
-        // Trả về lỗi hệ thống
-        echo json_encode([
-            'success' => false,
-            'message' => '❌ Lỗi khi cập nhật cấu hình',
-            'error' => $e->getMessage(),
-            'error_type' => 'system_error'
-        ]);
+    if (!file_exists($envFile)) {
+        throw new Exception('File .env không tồn tại tại: ' . $envFile);
     }
-    exit;
+
+    // Đọc nội dung file .env hiện tại
+    $envContent = file_get_contents($envFile);
+    if ($envContent === false) {
+        throw new Exception('Không thể đọc file .env');
+    }
+
+    // Backup file .env
+    $backupDir = dirname($envFile) . '/backups';
+    if (!is_dir($backupDir)) {
+        mkdir($backupDir, 0755, true);
+    }
+    $backupFile = $backupDir . '/.env.backup_' . date('Ymd_His');
+    if (!copy($envFile, $backupFile)) {
+        error_log("Không thể tạo backup .env: " . $backupFile);
+    }
+
+    // Parse và cập nhật file .env
+    $lines = explode("\n", $envContent);
+    $newLines = [];
+    $foundKeys = [];
+
+    // Duyệt qua từng dòng để cập nhật
+    foreach ($lines as $line) {
+        $trimmedLine = trim($line);
+        $isUpdated = false;
+
+        // Bỏ qua dòng trống và comment
+        if (empty($trimmedLine) || strpos($trimmedLine, '#') === 0) {
+            $newLines[] = $line;
+            continue;
+        }
+
+        // Kiểm tra từng key cần cập nhật
+        foreach ($config as $key => $value) {
+            if (strpos($trimmedLine, $key . '=') === 0) {
+                // Escape giá trị nếu cần
+                $escapedValue = $value;
+                if (
+                    strpos($value, ' ') !== false ||
+                    strpos($value, '#') !== false ||
+                    strpos($value, '=') !== false ||
+                    strpos($value, '"') !== false
+                ) {
+                    $escapedValue = '"' . str_replace('"', '\\"', $value) . '"';
+                }
+
+                $newLines[] = $key . '=' . $escapedValue;
+                $foundKeys[$key] = true;
+                $isUpdated = true;
+                break;
+            }
+        }
+
+        if (!$isUpdated) {
+            $newLines[] = $line;
+        }
+    }
+
+    // Thêm các key chưa có trong file .env
+    foreach ($config as $key => $value) {
+        if (!isset($foundKeys[$key])) {
+            $escapedValue = $value;
+            if (
+                strpos($value, ' ') !== false ||
+                strpos($value, '#') !== false ||
+                strpos($value, '=') !== false ||
+                strpos($value, '"') !== false
+            ) {
+                $escapedValue = '"' . str_replace('"', '\\"', $value) . '"';
+            }
+            $newLines[] = $key . '=' . $escapedValue;
+        }
+    }
+
+    // Ghi lại file .env
+    $newContent = implode("\n", $newLines);
+    if (file_put_contents($envFile, $newContent) === false) {
+        // Khôi phục từ backup nếu ghi thất bại
+        if (file_exists($backupFile)) {
+            copy($backupFile, $envFile);
+        }
+        throw new Exception('Không thể ghi file .env. Vui lòng kiểm tra quyền ghi.');
+    }
+
+    return true;
 }
 
-// Xử lý AJAX request để kiểm tra kết nối với cấu hình hiện tại
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_POST['ajax_action'] === 'test_connection') {
+// Xử lý AJAX request để kiểm tra kết nối
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
 
-    try {
-        $config = [
-            'DB_HOST' => trim($_POST['db_host']),
-            'DB_NAME' => trim($_POST['db_name']),
-            'DB_USER' => trim($_POST['db_user']),
-            'DB_PASS' => $_POST['db_pass'],
-            'DB_CHARSET' => trim($_POST['db_charset'])
-        ];
+    // Xử lý test connection
+    if ($_POST['ajax_action'] === 'test_connection') {
+        try {
+            $config = [
+                'DB_HOST' => trim($_POST['db_host']),
+                'DB_NAME' => trim($_POST['db_name']),
+                'DB_USER' => trim($_POST['db_user']),
+                'DB_PASS' => $_POST['db_pass'],
+                'DB_CHARSET' => trim($_POST['db_charset'])
+            ];
 
-        // Kiểm tra kết nối
-        $testResult = Database::testConnection($config);
+            // Kiểm tra kết nối
+            $testResult = Database::testConnection($config);
 
-        if ($testResult['success']) {
-            // Lấy thông tin MySQL version
+            if ($testResult['success']) {
+                // Lấy thông tin MySQL version
+                $mysqlVersion = 'Không xác định';
+                $currentTime = date('Y-m-d H:i:s');
+                try {
+                    $stmt = $testResult['connection']->query("SELECT VERSION() as version, NOW() as current_time");
+                    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $mysqlVersion = $result['version'] ?? 'Không xác định';
+                    $currentTime = $result['current_time'] ?? date('Y-m-d H:i:s');
+                } catch (Exception $e) {
+                    // Bỏ qua lỗi lấy thông tin
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => '✅ Kết nối thành công!',
+                    'mysql_version' => $mysqlVersion,
+                    'current_time' => $currentTime
+                ]);
+            } else {
+                $errorMsg = $testResult['error'];
+                $suggestion = '';
+
+                // Đưa ra gợi ý dựa trên lỗi
+                if (strpos($errorMsg, 'Unknown database') !== false) {
+                    $suggestion = 'Database "' . $config['DB_NAME'] . '" chưa tồn tại.';
+                } elseif (strpos($errorMsg, 'Access denied') !== false) {
+                    $suggestion = 'Sai username hoặc password.';
+                } elseif (strpos($errorMsg, 'Connection refused') !== false || strpos($errorMsg, 'SQLSTATE[HY000] [2002]') !== false) {
+                    $suggestion = 'Không thể kết nối đến MySQL. Kiểm tra host và port.';
+                }
+
+                echo json_encode([
+                    'success' => false,
+                    'message' => '❌ Kết nối thất bại',
+                    'error' => $errorMsg,
+                    'suggestion' => $suggestion
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => '❌ Lỗi kiểm tra kết nối',
+                'error' => $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    // Xử lý cập nhật cấu hình
+    if ($_POST['ajax_action'] === 'update_config') {
+        try {
+            // Lấy dữ liệu từ form
+            $config = [
+                'DB_HOST' => trim($_POST['db_host']),
+                'DB_NAME' => trim($_POST['db_name']),
+                'DB_USER' => trim($_POST['db_user']),
+                'DB_PASS' => $_POST['db_pass'],
+                'DB_CHARSET' => trim($_POST['db_charset'])
+            ];
+
+            // Validate dữ liệu
+            if (empty($config['DB_HOST'])) {
+                throw new Exception('Host không được để trống');
+            }
+            if (empty($config['DB_NAME'])) {
+                throw new Exception('Database name không được để trống');
+            }
+            if (empty($config['DB_USER'])) {
+                throw new Exception('Username không được để trống');
+            }
+            if (empty($config['DB_CHARSET'])) {
+                $config['DB_CHARSET'] = 'utf8mb4';
+            }
+
+            // Validate format
+            if (!preg_match('/^[a-zA-Z0-9\.\:\-]+$/', $config['DB_HOST'])) {
+                throw new Exception('Host không hợp lệ. Chỉ chấp nhận chữ, số, dấu chấm, dấu hai chấm và dấu gạch ngang');
+            }
+            if (!preg_match('/^[a-zA-Z0-9\_\-]+$/', $config['DB_NAME'])) {
+                throw new Exception('Database name không hợp lệ. Chỉ chấp nhận chữ, số, dấu gạch dưới và dấu gạch ngang');
+            }
+
+            // Kiểm tra kết nối với cấu hình mới
+            $testResult = Database::testConnection($config);
+
+            if (!$testResult['success']) {
+                throw new Exception($testResult['error']);
+            }
+
+            // Cập nhật file .env
+            updateEnvFile($config);
+
+            // Lấy thông tin MySQL
             $mysqlVersion = 'Không xác định';
             $currentTime = date('Y-m-d H:i:s');
             try {
@@ -159,45 +251,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_P
                 $mysqlVersion = $result['version'] ?? 'Không xác định';
                 $currentTime = $result['current_time'] ?? date('Y-m-d H:i:s');
             } catch (Exception $e) {
-                // Bỏ qua lỗi lấy thông tin
+                // Bỏ qua lỗi
             }
 
+            // Trả về response thành công
             echo json_encode([
                 'success' => true,
-                'message' => '✅ Kết nối thành công!',
+                'message' => '✅ Cập nhật cấu hình thành công!',
+                'config' => $config,
                 'mysql_version' => $mysqlVersion,
-                'current_time' => $currentTime
+                'current_time' => $currentTime,
+                'reload' => true
             ]);
-        } else {
-            $errorMsg = $testResult['error'];
+        } catch (Exception $e) {
+            // Trả về response lỗi
+            $errorMsg = $e->getMessage();
             $suggestion = '';
 
             // Đưa ra gợi ý dựa trên lỗi
             if (strpos($errorMsg, 'Unknown database') !== false) {
-                $suggestion = 'Database "' . $config['DB_NAME'] . '" chưa tồn tại.';
+                $suggestion = 'Database "' . ($config['DB_NAME'] ?? '') . '" chưa tồn tại. Vui lòng tạo database trước.';
             } elseif (strpos($errorMsg, 'Access denied') !== false) {
-                $suggestion = 'Sai username hoặc password.';
+                $suggestion = 'Sai username hoặc password. Kiểm tra lại thông tin đăng nhập.';
             } elseif (strpos($errorMsg, 'Connection refused') !== false || strpos($errorMsg, 'SQLSTATE[HY000] [2002]') !== false) {
                 $suggestion = 'Không thể kết nối đến MySQL. Kiểm tra host và port.';
+            } elseif (strpos($errorMsg, 'Permission denied') !== false || strpos($errorMsg, 'failed to open stream') !== false) {
+                $suggestion = 'Không có quyền ghi file .env. Vui lòng cấp quyền ghi cho file .env';
             }
 
             echo json_encode([
                 'success' => false,
-                'message' => '❌ Kết nối thất bại',
+                'message' => '❌ Cập nhật thất bại',
                 'error' => $errorMsg,
                 'suggestion' => $suggestion
             ]);
         }
-    } catch (Exception $e) {
-        echo json_encode([
-            'success' => false,
-            'message' => '❌ Lỗi kiểm tra kết nối',
-            'error' => $e->getMessage()
-        ]);
+        exit;
     }
-    exit;
 }
-
 
 ?>
 
@@ -228,6 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_P
             transition: all 0.3s ease;
         }
 
+
         .header.success {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
@@ -236,8 +328,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_P
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
 
+        .testdb {
+            display: grid;
+            grid-template-columns: 2fr 2fr;
+            gap: 10px;
+        }
+
         .testdb-content {
-            padding: 30px 30px 0 30px;
+            padding: 20px 20px 0 20px;
         }
 
         .icon {
@@ -483,178 +581,184 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_P
                 <h2 id="status-title">KẾT NỐI THÀNH CÔNG</h2>
                 <p id="status-description">Database đã được kết nối thành công!</p>
             </div>
-            <div class="testdb-content">
-                <div class="info-box" id="connection-info">
-                    <div class="info-item">
-                        <span class="label">Trạng thái:</span>
-                        <span class="value" style="color: #27ae60; font-weight: bold;" id="connection-status">● Đã kết nối</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Host:</span>
-                        <span class="value" id="display-host"><?php echo DB_HOST; ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Database:</span>
-                        <span class="value" id="display-database"><?php echo DB_NAME; ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Username:</span>
-                        <span class="value" id="display-username"><?php echo DB_USER; ?></span>
-                    </div>
-                </div>
-
-                <?php
-                // Chuyển xử lý cho Database.php - gọi phương thức kiểm tra từ Database class
-                try {
-                    $testQuery = $connection->query("SELECT VERSION() as version, NOW() as current_time");
-                    $result = $testQuery->fetch(PDO::FETCH_ASSOC);
-                ?>
-                    <div class="info-box" style="border-left-color: #27ae60;" id="system-info">
-                        <h3 style="margin-top: 0;">📊 Thông tin hệ thống:</h3>
+            <div class="testdb">
+                <div class="testdb-content">
+                    <div class="info-box" id="connection-info">
                         <div class="info-item">
-                            <span class="label">MySQL Version:</span>
-                            <span class="value" id="mysql-version"><?php echo $result['version']; ?></span>
+                            <span class="label">Trạng thái:</span>
+                            <span class="value" style="color: #27ae60; font-weight: bold;" id="connection-status">● Đã kết nối</span>
                         </div>
                         <div class="info-item">
-                            <span class="label">Thời gian:</span>
-                            <span class="value" id="current-time"><?php echo $result['current_time']; ?></span>
+                            <span class="label">Host:</span>
+                            <span class="value" id="display-host"><?php echo DB_HOST; ?></span>
                         </div>
-                    </div>
-                <?php
-                } catch (Exception $e) {
-                    // Xử lý lỗi truy vấn
-                    echo "<div class='error-detail'>";
-                    echo "<strong>⚠️ Lỗi truy vấn:</strong> " . $e->getMessage();
-                    echo "</div>";
-                }
-                ?>
-
-
-            </div>
-
-        <?php else: ?>
-            <!-- TRƯỜNG HỢP 2: KẾT NỐI THẤT BẠI - HIỂN THỊ THÔNG TIN TỪ DATABASE.PHP -->
-            <div class="header error" id="header-status">
-                <div class="icon">❌</div>
-                <h2 id="status-title">KẾT NỐI THẤT BẠI</h2>
-                <p id="status-description">Không thể kết nối đến database</p>
-            </div>
-            <div class="testdb-content">
-                <!-- Hiển thị thông báo cập nhật -->
-                <div id="notification-area">
-                    <?php if (isset($updateSuccess) && $updateSuccess): ?>
-                        <div class="update-success" id="update-success">✅ <?php echo htmlspecialchars($updateSuccess); ?></div>
-                    <?php endif; ?>
-
-                    <?php if (isset($updateError) && $updateError): ?>
-                        <div class="update-error" id="update-error">❌ <?php echo htmlspecialchars($updateError); ?></div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Hiển thị đầy đủ thông tin từ config/database.php -->
-                <div class="info-box" id="config-info">
-                    <h3 style="margin-top: 0; color: #d63031;">📋 Thông tin cấu hình (từ database.php):</h3>
-                    <div class="info-item">
-                        <span class="label">Host:</span>
-                        <span class="value" id="display-host"><?php echo DB_HOST; ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Database:</span>
-                        <span class="value" id="display-database"><?php echo DB_NAME; ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Username:</span>
-                        <span class="value" id="display-username"><?php echo DB_USER; ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Password:</span>
-                        <span class="value" id="display-password"><?php echo DB_PASS === '' ? '(rỗng)' : str_repeat('•', strlen(DB_PASS)); ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Charset:</span>
-                        <span class="value" id="display-charset"><?php echo DB_CHARSET; ?></span>
-                    </div>
-                </div>
-
-                <!-- Hiển thị chi tiết lỗi -->
-                <div class="error-detail" id="error-detail">
-                    <strong>🔍 Chi tiết lỗi:</strong>
-                    <div class="error-message" id="error-message">
-                        <?php echo isset($errorMessage) ? htmlspecialchars($errorMessage) : 'Không thể xác định lỗi'; ?>
+                        <div class="info-item">
+                            <span class="label">Database:</span>
+                            <span class="value" id="display-database"><?php echo DB_NAME; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Username:</span>
+                            <span class="value" id="display-username"><?php echo DB_USER; ?></span>
+                        </div>
                     </div>
 
                     <?php
-                    // Phân tích và đưa ra gợi ý dựa trên lỗi
-                    if (isset($errorMessage) && !empty($errorMessage)) {
-                        echo '<br><strong>💡 Gợi ý khắc phục:</strong><br>';
-
-                        if (strpos($errorMessage, 'Unknown database') !== false) {
-                            echo '• Database "' . DB_NAME . '" chưa tồn tại. Hãy tạo database trong phpMyAdmin.<br>';
-                            echo '• Câu lệnh tạo database: <code>CREATE DATABASE ' . DB_NAME . ';</code><br>';
-                        } elseif (strpos($errorMessage, 'Access denied') !== false) {
-                            echo '• Sai tên đăng nhập hoặc mật khẩu. Kiểm tra lại DB_USER và DB_PASS.<br>';
-                            echo '• Mặc định XAMPP: user = "root", pass = "" (rỗng)<br>';
-                        } elseif (strpos($errorMessage, 'Connection refused') !== false) {
-                            echo '• MySQL server chưa được khởi động. Hãy bật MySQL trong XAMPP Control Panel.<br>';
-                            echo '• Kiểm tra port: ' . DB_HOST . '<br>';
-                        } elseif (strpos($errorMessage, 'No such file or directory') !== false) {
-                            echo '• Không tìm thấy socket. Thử thay localhost thành 127.0.0.1<br>';
-                        } elseif (strpos($errorMessage, 'SQLSTATE[HY000] [2002]') !== false) {
-                            echo '• Không thể kết nối đến MySQL. Kiểm tra:<br>';
-                            echo '  - MySQL đã được khởi động trong XAMPP Control Panel chưa?<br>';
-                            echo '  - Port có đúng không? (mặc định: 3306 hoặc 3307)<br>';
-                            echo '  - Thử thay địa chỉ host thành "127.0.0.1" thay vì "localhost"<br>';
-                        } else {
-                            echo '• Kiểm tra lại file cấu hình config/database.php<br>';
-                            echo '• Đảm bảo MySQL đang chạy đúng cách<br>';
-                            echo '• Sử dụng form bên trên để cập nhật cấu hình phù hợp<br>';
-                        }
-
-                        echo '<br><strong>📝 Ví dụ cấu hình mặc định cho XAMPP:</strong><br>';
-                        echo '• Host: localhost:3306 hoặc 127.0.0.1:3306<br>';
-                        echo '• Username: root (hoặc tùy chỉnh trên phpMyAdmin)<br>';
-                        echo '• Password: (để trống hoặc tùy chỉnh)<br>';
-                        echo '• Database: Tên database bạn đã tạo trong phpMyAdmin<br>';
+                    // Chuyển xử lý cho Database.php - gọi phương thức kiểm tra từ Database class
+                    try {
+                        $testQuery = $connection->query("SELECT VERSION() as version, NOW() as current_time");
+                        $result = $testQuery->fetch(PDO::FETCH_ASSOC);
+                    ?>
+                        <div class="info-box" style="border-left-color: #27ae60;" id="system-info">
+                            <h3 style="margin-top: 0;">📊 Thông tin hệ thống:</h3>
+                            <div class="info-item">
+                                <span class="label">MySQL Version:</span>
+                                <span class="value" id="mysql-version"><?php echo $result['version']; ?></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Thời gian:</span>
+                                <span class="value" id="current-time"><?php echo $result['current_time']; ?></span>
+                            </div>
+                        </div>
+                    <?php
+                    } catch (Exception $e) {
+                        // Xử lý lỗi truy vấn
+                        echo "<div class='error-detail'>";
+                        echo "<strong>⚠️ Lỗi truy vấn:</strong> " . $e->getMessage();
+                        echo "</div>";
                     }
                     ?>
+
+
                 </div>
 
+            <?php else: ?>
+                <!-- TRƯỜNG HỢP 2: KẾT NỐI THẤT BẠI - HIỂN THỊ THÔNG TIN TỪ DATABASE.PHP -->
+                <div class="header error" id="header-status">
+                    <div class="icon">❌</div>
+                    <h2 id="status-title">KẾT NỐI THẤT BẠI</h2>
+                    <p id="status-description">Không thể kết nối đến database</p>
+                </div>
+                <div class="testdb">
+                    <div class="testdb-content">
+                        <!-- Hiển thị thông báo cập nhật -->
+                        <div id="notification-area">
+                            <?php if (isset($updateSuccess) && $updateSuccess): ?>
+                                <div class="update-success" id="update-success">✅ <?php echo htmlspecialchars($updateSuccess); ?></div>
+                            <?php endif; ?>
+
+                            <?php if (isset($updateError) && $updateError): ?>
+                                <div class="update-error" id="update-error">❌ <?php echo htmlspecialchars($updateError); ?></div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Hiển thị đầy đủ thông tin từ config/database.php -->
+                        <div class="info-box" id="config-info">
+                            <h3 style="margin-top: 0; color: #d63031;">📋 Thông tin cấu hình (từ database.php):</h3>
+                            <div class="info-item">
+                                <span class="label">Host:</span>
+                                <span class="value" id="display-host"><?php echo DB_HOST; ?></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Database:</span>
+                                <span class="value" id="display-database"><?php echo DB_NAME; ?></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Username:</span>
+                                <span class="value" id="display-username"><?php echo DB_USER; ?></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Password:</span>
+                                <span class="value" id="display-password"><?php echo DB_PASS === '' ? '(rỗng)' : str_repeat('•', strlen(DB_PASS)); ?></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Charset:</span>
+                                <span class="value" id="display-charset"><?php echo DB_CHARSET; ?></span>
+                            </div>
+                        </div>
+
+                        <!-- Hiển thị chi tiết lỗi -->
+                        <div class="error-detail" id="error-detail">
+                            <strong>🔍 Chi tiết lỗi:</strong>
+                            <div class="error-message" id="error-message">
+                                <?php echo isset($errorMessage) ? htmlspecialchars($errorMessage) : 'Không thể xác định lỗi'; ?>
+                            </div>
+
+                            <?php
+                            // Phân tích và đưa ra gợi ý dựa trên lỗi
+                            if (isset($errorMessage) && !empty($errorMessage)) {
+                                echo '<br><strong>💡 Gợi ý khắc phục:</strong><br>';
+
+                                if (strpos($errorMessage, 'Unknown database') !== false) {
+                                    echo '• Database "' . DB_NAME . '" chưa tồn tại. Hãy tạo database trong phpMyAdmin.<br>';
+                                    echo '• Câu lệnh tạo database: <code>CREATE DATABASE ' . DB_NAME . ';</code><br>';
+                                } elseif (strpos($errorMessage, 'Access denied') !== false) {
+                                    echo '• Sai tên đăng nhập hoặc mật khẩu. Kiểm tra lại DB_USER và DB_PASS.<br>';
+                                    echo '• Mặc định XAMPP: user = "root", pass = "" (rỗng)<br>';
+                                } elseif (strpos($errorMessage, 'Connection refused') !== false) {
+                                    echo '• MySQL server chưa được khởi động. Hãy bật MySQL trong XAMPP Control Panel.<br>';
+                                    echo '• Kiểm tra port: ' . DB_HOST . '<br>';
+                                } elseif (strpos($errorMessage, 'No such file or directory') !== false) {
+                                    echo '• Không tìm thấy socket. Thử thay localhost thành 127.0.0.1<br>';
+                                } elseif (strpos($errorMessage, 'SQLSTATE[HY000] [2002]') !== false) {
+                                    echo '• Không thể kết nối đến MySQL. Kiểm tra:<br>';
+                                    echo '  - MySQL đã được khởi động trong XAMPP Control Panel chưa?<br>';
+                                    echo '  - Port có đúng không? (mặc định: 3306 hoặc 3307)<br>';
+                                    echo '  - Thử thay địa chỉ host thành "127.0.0.1" thay vì "localhost"<br>';
+                                } else {
+                                    echo '• Kiểm tra lại file cấu hình config/database.php<br>';
+                                    echo '• Đảm bảo MySQL đang chạy đúng cách<br>';
+                                    echo '• Sử dụng form bên trên để cập nhật cấu hình phù hợp<br>';
+                                }
+
+                                echo '<br><strong>📝 Ví dụ cấu hình mặc định cho XAMPP:</strong><br>';
+                                echo '• Host: localhost:3306 hoặc 127.0.0.1:3306<br>';
+                                echo '• Username: root (hoặc tùy chỉnh trên phpMyAdmin)<br>';
+                                echo '• Password: (để trống hoặc tùy chỉnh)<br>';
+                                echo '• Database: Tên database bạn đã tạo trong phpMyAdmin<br>';
+                            }
+                            ?>
+                        </div>
+
+
+                    </div>
+
+                <?php endif; ?>
+                <div class="testdb-content">
+                    <!-- Form cập nhật cấu hình -->
+                    <div class="config-form">
+                        <h3>🔧 Cập nhật cấu hình kết nối</h3>
+                        <div id="update-notification"></div>
+                        <form id="config-form" method="POST" action="">
+                            <div class="form-group">
+                                <label for="db_host">Host:</label>
+                                <input type="text" id="db_host" name="db_host" value="<?php echo htmlspecialchars(DB_HOST); ?>" placeholder="Nhập tên host (Ví dụ: localhost:3306)">
+                            </div>
+                            <div class="form-group">
+                                <label for="db_name">Database:</label>
+                                <input type="text" id="db_name" name="db_name" value="<?php echo htmlspecialchars(DB_NAME); ?>" placeholder="Nhập tên database">
+                            </div>
+                            <div class="form-group">
+                                <label for="db_user">Username:</label>
+                                <input type="text" id="db_user" name="db_user" value="<?php echo htmlspecialchars(DB_USER); ?>" placeholder="Nhập user (Ví dụ: 'root' hoặc tên user bạn đã tạo)">
+                            </div>
+                            <div class="form-group">
+                                <label for="db_pass">Password:</label>
+                                <input type="password" id="db_pass" name="db_pass" value="<?php echo htmlspecialchars(DB_PASS); ?>" placeholder="Nhập mật khẩu (để trống nếu không có mật khẩu)">
+                            </div>
+                            <div class="form-group">
+                                <label for="db_charset">Charset:</label>
+                                <input type="text" id="db_charset" name="db_charset" value="<?php echo htmlspecialchars(DB_CHARSET); ?>" placeholder="utf8mb4">
+                            </div>
+                            <div class="button-group">
+                                <button type="button" id="update-config-btn" class="btn-update">💾 Cập nhật cấu hình</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                </div>
 
             </div>
 
-        <?php endif; ?>
-        <div class="testdb-content">
-            <!-- Form cập nhật cấu hình -->
-            <div class="config-form">
-                <h3>🔧 Cập nhật cấu hình kết nối</h3>
-                <div id="update-notification"></div>
-                <form id="config-form" method="POST" action="">
-                    <div class="form-group">
-                        <label for="db_host">Host:</label>
-                        <input type="text" id="db_host" name="db_host" value="<?php echo htmlspecialchars(DB_HOST); ?>" placeholder="Nhập tên host (Ví dụ: localhost:3306)">
-                    </div>
-                    <div class="form-group">
-                        <label for="db_name">Database:</label>
-                        <input type="text" id="db_name" name="db_name" value="<?php echo htmlspecialchars(DB_NAME); ?>" placeholder="Nhập tên database">
-                    </div>
-                    <div class="form-group">
-                        <label for="db_user">Username:</label>
-                        <input type="text" id="db_user" name="db_user" value="<?php echo htmlspecialchars(DB_USER); ?>" placeholder="Nhập user (Ví dụ: 'root' hoặc tên user bạn đã tạo)">
-                    </div>
-                    <div class="form-group">
-                        <label for="db_pass">Password:</label>
-                        <input type="password" id="db_pass" name="db_pass" value="<?php echo htmlspecialchars(DB_PASS); ?>" placeholder="Nhập mật khẩu (để trống nếu không có mật khẩu)">
-                    </div>
-                    <div class="form-group">
-                        <label for="db_charset">Charset:</label>
-                        <input type="text" id="db_charset" name="db_charset" value="<?php echo htmlspecialchars(DB_CHARSET); ?>" placeholder="utf8mb4">
-                    </div>
-                    <div class="button-group">
-                        <button type="button" id="update-config-btn" class="btn-update">💾 Cập nhật cấu hình</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
     </div>
 
@@ -765,8 +869,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_P
                 }
             }
 
+            // Hàm validate form trước khi submit
+            function validateForm() {
+                const host = document.getElementById('db_host').value.trim();
+                const dbname = document.getElementById('db_name').value.trim();
+                const username = document.getElementById('db_user').value.trim();
+
+                let isValid = true;
+                let errors = [];
+
+                // Reset error states
+                document.querySelectorAll('.form-group input').forEach(input => {
+                    input.classList.remove('error');
+                });
+
+                if (!host) {
+                    document.getElementById('db_host').classList.add('error');
+                    errors.push('Host không được để trống');
+                    isValid = false;
+                }
+
+                if (!dbname) {
+                    document.getElementById('db_name').classList.add('error');
+                    errors.push('Database name không được để trống');
+                    isValid = false;
+                }
+
+                if (!username) {
+                    document.getElementById('db_user').classList.add('error');
+                    errors.push('Username không được để trống');
+                    isValid = false;
+                }
+
+                // Kiểm tra format host
+                if (host && !/^[a-zA-Z0-9\.\:\-]+$/.test(host)) {
+                    document.getElementById('db_host').classList.add('error');
+                    errors.push('Host không hợp lệ');
+                    isValid = false;
+                }
+
+                // Kiểm tra format database name
+                if (dbname && !/^[a-zA-Z0-9\_\-]+$/.test(dbname)) {
+                    document.getElementById('db_name').classList.add('error');
+                    errors.push('Database name không hợp lệ');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    showNotification('❌ ' + errors.join('<br>'), 'error');
+                }
+
+                return isValid;
+            }
+
             // Hàm cập nhật cấu hình
             async function updateConfig() {
+                if (!validateForm()) {
+                    return;
+                }
                 // Validate dữ liệu trước khi gửi
                 const host = document.getElementById('db_host').value.trim();
                 const dbname = document.getElementById('db_name').value.trim();
@@ -877,6 +1037,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_P
                 });
             });
         });
+        // Thêm vào phần JavaScript
     </script>
 </body>
 

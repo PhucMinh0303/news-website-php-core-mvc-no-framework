@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Menu management view for admin panel
  */
@@ -6,8 +7,9 @@
 
 <aside class="sidebar">
     <div class="logo">
-        <div class="logo-icon">N</div>
-        <span>Capitals</span>
+        <img
+            src="<?php echo View::asset('img/footer/logo-cas-png-20251209102030yGW1WOGlvr.png'); ?>"
+            alt="<?php echo View::escape(SITE_NAME); ?>" />
     </div>
 
     <ul class="menu-items">

@@ -18,9 +18,6 @@
     <script src="<?php echo View::asset('js/admin/admin.js'); ?>"></script>
     <script src="<?php echo View::asset('js/admin/news-create.js'); ?>"></script>
 
-
-
-
     </body>
 
-    </html>
+    </html> 

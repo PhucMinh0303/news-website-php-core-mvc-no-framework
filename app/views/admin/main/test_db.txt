@@ -1,0 +1,29 @@
+﻿Sơ đồ luồng xử lý:
+
+Người dùng nhập form
+         ↓
+Nhấn nút "Cập nhật cấu hình"
+         ↓
+JavaScript gửi AJAX (POST)
+         ↓
+Server nhận request (test_db.php)
+         ↓
+Lấy dữ liệu từ $_POST
+         ↓
+Kiểm tra kết nối với cấu hình mới
+         ↓
+Gọi Database::reinitialize($config)
+         ↓
+Gọi updateDatabaseConfig($config)
+         ↓
+Ghi vào file .env (config/.env)
+         ↓
+Xóa cache và tải lại cấu hình
+         ↓
+Đóng kết nối cũ, tạo kết nối mới
+         ↓
+Trả về JSON response
+         ↓
+JavaScript cập nhật UI
+         ↓
+Reload trang (nếu cần)

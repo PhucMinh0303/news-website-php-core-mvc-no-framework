@@ -12,7 +12,7 @@ class Database
     private $error;
     private static $instance = null;
 
-    public function __construct()
+    private function __construct()
     {
         $dsn = "mysql:host={$this->host};dbname={$this->dbname};charset={$this->charset}";
         $options = [
@@ -27,6 +27,15 @@ class Database
             $this->error = $e->getMessage();
             die("Connection failed: " . $this->error);
         }
+    }
+
+    public static function getInstance()
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
     }
 
     public function getConnection()
@@ -162,4 +171,75 @@ class Database
     {
         // Write to .env file
     }
+
+
+    // Thêm vào class Database
+
+/**
+ * Update configuration in .env file
+ */
+public static function updateConfig($config)
+{
+    $envFile = BASE_PATH . '/app/config/.env';
+    
+    if (!file_exists($envFile)) {
+        return ['success' => false, 'error' => 'File .env không tồn tại'];
+    }
+    
+    // Đọc file .env
+    $content = file_get_contents($envFile);
+    $lines = explode("\n", $content);
+    $newLines = [];
+    $updatedKeys = [];
+    
+    foreach ($lines as $line) {
+        $isUpdated = false;
+        foreach ($config as $key => $value) {
+            if (strpos($line, $key . '=') === 0) {
+                // Escape giá trị nếu cần
+                $escapedValue = (strpos($value, ' ') !== false || strpos($value, '#') !== false) 
+                    ? '"' . $value . '"' 
+                    : $value;
+                $newLines[] = $key . '=' . $escapedValue;
+                $updatedKeys[$key] = true;
+                $isUpdated = true;
+                break;
+            }
+        }
+        if (!$isUpdated) {
+            $newLines[] = $line;
+        }
+    }
+    
+    // Thêm các key chưa có
+    foreach ($config as $key => $value) {
+        if (!isset($updatedKeys[$key])) {
+            $escapedValue = (strpos($value, ' ') !== false || strpos($value, '#') !== false) 
+                ? '"' . $value . '"' 
+                : $value;
+            $newLines[] = $key . '=' . $escapedValue;
+        }
+    }
+    
+    // Ghi lại file
+    if (file_put_contents($envFile, implode("\n", $newLines)) === false) {
+        return ['success' => false, 'error' => 'Không thể ghi file .env'];
+    }
+    
+    return ['success' => true];
+}
+
+/**
+ * Get current database configuration
+ */
+public static function getCurrentConfig()
+{
+    return [
+        'DB_HOST' => DB_HOST,
+        'DB_NAME' => DB_NAME,
+        'DB_USER' => DB_USER,
+        'DB_PASS' => DB_PASS,
+        'DB_CHARSET' => DB_CHARSET
+    ];
+}
 }

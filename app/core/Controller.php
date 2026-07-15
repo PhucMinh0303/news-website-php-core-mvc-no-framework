@@ -24,11 +24,18 @@ class Controller
     protected $layout = 'main';
 
     /**
+     * @var string Page title
+     */
+    protected $pageTitle;
+
+    /**
      * Set page title
      */
     protected function setPageTitle($title)
     {
+        $this->pageTitle = $title;
         $this->data['page_title'] = $title;
+        return $this;
     }
 
     /**
@@ -91,7 +98,7 @@ class Controller
         }
 
         // Extract data into view scope
-        extract($this->data, EXTR_PREFIX_ALL, 'view');
+        extract($this->data);
 
         if ($this->layout === false) {
             // Render view only, no layout
@@ -117,8 +124,9 @@ class Controller
      */
     protected function redirect($path)
     {
-        Router::redirect($path);
-
+        $baseUrl = rtrim(BASE_URL, '/');
+        header("Location: {$baseUrl}/" . ltrim($path, '/'));
+        exit;
     }
 
     /**
@@ -126,7 +134,11 @@ class Controller
      */
     protected function url($action, $params = [])
     {
-        return Router::url($action, $params);
+        $url = BASE_URL . ltrim($action, '/');
+        if (!empty($params)) {
+            $url .= '?' . http_build_query($params);
+        }
+        return $url;
     }
 
     /**
@@ -196,12 +208,26 @@ class Controller
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 
+    /**
+     * Validate phone number
+     */
+    protected function validatePhone($phone)
+    {
+        return preg_match('/^[0-9]{10,15}$/', $phone);
+    }
+
+    /**
+     * Load model
+     */
     public function model($model)
     {
         require_once APP_PATH . 'models/' . $model . '.php';
         return new $model;
     }
 
+    /**
+     * Load view with data
+     */
     protected function view($view, $data = [])
     {
         extract($data);
@@ -215,6 +241,9 @@ class Controller
         }
     }
 
+    /**
+     * Return JSON response
+     */
     protected function json($data, $statusCode = 200)
     {
         http_response_code($statusCode);
@@ -223,11 +252,21 @@ class Controller
         exit;
     }
 
+    /**
+     * Get POST data from JSON request
+     */
     protected function getPostData()
     {
-        return json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        $content = file_get_contents('php://input');
+        if (!empty($content)) {
+            return json_decode($content, true) ?? $_POST;
+        }
+        return $_POST;
     }
 
+    /**
+     * Validate required fields
+     */
     protected function validateRequired($data, $fields)
     {
         $errors = [];
@@ -239,6 +278,9 @@ class Controller
         return $errors;
     }
 
+    /**
+     * Sanitize input data recursively
+     */
     protected function sanitizeInput($data)
     {
         if (is_array($data)) {
@@ -247,7 +289,59 @@ class Controller
         return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
     }
 
+    /**
+     * Set flash message
+     */
+    protected function setFlash($key, $message)
+    {
+        $_SESSION['flash'][$key] = $message;
+    }
 
+    /**
+     * Get flash message and delete
+     */
+    protected function getFlash($key)
+    {
+        $message = $_SESSION['flash'][$key] ?? null;
+        unset($_SESSION['flash'][$key]);
+        return $message;
+    }
+
+    /**
+     * Check if user is logged in
+     */
+    protected function isLoggedIn()
+    {
+        return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+    }
+
+    /**
+     * Check if user is admin
+     */
+    protected function isAdmin()
+    {
+        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+    }
+
+    /**
+     * Require admin access
+     */
+    protected function requireAdmin()
+    {
+        if (!$this->isAdmin()) {
+            $this->redirect('admin/login');
+            exit;
+        }
+    }
+
+    /**
+     * Require user login
+     */
+    protected function requireLogin()
+    {
+        if (!$this->isLoggedIn()) {
+            $this->redirect('login');
+            exit;
+        }
+    }
 }
-
-?>
