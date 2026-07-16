@@ -282,6 +282,197 @@
   }
 
   // ============================================
+  // XỬ LÝ MỨC LƯƠNG - FORMAT VND
+  // ============================================
+
+  function formatSalaryWithVND(input) {
+    if (!input) return '';
+    
+    // Loại bỏ tất cả ký tự không phải số
+    let numberStr = input.replace(/[^0-9]/g, '');
+    
+    if (numberStr === '') {
+      return '';
+    }
+    
+    // Chuyển thành số và định dạng với dấu chấm
+    let number = parseInt(numberStr, 10);
+    let formatted = number.toLocaleString('vi-VN');
+    
+    // Thêm VND
+    return formatted + ' VND';
+  }
+
+  function extractSalaryNumber(formattedValue) {
+    if (!formattedValue) return '';
+    // Loại bỏ 'VND' và dấu chấm, giữ lại số
+    return formattedValue.replace(/ VND$/, '').replace(/\./g, '');
+  }
+
+  // Khởi tạo xử lý mức lương
+  function initSalaryField($form) {
+    const $salaryInput = $form.find('#salary_range');
+    const $salaryHidden = $form.find('#salary_value');
+    const $salaryError = $form.find('#salary_error');
+    
+    if (!$salaryInput.length || $salaryInput.data('salary-bound')) {
+      return;
+    }
+    
+    $salaryInput.data('salary-bound', true);
+    
+    // Lưu giá trị gốc khi focus
+    let previousValue = '';
+    
+    $salaryInput.on('focus', function() {
+      // Lưu giá trị hiện tại khi focus vào
+      previousValue = $(this).val();
+    });
+    
+    $salaryInput.on('input', function() {
+      let rawValue = $(this).val();
+      let cursorPosition = this.selectionStart;
+      
+      // Nếu người dùng nhập chữ "VND" hoặc các ký tự không phải số
+      // thì chỉ giữ lại số
+      let numberOnly = rawValue.replace(/[^0-9]/g, '');
+      
+      // Nếu không có số, hiển thị trống
+      if (numberOnly === '') {
+        $(this).val('');
+        $salaryHidden.val('');
+        $salaryError.text('');
+        $salaryError.hide();
+        return;
+      }
+      
+      // Định dạng số với dấu chấm và VND
+      let number = parseInt(numberOnly, 10);
+      let formatted = number.toLocaleString('vi-VN') + ' VND';
+      
+      // Cập nhật giá trị
+      $(this).val(formatted);
+      $salaryHidden.val(number);
+      
+      // Tính toán lại vị trí cursor
+      // Đặt cursor vào cuối text
+      this.setSelectionRange(formatted.length, formatted.length);
+      
+      // Ẩn lỗi khi đang nhập hợp lệ
+      $salaryError.text('');
+      $salaryError.hide();
+      $(this).removeClass('error-field');
+      $(this).closest('.form-group').find('.field-error-msg').remove();
+    });
+    
+    // Xử lý khi blur (rời khỏi input)
+    $salaryInput.on('blur', function() {
+      let value = $(this).val();
+      
+      // Nếu trống hoặc chỉ có khoảng trắng
+      if (!value || value.trim() === '') {
+        $(this).val('');
+        $salaryHidden.val('');
+        return;
+      }
+      
+      // Kiểm tra xem đã có VND chưa
+      if (!value.includes('VND')) {
+        // Nếu chưa có VND, thử lấy số từ giá trị
+        let numberOnly = value.replace(/[^0-9]/g, '');
+        if (numberOnly !== '') {
+          let number = parseInt(numberOnly, 10);
+          let formatted = number.toLocaleString('vi-VN') + ' VND';
+          $(this).val(formatted);
+          $salaryHidden.val(number);
+        }
+      }
+      
+      // Nếu có VND nhưng không có số
+      if (value.includes('VND')) {
+        let numberOnly = value.replace(/[^0-9]/g, '');
+        if (numberOnly === '') {
+          $(this).val('');
+          $salaryHidden.val('');
+        }
+      }
+    });
+    
+    // Xử lý khi nhấn phím Enter hoặc Tab
+    $salaryInput.on('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        $(this).trigger('blur');
+      }
+    });
+    
+    // Validate mức lương
+    function validateSalary() {
+      const value = $salaryInput.val();
+      if (!value || value.trim() === '') {
+        $salaryError.text('Vui lòng nhập mức lương');
+        $salaryError.show();
+        $salaryInput.addClass('error-field');
+        return false;
+      }
+      
+      // Kiểm tra xem có chứa số không
+      let numberOnly = value.replace(/[^0-9]/g, '');
+      if (numberOnly === '') {
+        $salaryError.text('Vui lòng nhập số tiền hợp lệ');
+        $salaryError.show();
+        $salaryInput.addClass('error-field');
+        return false;
+      }
+      
+      let number = parseInt(numberOnly, 10);
+      if (number <= 0) {
+        $salaryError.text('Mức lương phải lớn hơn 0');
+        $salaryError.show();
+        $salaryInput.addClass('error-field');
+        return false;
+      }
+      
+      $salaryError.text('');
+      $salaryError.hide();
+      $salaryInput.removeClass('error-field');
+      return true;
+    }
+    
+    // Validate khi submit form
+    $form.on('submit', function(e) {
+      // Đảm bảo format đúng trước khi submit
+      let value = $salaryInput.val();
+      if (value && value.trim() !== '') {
+        let numberOnly = value.replace(/[^0-9]/g, '');
+        if (numberOnly !== '') {
+          let number = parseInt(numberOnly, 10);
+          let formatted = number.toLocaleString('vi-VN') + ' VND';
+          $salaryInput.val(formatted);
+          $salaryHidden.val(number);
+        }
+      }
+    });
+    
+    // Thêm hàm validate vào form để sử dụng trong validation chung
+    $salaryInput.data('validate-function', validateSalary);
+    
+    // Xử lý giá trị ban đầu nếu có
+    const initialValue = $salaryInput.val();
+    if (initialValue && initialValue.trim() !== '') {
+      // Nếu là số nguyên, format lại
+      let numberOnly = initialValue.replace(/[^0-9]/g, '');
+      if (numberOnly !== '') {
+        let number = parseInt(numberOnly, 10);
+        let formatted = number.toLocaleString('vi-VN') + ' VND';
+        $salaryInput.val(formatted);
+        $salaryHidden.val(number);
+      }
+    }
+    
+    return validateSalary;
+  }
+
+  // ============================================
   // HIỂN THỊ LỖI TỪ SERVER
   // ============================================
 
@@ -453,10 +644,24 @@
             errorMessage = 'Hạn nộp hồ sơ không được nhỏ hơn ngày hiện tại';
           }
         }
-      } else if ($field.attr('name') === 'salary_range') {
-        if (!value || value.trim() === '') {
+      } else if ($field.attr('name') === 'salary_range' || $field.attr('id') === 'salary_range') {
+        // Kiểm tra mức lương
+        const salaryValue = $field.val();
+        if (!salaryValue || salaryValue.trim() === '') {
           isValid = false;
           errorMessage = 'Vui lòng nhập mức lương';
+        } else {
+          let numberOnly = salaryValue.replace(/[^0-9]/g, '');
+          if (numberOnly === '') {
+            isValid = false;
+            errorMessage = 'Vui lòng nhập số tiền hợp lệ';
+          } else {
+            let number = parseInt(numberOnly, 10);
+            if (number <= 0) {
+              isValid = false;
+              errorMessage = 'Mức lương phải lớn hơn 0';
+            }
+          }
         }
       } else if ($field.attr('type') === 'number') {
         if (!value || parseInt(value, 10) <= 0) {
@@ -581,6 +786,9 @@
 
     // Khởi tạo deadline validation
     initDeadlineValidation($form);
+    
+    // Khởi tạo salary field
+    initSalaryField($form);
 
     // Xóa lỗi khi người dùng nhập vào các field
     $form.find('input, textarea, select').on('input change', function() {
@@ -595,6 +803,22 @@
     // Xử lý submit form
     $form.on('submit', function(e) {
       updateSlug($form);
+      
+      // Format salary trước khi submit
+      const $salaryInput = $form.find('#salary_range');
+      const $salaryHidden = $form.find('#salary_value');
+      if ($salaryInput.length) {
+        const value = $salaryInput.val();
+        if (value && value.trim() !== '') {
+          let numberOnly = value.replace(/[^0-9]/g, '');
+          if (numberOnly !== '') {
+            let number = parseInt(numberOnly, 10);
+            let formatted = number.toLocaleString('vi-VN') + ' VND';
+            $salaryInput.val(formatted);
+            $salaryHidden.val(number);
+          }
+        }
+      }
       
       if (!validateClientForm($form)) {
         e.preventDefault();

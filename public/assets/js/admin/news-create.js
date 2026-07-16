@@ -3,53 +3,52 @@
 // Hàm loại bỏ dấu tiếng Việt
 function removeVietnameseTones(str) {
     if (!str) {
-        return '';
+      return '';
     }
 
     const accentsMap = {
-        a: /[àáạảãâầấậẩẫăằắặẳẵ]/g,
-        e: /[èéẹẻẽêềếệểễ]/g,
-        i: /[ìíịỉĩ]/g,
-        o: /[òóọỏõôồốộổỗơờớợởỡ]/g,
-        u: /[ùúụủũưừứựửữ]/g,
-        y: /[ỳýỵỷỹ]/g,
-        d: /[đ]/g,
-        A: /[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]/g,
-        E: /[ÈÉẸẺẼÊỀẾỆỂỄ]/g,
-        I: /[ÌÍỊỈĨ]/g,
-        O: /[ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ]/g,
-        U: /[ÙÚỤỦŨƯỪỨỰỬỮ]/g,
-        Y: /[ỲÝỴỶỸ]/g,
-        D: /[Đ]/g
+      a: /[àáạảãâầấậẩẫăằắặẳẵ]/g,
+      e: /[èéẹẻẽêềếệểễ]/g,
+      i: /[ìíịỉĩ]/g,
+      o: /[òóọỏõôồốộổỗơờớợởỡ]/g,
+      u: /[ùúụủũưừứựửữ]/g,
+      y: /[ỳýỵỷỹ]/g,
+      d: /[đ]/g,
+      A: /[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]/g,
+      E: /[ÈÉẸẺẼÊỀẾỆỂỄ]/g,
+      I: /[ÌÍỊỈĨ]/g,
+      O: /[ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ]/g,
+      U: /[ÙÚỤỦŨƯỪỨỰỬỮ]/g,
+      Y: /[ỲÝỴỶỸ]/g,
+      D: /[Đ]/g
     };
 
     let result = str;
 
     Object.keys(accentsMap).forEach((key) => {
-        result = result.replace(accentsMap[key], key);
+      result = result.replace(accentsMap[key], key);
     });
 
     return result;
-}
+  }
 
-// Tạo slug từ tiêu đề, loại bỏ dấu tiếng Việt, chuyển thành chữ thường, thay khoảng trắng bằng dấu gạch ngang, và loại bỏ ký tự đặc biệt
-function generateSlugFromTitle(title) {
+  function generateSlugFromTitle(title) {
     if (!title || title.trim() === '') {
-        return '';
+      return '';
     }
-
+    // Tạo slug từ tiêu đề, loại bỏ dấu tiếng Việt, chuyển thành chữ thường, thay khoảng trắng bằng dấu gạch ngang, và loại bỏ ký tự đặc biệt
     let slug = removeVietnameseTones(title)
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .substring(0, 100);
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 100);
 
     return slug;
-}
+  }
 
-// Kiểm tra slug hợp lệ (chỉ chứa chữ thường, số và dấu gạch ngang)
+// Kiểm tra slug hợp lệ
 function isValidSlug(slug) {
     if (!slug || slug.trim() === '') {
         return false;
@@ -57,11 +56,10 @@ function isValidSlug(slug) {
     return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug);
 }
 
-// Cập nhật slug tự động khi người dùng nhập tiêu đề (song song)
+// Cập nhật slug tự động
 function updateSlug($form) {
     const $title = $form.find('#news_title');
     const $slug = $form.find('#slug');
-    const $slugOriginal = $form.find('#slug_original');
 
     if (!$title.length || !$slug.length) {
         return;
@@ -71,20 +69,16 @@ function updateSlug($form) {
     const newSlug = generateSlugFromTitle(title);
     const oldSlug = $slug.val();
 
-    // Nếu slug không thay đổi thì không làm gì
     if (newSlug === oldSlug) {
         return;
     }
 
-    // Cập nhật slug
     $slug.val(newSlug);
 
-    // Cập nhật slug_original (hidden field)
     if ($slugOriginal.length) {
         $slugOriginal.val(newSlug);
     }
 
-    // Hiệu ứng highlight khi cập nhật
     $slug.css({
         backgroundColor: '#fef3c7',
         transition: 'all 0.3s ease'
@@ -97,7 +91,6 @@ function updateSlug($form) {
 
 // ==================== SHOW TOAST ====================
 
-// Hiển thị toast message với kiểu (success, error, info)
 function showToast(message, type) {
     $('.toast').remove();
 
@@ -116,33 +109,24 @@ function showToast(message, type) {
     }, 4000);
 }
 
-// Scroll đến element bị lỗi với hiệu ứng highlight
 function scrollToErrorElement($element, offset = 120) {
     if (!$element || !$element.length) return;
 
-    // Xóa highlight cũ nếu có
     $element.removeClass('error-highlight');
-
-    // Force reflow để animation chạy lại
     void $element[0].offsetWidth;
-
-    // Thêm class highlight
     $element.addClass('error-highlight');
 
-    // Scroll đến element
     const elementPosition = $element.offset().top;
     const offsetPosition = elementPosition - offset;
 
     $('html, body').animate({
         scrollTop: offsetPosition
     }, 500, function() {
-        // Focus vào element sau khi scroll xong
         if ($element.is(':visible') && !$element.is('input[readonly]')) {
             $element.trigger('focus');
         }
     });
 
-    // Xóa highlight sau 2 giây
     setTimeout(() => {
         $element.removeClass('error-highlight');
     }, 2000);
@@ -150,7 +134,6 @@ function scrollToErrorElement($element, offset = 120) {
 
 // ==================== VALIDATION & REQUIRED FIELDS ====================
 
-// Mapping field selectors cho các trường required
 const requiredFieldsMap = [
     {
         selector: '#news_title',
@@ -172,11 +155,9 @@ const requiredFieldsMap = [
     }
 ];
 
-// Lấy tất cả các field required trong form
 function getRequiredFields($form) {
     const $requiredFields = [];
 
-    // Tìm tất cả label có chứa span.required
     $form.find('label').each(function() {
         const $label = $(this);
         if ($label.find('.required').length) {
@@ -186,7 +167,6 @@ function getRequiredFields($form) {
             if (forAttr) {
                 $field = $form.find('#' + forAttr);
             } else {
-                // Tìm input/textarea kế tiếp hoặc trong cùng container
                 $field = $label.closest('.form-group').find('input, textarea, select').first();
             }
 
@@ -206,17 +186,14 @@ function getRequiredFields($form) {
 
 // ==================== VALIDATE CLIENT FORM ====================
 
-// Validate form client-side trước khi submit
 function validateClientForm($form) {
     const requiredFields = getRequiredFields($form);
     const errors = [];
     let firstErrorElement = null;
 
-    // Xóa thông báo lỗi cũ
     $('.field-error-msg').remove();
     $('.error-field').removeClass('error-field');
 
-    // Kiểm tra từng field required
     requiredFields.forEach(field => {
         const $field = field.$element;
         let value = '';
@@ -232,16 +209,13 @@ function validateClientForm($form) {
         let isValid = true;
         let errorMessage = '';
 
-        // Kiểm tra theo loại field
         if ($field.attr('type') === 'number') {
             if (!value || parseInt(value, 10) <= 0) {
                 isValid = false;
                 errorMessage = `Vui lòng nhập ${field.label}`;
             }
         } else {
-            // Kiểm tra nội dung cho textarea
             if ($field.is('textarea')) {
-                // Kiểm tra nếu là textarea và có Quill Editor
                 const quillContent = $field.val();
                 const strippedContent = quillContent ? quillContent.replace(/<[^>]*>/g, '').trim() : '';
                 if (!strippedContent) {
@@ -262,7 +236,6 @@ function validateClientForm($form) {
                 .addClass('field-error-msg')
                 .html('⚠️ ' + errorMessage);
 
-            // Tìm vị trí thích hợp để thêm thông báo
             const $parentGroup = $field.closest('.form-group');
             if ($parentGroup.length) {
                 $parentGroup.find('.field-error-msg').remove();
@@ -283,7 +256,6 @@ function validateClientForm($form) {
         }
     });
 
-    // Kiểm tra slug (không required nhưng cần validate nếu có)
     const $slug = $form.find('#slug');
     const slug = $slug.val();
     if (slug && !isValidSlug(slug)) {
@@ -292,7 +264,6 @@ function validateClientForm($form) {
         if (!firstErrorElement) firstErrorElement = $slug;
     }
 
-    // Hiển thị lỗi và scroll
     if (errors.length > 0) {
         const errorMessages = errors.map(e => e.msg);
         showToast('⚠️ Vui lòng kiểm tra lại:\n• ' + errorMessages.join('\n• '), 'error');
@@ -308,11 +279,9 @@ function validateClientForm($form) {
 
 // ==================== DISPLAY SERVER ERRORS ====================
 
-// Kiểm tra và hiển thị lỗi từ server (PHP session errors)
 function displayServerErrors(errors, $form) {
     if (!errors || errors.length === 0) return false;
 
-    // Xóa các thông báo lỗi cũ
     $('.field-error-msg').remove();
     $('.error-field').removeClass('error-field');
 
@@ -320,19 +289,16 @@ function displayServerErrors(errors, $form) {
     let firstErrorElement = null;
     let errorList = [];
 
-    // Tạo map field name => field info
     const fieldMap = {};
     requiredFields.forEach(field => {
         if (field.name) {
             fieldMap[field.name] = field;
         }
-        // Cũng map theo id
         if (field.$element.attr('id')) {
             fieldMap[field.$element.attr('id')] = field;
         }
     });
 
-    // Thêm các field không có required nhưng vẫn có thể có lỗi
     const allFieldsMap = {
         'slug': { $element: $('#slug'), label: 'Slug' },
         'category_id': { $element: $('select[name="category_id"]'), label: 'Danh mục' },
@@ -344,14 +310,12 @@ function displayServerErrors(errors, $form) {
 
     Object.assign(fieldMap, allFieldsMap);
 
-    // Xử lý từng lỗi
     errors.forEach(error => {
         errorList.push(error);
 
         let $element = null;
         let fieldLabel = '';
 
-        // Tìm field dựa trên nội dung lỗi
         const errorLower = error.toLowerCase();
 
         if (errorLower.includes('tiêu đề') || errorLower.includes('title')) {
@@ -376,7 +340,6 @@ function displayServerErrors(errors, $form) {
             $element = $('#uploadBox');
             fieldLabel = 'Ảnh đại diện';
         } else {
-            // Tìm theo field name trong map
             for (let key in fieldMap) {
                 if (errorLower.includes(key.toLowerCase())) {
                     $element = fieldMap[key].$element;
@@ -389,12 +352,10 @@ function displayServerErrors(errors, $form) {
         if ($element && $element.length) {
             $element.addClass('error-field');
 
-            // Thêm thông báo lỗi bên dưới field
             const $errorMsg = $('<div>')
                 .addClass('field-error-msg')
                 .html('⚠️ ' + error);
 
-            // Tìm vị trí thích hợp để thêm thông báo
             const $parentGroup = $element.closest('.form-group');
             if ($parentGroup.length) {
                 $parentGroup.find('.field-error-msg').remove();
@@ -409,19 +370,16 @@ function displayServerErrors(errors, $form) {
                 $element.after($errorMsg);
             }
 
-            // Lưu lại element lỗi đầu tiên
             if (!firstErrorElement) {
                 firstErrorElement = $element;
             }
         }
     });
 
-    // Hiển thị toast tổng hợp
     if (errorList.length > 0) {
         showToast('⚠️ Có ' + errorList.length + ' lỗi cần sửa:\n• ' + errorList.join('\n• '), 'error');
     }
 
-    // Scroll đến lỗi đầu tiên
     if (firstErrorElement && firstErrorElement.length) {
         setTimeout(function() {
             scrollToErrorElement(firstErrorElement, 120);
@@ -444,15 +402,12 @@ function bindNewsFormHandlers($form) {
     const $title = $form.find('#news_title');
     const $slug = $form.find('#slug');
 
-    // === SLUG TỰ ĐỘNG CẬP NHẬT SONG SONG VỚI TIÊU ĐỀ ===
-    // Khi người dùng nhập tiêu đề, slug tự động cập nhật theo thời gian thực
     $title.on('input', function() {
-        updateSlug($form); // Cập nhật slug song song
+        updateSlug($form);
         $(this).removeClass('error-field');
         $(this).closest('.form-group').find('.field-error-msg').remove();
     });
 
-    // Ngăn chỉnh sửa slug trực tiếp (readonly)
     $slug.on('copy cut paste', function(e) {
         e.preventDefault();
         showToast('Slug không thể chỉnh sửa trực tiếp!', 'error');
@@ -465,12 +420,10 @@ function bindNewsFormHandlers($form) {
         return false;
     });
 
-    // Xóa lỗi khi người dùng nhập vào các field required
     $form.find('input, textarea, select').on('input change', function() {
         $(this).removeClass('error-field');
         $(this).closest('.form-group').find('.field-error-msg').remove();
 
-        // Nếu là textarea, cũng kiểm tra content từ Quill
         if ($(this).is('textarea') && $(this).attr('id') === 'news_content') {
             const content = $(this).val();
             const strippedContent = content ? content.replace(/<[^>]*>/g, '').trim() : '';
@@ -481,23 +434,18 @@ function bindNewsFormHandlers($form) {
         }
     });
 
-    // Xử lý submit form
     $form.on('submit', function(e) {
-        // Cập nhật slug lần cuối trước khi submit
         updateSlug($form);
 
-        // Đồng bộ nội dung từ Quill nếu có
         if (typeof syncEditorContent === 'function') {
             syncEditorContent();
         }
 
-        // Validate client trước khi submit
         if (!validateClientForm($form)) {
             e.preventDefault();
         }
     });
 
-    // Upload ảnh
     $form.find('#uploadBox').on('click', function() {
         $form.find('#imageInput').trigger('click');
     });
@@ -506,12 +454,10 @@ function bindNewsFormHandlers($form) {
         previewImage(this, $form);
         $(this).removeClass('error-field');
         $(this).closest('.form-group').find('.field-error-msg').remove();
-        // Xóa lỗi của uploadBox nếu có
         $('#uploadBox').removeClass('error-field');
         $('#uploadBox').closest('.form-group').find('.field-error-msg').remove();
     });
 
-    // Tạo slug ban đầu nếu có tiêu đề (khi load trang với dữ liệu cũ)
     const initialTitle = $title.val();
     const initialSlug = $slug.val();
 
@@ -519,13 +465,11 @@ function bindNewsFormHandlers($form) {
         updateSlug($form);
     }
 
-    // Tooltip cho slug
     $slug.attr('title', 'Slug được tự động tạo từ tiêu đề, không thể chỉnh sửa trực tiếp');
 }
 
 // ==================== PREVIEW IMAGE ====================
 
-// Preview ảnh khi người dùng chọn file
 function previewImage(input, $form) {
     const $preview = $form.find('#imagePreview');
     const $previewImg = $form.find('#previewImg');
@@ -537,7 +481,6 @@ function previewImage(input, $form) {
         return;
     }
 
-    // Kiểm tra kích thước ảnh (Max 5MB)
     if (input.files[0].size > 5 * 1024 * 1024) {
         showToast('Ảnh không được vượt quá 5MB!', 'error');
         $(input).val('');
@@ -552,7 +495,6 @@ function previewImage(input, $form) {
         $uploadBox.css('opacity', '0.5');
         $uploadText.html('Đã chọn ảnh: ' + input.files[0].name);
         $uploadInfo.html('Click để đổi ảnh khác');
-        // Xóa lỗi nếu có
         $uploadBox.removeClass('error-field');
         $uploadBox.closest('.form-group').find('.field-error-msg').remove();
     };
@@ -560,7 +502,6 @@ function previewImage(input, $form) {
     reader.readAsDataURL(input.files[0]);
 }
 
-// Xóa ảnh đã chọn
 window.removeImage = function() {
     const $form = $('#newsForm');
     const $preview = $form.find('#imagePreview');
@@ -583,7 +524,6 @@ window.removeImage = function() {
 
 // ==================== INITIALIZATION ====================
 
-/// Khởi tạo form
 function initNewsForm(scope = document, serverErrors = null) {
     const $scope = scope instanceof jQuery ? scope : $(scope);
     const $form = $scope.find('#newsForm');
@@ -592,7 +532,6 @@ function initNewsForm(scope = document, serverErrors = null) {
 
     bindNewsFormHandlers($form);
 
-    // Hiển thị lỗi từ server (PHP session) nếu có
     if (serverErrors && serverErrors.length > 0) {
         displayServerErrors(serverErrors, $form);
     }
@@ -600,7 +539,6 @@ function initNewsForm(scope = document, serverErrors = null) {
 
 // ==================== EXPOSE GLOBAL FUNCTIONS ====================
 
-// Thêm vào window.newsForm để dùng trong HTML
 window.newsForm = {
     init: initNewsForm,
 
@@ -622,7 +560,6 @@ window.newsForm = {
         ];
 
         $title.val(aiTitles[Math.floor(Math.random() * aiTitles.length)]);
-        // Cập nhật slug ngay sau khi tạo tiêu đề AI
         updateSlug($form);
         $title.removeClass('error-field');
         $title.closest('.form-group').find('.field-error-msg').remove();
@@ -638,7 +575,6 @@ window.newsForm = {
     }
 };
 
-// Hàm tạo lại slug (có thể gọi từ console hoặc thêm nút trong HTML)
 window.regenerateSlug = function() {
     const $form = $('#newsForm');
 
@@ -670,18 +606,13 @@ window.regenerateSlug = function() {
         $slugOriginal.val(newSlug);
     }
 
-    // Hiệu ứng highlight xanh khi tạo lại
     $slug.css({
-        backgroundColor: '#d1fae5',
-        borderColor: '#10b981',
-        transition: 'all 0.3s ease'
+      backgroundColor: '#fef3c7',
+      transition: 'all 0.3s ease'
     });
 
     setTimeout(() => {
-        $slug.css({
-            backgroundColor: '#f3f4f6',
-            borderColor: '#e5e7eb'
-        });
+      $slug.css('backgroundColor', '#f3f4f6');
     }, 500);
 
     showToast('Đã tạo lại slug thành công!', 'success');
@@ -690,24 +621,34 @@ window.regenerateSlug = function() {
 // ==================== AUTO INIT ON DOM READY ====================
 
 $(document).ready(function() {
-    // Lấy errors từ PHP session (nếu có)
     const serverErrors = window.serverErrors || null;
-
-    // Khởi tạo form
     window.newsForm.init(document, serverErrors);
 });
 
+// ==================== QUILL.JS INTEGRATION (SỬ DỤNG API CHÍNH THỨC) ====================
 
-// ==================== QUILL.JS INTEGRATION ====================
-
-// Khởi tạo Quill Editor
 let quillEditor = null;
 let quillInitialized = false;
+
+// Màu sắc cho color picker
+const themeColors = [
+    '#000000', '#434343', '#666666', '#999999', '#b7b7b7', '#cccccc', '#d9d9d9', '#efefef', '#f3f3f3', '#ffffff',
+    '#980000', '#ff0000', '#ff9900', '#ffff00', '#00ff00', '#00ffff', '#4a86e8', '#0000ff', '#9900ff', '#ff00ff',
+    '#e6b8af', '#f4cccc', '#fce5cd', '#fff2cc', '#d9ead3', '#d0e0e3', '#c9daf8', '#cfe2f3', '#d9d2e9', '#ead1dc',
+    '#dd7e6b', '#ea9999', '#f9cb9c', '#ffe599', '#b6d7a8', '#a2c4c9', '#8eaad8', '#9fc5e8', '#b4a7d6', '#d5a6bd',
+    '#cc4125', '#e06666', '#f6b26b', '#ffd966', '#93c47d', '#76a5af', '#6d9eeb', '#6fa8dc', '#8e7cc3', '#c27ba0',
+    '#a61c00', '#cc0000', '#e69138', '#f1c232', '#6aa84f', '#45818e', '#3c78d8', '#3d85c6', '#674ea7', '#a64d79',
+    '#85200c', '#990000', '#b45f06', '#bf9000', '#38761d', '#134f5c', '#1155cc', '#0b5394', '#351c75', '#741b47'
+];
+
+const standardColors = [
+    '#c0c0c0', '#808080', '#800000', '#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#8000ff',
+    '#808000', '#008080', '#800080', '#000000', '#666666', '#999999', '#b3b3b3', '#cccccc', '#e6e6e6', '#ffffff'
+];
 
 function initQuillEditor() {
     if (quillInitialized) return;
 
-    // Lấy textarea và container
     const textarea = document.getElementById('news_content');
     const editorContainer = document.querySelector('.editor-instructions');
 
@@ -723,17 +664,24 @@ function initQuillEditor() {
         background: white;
     `;
 
-    // Chèn container trước textarea
     textarea.parentNode.insertBefore(quillContainer, textarea);
-
-    // Ẩn textarea gốc
     textarea.style.display = 'none';
 
-    // Khởi tạo Quill
+    // Khởi tạo Quill với toolbar đầy đủ
     quillEditor = new Quill('#quill-editor-container', {
         theme: 'snow',
         modules: {
-            toolbar: false, // Tắt toolbar mặc định của Quill
+            toolbar: [
+                [{ 'font': [] }],
+                [{ 'header': [1, 2, 3, 4, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'align': [] }],
+                ['link', 'image', 'video'],
+                ['clean']
+            ],
             clipboard: {
                 matchVisual: false
             }
@@ -741,255 +689,48 @@ function initQuillEditor() {
         placeholder: 'Đây là nội dung bài viết. Có thể gõ trực tiếp hoặc dán nội dung từ nguồn khác...'
     });
 
-    // Đặt nội dung ban đầu từ textarea
+    // Đặt nội dung ban đầu
     if (textarea.value) {
         quillEditor.root.innerHTML = textarea.value;
     }
 
     // Cập nhật textarea khi Quill thay đổi
     quillEditor.on('text-change', function() {
-        const content = quillEditor.root.innerHTML;
-        textarea.value = content;
+        textarea.value = quillEditor.root.innerHTML;
     });
 
     quillInitialized = true;
 
-    // Thiết lập các sự kiện cho toolbar custom
-    initQuillToolbar();
-
-    // Thêm CSS cho Quill
-    addQuillStyles();
+    // Thiết lập custom handlers cho video và image
+    setupQuillCustomHandlers();
 }
 
-// Thêm CSS cho Quill Editor
-function addQuillStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        #quill-editor-container .ql-editor {
-            min-height: 400px;
-            padding: 16px;
-            font-family: inherit;
-            font-size: inherit;
-        }
-        
-        #quill-editor-container .ql-editor img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-        
-        #quill-editor-container .ql-editor iframe {
-            max-width: 100%;
-            border-radius: 8px;
-        }
-        
-        #quill-editor-container .ql-editor a {
-            color: #3b82f6;
-            text-decoration: underline;
-        }
-        
-        #quill-editor-container .ql-editor a:hover {
-            color: #2563eb;
-        }
-        
-        #quill-editor-container .ql-editor blockquote {
-            border-left: 4px solid #3b82f6;
-            padding-left: 16px;
-            margin: 16px 0;
-            color: #4b5563;
-        }
-        
-        #quill-editor-container .ql-editor pre {
-            background: #f3f4f6;
-            padding: 12px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-        }
-        
-        #quill-editor-container .ql-editor ul,
-        #quill-editor-container .ql-editor ol {
-            padding-left: 24px;
-        }
-        
-        #quill-editor-container .ql-editor h1 {
-            font-size: 2em;
-            font-weight: bold;
-        }
-        
-        #quill-editor-container .ql-editor h2 {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-        
-        #quill-editor-container .ql-editor h3 {
-            font-size: 1.17em;
-            font-weight: bold;
-        }
-        
-        #quill-editor-container .ql-editor h4 {
-            font-size: 1em;
-            font-weight: bold;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// ==================== QUILL TOOLBAR HANDLERS (jQuery) ====================
-
-function initQuillToolbar() {
+function setupQuillCustomHandlers() {
     if (!quillEditor) return;
 
-    // === FONT FAMILY - Thay đổi kiểu chữ ===
-    $('#fontFamily').off('change').on('change', function() {
-        const font = $(this).val();
-        if (font && font !== 'default') {
-            quillEditor.format('font', font);
-        }
-    });
+    // Lấy toolbar của Quill
+    const toolbar = quillEditor.getModule('toolbar');
+    if (!toolbar) return;
 
-    // === HEADING ===
-    $('#headingSelect').off('change').on('change', function() {
-        const value = $(this).val();
-        if (value) {
-            if (value === 'p') {
-                quillEditor.format('header', false);
-            } else {
-                const headerLevel = parseInt(value.replace('h', ''));
-                quillEditor.format('header', headerLevel);
-            }
-        }
-        updateToolbarStateQuill();
-    });
+    // Custom handler cho video
+    const videoHandler = function() {
+        openVideoModalForTextarea();
+    };
 
-// === BOLD ===
-    $('#btnBold').off('click').on('click', function(e) {
-        e.preventDefault();
-        const range = quillEditor.getSelection();
-        if (range && range.length > 0) {
-            // Nếu có text được chọn, áp dụng định dạng bold
-            const isBold = quillEditor.getFormat(range.index, range.length).bold;
-            quillEditor.formatText(range.index, range.length, 'bold', !isBold);
-        } else {
-            // Nếu không có text được chọn, toggle trạng thái bold
-            const currentFormat = quillEditor.getFormat();
-            quillEditor.format('bold', !currentFormat.bold);
-        }
-        updateToolbarStateQuill();
-        syncEditorContent();
-    });
+    // Custom handler cho image
+    const imageHandler = function() {
+        insertImageToTextarea();
+    };
 
-    // === ITALIC ===
-    $('#btnItalic').off('click').on('click', function(e) {
-        e.preventDefault();
-        const range = quillEditor.getSelection();
-        if (range && range.length > 0) {
-            // Nếu có text được chọn, áp dụng định dạng italic
-            const isItalic = quillEditor.getFormat(range.index, range.length).italic;
-            quillEditor.formatText(range.index, range.length, 'italic', !isItalic);
-        } else {
-            // Nếu không có text được chọn, toggle trạng thái italic
-            const currentFormat = quillEditor.getFormat();
-            quillEditor.format('italic', !currentFormat.italic);
-        }
-        updateToolbarStateQuill();
-        syncEditorContent();
-    });
-
-    // === UNDERLINE ===
-    $('#btnUnderline').off('click').on('click', function(e) {
-        e.preventDefault();
-        const range = quillEditor.getSelection();
-        if (range && range.length > 0) {
-            // Nếu có text được chọn, áp dụng định dạng underline
-            const isUnderline = quillEditor.getFormat(range.index, range.length).underline;
-            quillEditor.formatText(range.index, range.length, 'underline', !isUnderline);
-        } else {
-            // Nếu không có text được chọn, toggle trạng thái underline
-            const currentFormat = quillEditor.getFormat();
-            quillEditor.format('underline', !currentFormat.underline);
-        }
-        updateToolbarStateQuill();
-        syncEditorContent();
-    });
-
-    // === UNORDERED LIST ===
-    $('[onclick*="insertUnorderedList"]').off('click').on('click', function(e) {
-        e.preventDefault();
-        const format = quillEditor.getFormat();
-        quillEditor.format('list', format.list === 'bullet' ? false : 'bullet');
-        updateToolbarStateQuill();
-    });
-
-    // === ORDERED LIST ===
-    $('[onclick*="insertOrderedList"]').off('click').on('click', function(e) {
-        e.preventDefault();
-        const format = quillEditor.getFormat();
-        quillEditor.format('list', format.list === 'ordered' ? false : 'ordered');
-        updateToolbarStateQuill();
-    });
-
-    // === ALIGNMENT - Căn lề văn bản (giống MS Word) ===
-    // Note: Alignment is now handled in wrapText() function to avoid conflicts
-
-
-    
-
-    // === TEXT COLOR - Hiển thị bảng màu ===
-    // Toggle dropdown text color
-    $('#textColorBtn').off('click').on('click', function(e) {
-        e.stopPropagation();
-        $('#colorDropdown').toggle();
-        $('#highlightDropdown').hide();
-    });
-
-    // Toggle dropdown highlight color
-    $('#highlightColorBtn').off('click').on('click', function(e) {
-        e.stopPropagation();
-        $('#highlightDropdown').toggle();
-        $('#colorDropdown').hide();
-    });
-
-    // Apply text color
-    $(document).off('click', '.color-item').on('click', '.color-item', function(e) {
-        const color = $(this).data('color');
-        const isHighlight = $(this).closest('#highlightDropdown').length > 0;
-
-        applyColorToQuill(color, isHighlight);
-
-        $('#colorDropdown').hide();
-        $('#highlightDropdown').hide();
-        setTimeout(updateToolbarStateQuill, 10);
-    });
-
-    // No color options
-    $('#noColorOption').off('click').on('click', function() {
-        applyColorToQuill(null, false);
-        $('#colorDropdown').hide();
-    });
-
-    $('#noHighlightOption').off('click').on('click', function() {
-        applyColorToQuill(null, true);
-        $('#highlightDropdown').hide();
-    });
-
-    // More colors options
-    $('#moreColorsOption, #moreHighlightColorsOption').off('click').on('click', function() {
-        const isHighlight = $(this).attr('id') === 'moreHighlightColorsOption';
-        showMoreColorsModalForQuill(isHighlight);
-        $('#colorDropdown').hide();
-        $('#highlightDropdown').hide();
-    });
-
-    // Đóng dropdown khi click ra ngoài
-    $(document).off('click.quillDropdown').on('click.quillDropdown', function(e) {
-        if (!$(e.target).closest('.color-picker-wrapper').length) {
-            $('#colorDropdown').hide();
-            $('#highlightDropdown').hide();
-        }
-    });
+    // Ghi đè handlers
+    const toolbarConfig = toolbar.options;
+    if (toolbarConfig.handlers) {
+        toolbarConfig.handlers.video = videoHandler;
+        toolbarConfig.handlers.image = imageHandler;
+    }
 }
 
-// ==================== CẬP NHẬT TRẠNG THÁI TOOLBAR ====================
+// ==================== QUILL TOOLBAR FUNCTIONS ====================
 
 // Cập nhật trạng thái toolbar
 function updateToolbarStateQuill() {
@@ -1018,15 +759,10 @@ function updateToolbarStateQuill() {
         $('#headingSelect').val('p');
     }
 
-    // === ALIGNMENT - Cập nhật trạng thái căn lề (giống MS Word) ===
-    // Xóa tất cả active class của các nút căn lề
+    // Alignment
     $('[onclick*="justify"]').removeClass('active');
 
-    // Lấy giá trị align hiện tại
     const alignValue = format.align;
-
-    // Map align value sang selector và set active
-    // Nếu không có align (undefined hoặc null) hoặc align là 'left' => active nút căn trái
     if (!alignValue || alignValue === 'left') {
         $('[onclick*="justifyLeft"]').addClass('active');
     } else if (alignValue === 'center') {
@@ -1039,55 +775,53 @@ function updateToolbarStateQuill() {
     if (format.font) {
         $('#fontFamily').val(format.font);
     } else {
-        $('#fontFamily').val('Arial');
+        $('#fontFamily').val('sans-serif');
     }
 }
 
-// ==================== CÁC HÀM HỖ TRỢ CHO QUILL ====================
+// ==================== CÁC HÀM WRAP TEXT (SỬ DỤNG API QUILL) ====================
 
-// Ghi đè hàm wrapText để tương thích với Quill
 window.wrapText = function(action) {
     if (!quillEditor) return;
 
-    const actions = {
-        'bold': function() { quillEditor.format('bold', !quillEditor.getFormat().bold); },
-        'italic': function() { quillEditor.format('italic', !quillEditor.getFormat().italic); },
-        'underline': function() { quillEditor.format('underline', !quillEditor.getFormat().underline); },
-        'insertUnorderedList': function() {
+    switch(action) {
+        case 'bold':
+            quillEditor.format('bold', !quillEditor.getFormat().bold);
+            break;
+        case 'italic':
+            quillEditor.format('italic', !quillEditor.getFormat().italic);
+            break;
+        case 'underline':
+            quillEditor.format('underline', !quillEditor.getFormat().underline);
+            break;
+        case 'insertUnorderedList':
             const format = quillEditor.getFormat();
             quillEditor.format('list', format.list === 'bullet' ? false : 'bullet');
-        },
-        'insertOrderedList': function() {
-            const format = quillEditor.getFormat();
-            quillEditor.format('list', format.list === 'ordered' ? false : 'ordered');
-        },
-        'justifyLeft': function() {
+            break;
+        case 'insertOrderedList':
+            const format2 = quillEditor.getFormat();
+            quillEditor.format('list', format2.list === 'ordered' ? false : 'ordered');
+            break;
+        case 'justifyLeft':
             const currentAlign = quillEditor.getFormat().align;
-            // Nếu đang căn trái hoặc chưa có align -> xóa align (về mặc định)
-            // Nếu đang căn giữa hoặc phải -> chuyển về căn trái
             if (!currentAlign || currentAlign === 'left') {
                 quillEditor.format('align', false);
             } else {
                 quillEditor.format('align', 'left');
             }
-        },
-        'justifyCenter': function() {
-            const currentAlign = quillEditor.getFormat().align;
-            quillEditor.format('align', currentAlign === 'center' ? false : 'center');
-        },
-        'justifyRight': function() {
-            const currentAlign = quillEditor.getFormat().align;
-            quillEditor.format('align', currentAlign === 'right' ? false : 'right');
-        }
-    };
-
-    if (actions[action]) {
-        actions[action]();
-        setTimeout(updateToolbarStateQuill, 10);
+            break;
+        case 'justifyCenter':
+            const currentAlign2 = quillEditor.getFormat().align;
+            quillEditor.format('align', currentAlign2 === 'center' ? false : 'center');
+            break;
+        case 'justifyRight':
+            const currentAlign3 = quillEditor.getFormat().align;
+            quillEditor.format('align', currentAlign3 === 'right' ? false : 'right');
+            break;
     }
+    setTimeout(updateToolbarStateQuill, 10);
 };
 
-// Ghi đè hàm applyHeadingToTextarea
 window.applyHeadingToTextarea = function(value) {
     if (!quillEditor) return;
 
@@ -1100,7 +834,49 @@ window.applyHeadingToTextarea = function(value) {
     setTimeout(updateToolbarStateQuill, 10);
 };
 
-// Ghi đè hàm insertImageToTextarea
+window.createLinkForTextarea = function() {
+    if (!quillEditor) return;
+
+    const url = prompt('Nhập URL link:', 'https://');
+    if (url && url.trim()) {
+        const range = quillEditor.getSelection();
+        if (range && range.length > 0) {
+            quillEditor.format('link', url.trim());
+        } else {
+            const text = prompt('Nhập text hiển thị:', 'Xem thêm');
+            if (text && text.trim()) {
+                const index = range ? range.index : quillEditor.getLength();
+                quillEditor.insertText(index, text.trim());
+                quillEditor.setSelection(index, text.length);
+                quillEditor.format('link', url.trim());
+            }
+        }
+    }
+};
+
+window.removeTextareaFormat = function() {
+    if (!quillEditor) return;
+
+    const range = quillEditor.getSelection();
+    if (range && range.length > 0) {
+        quillEditor.removeFormat(range.index, range.length);
+    } else {
+        quillEditor.root.innerHTML = quillEditor.root.innerHTML.replace(/<[^>]*>/g, '');
+    }
+    showToast('Đã xóa định dạng HTML!', 'success');
+};
+
+window.syncEditorContent = function() {
+    if (quillEditor) {
+        const textarea = document.getElementById('news_content');
+        if (textarea) {
+            textarea.value = quillEditor.root.innerHTML;
+        }
+    }
+};
+
+// ==================== IMAGE UPLOAD VIA QUILL API ====================
+
 window.insertImageToTextarea = function() {
     if (!quillEditor) return;
 
@@ -1110,14 +886,21 @@ window.insertImageToTextarea = function() {
     input.onchange = function(e) {
         const file = e.target.files[0];
         if (file) {
+            // Kiểm tra kích thước ảnh
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Ảnh không được vượt quá 5MB!', 'error');
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function(ev) {
-                const range = quillEditor.getSelection();
-                if (range) {
-                    quillEditor.insertEmbed(range.index, 'image', ev.target.result);
-                } else {
-                    quillEditor.root.innerHTML += `<img src="${ev.target.result}" alt="image">`;
-                }
+                const range = quillEditor.getSelection(true);
+                quillEditor.insertEmbed(range.index, 'image', ev.target.result);
+                // Đặt con trỏ sau ảnh
+                setTimeout(function() {
+                    quillEditor.setSelection(range.index + 1, 0);
+                }, 10);
+                showToast('Đã chèn ảnh thành công!', 'success');
             };
             reader.readAsDataURL(file);
         }
@@ -1127,8 +910,7 @@ window.insertImageToTextarea = function() {
 
 // ==================== VIDEO MODAL ====================
 
-// Mở modal chèn video
-window.openVideoModalForTextarea = function() {
+function openVideoModalForTextarea() {
     if (!quillEditor) {
         showToast('Vui lòng đợi editor tải xong!', 'error');
         return;
@@ -1137,7 +919,6 @@ window.openVideoModalForTextarea = function() {
     if (modal) {
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
-        // Focus vào input YouTube sau khi modal hiển thị
         setTimeout(function() {
             const youtubeInput = document.getElementById('youtubeUrl');
             if (youtubeInput) {
@@ -1145,15 +926,13 @@ window.openVideoModalForTextarea = function() {
             }
         }, 350);
     }
-};
+}
 
-// Đóng modal video
 window.closeVideoModal = function() {
     const modal = document.getElementById('videoModal');
     if (modal) {
         modal.classList.remove('show');
         document.body.style.overflow = '';
-        // Reset fields
         const youtubeInput = document.getElementById('youtubeUrl');
         const fileInput = document.getElementById('videoFileInput');
         const fileName = document.getElementById('videoFileName');
@@ -1167,103 +946,8 @@ window.closeVideoModal = function() {
     }
 };
 
-// Xử lý upload video từ file - Sử dụng jQuery
-window.handleVideoFileUpload = function(event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
+// ==================== VIDEO HANDLERS ====================
 
-    // Kiểm tra kích thước video (max 50MB)
-    if (file.size > 50 * 1024 * 1024) {
-        showToast('Video không được vượt quá 50MB!', 'error');
-        event.target.value = '';
-        return;
-    }
-
-    // Kiểm tra định dạng video
-    const validTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
-    if (!validTypes.includes(file.type)) {
-        showToast('Định dạng video không hỗ trợ! Vui lòng chọn MP4, WebM, OGG hoặc MOV.', 'error');
-        event.target.value = '';
-        return;
-    }
-
-    // Hiển thị tên file
-    const fileName = document.getElementById('videoFileName');
-    if (fileName) {
-        fileName.textContent = '📹 ' + file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
-        fileName.style.display = 'block';
-    }
-
-    // Chèn video vào editor bằng jQuery
-    insertVideoFileWithJQuery(file);
-};
-
-// ==================== CHÈN VIDEO BẰNG JQUERY ====================
-
-/**
- * Chèn video từ file vào Quill Editor bằng jQuery
- * Sử dụng FileReader để đọc file và chèn dưới dạng thẻ video HTML
- */
-function insertVideoFileWithJQuery(file) {
-    if (!quillEditor) {
-        showToast('Vui lòng đợi editor tải xong!', 'error');
-        return;
-    }
-
-    const reader = new FileReader();
-    
-    reader.onload = function(e) {
-        const videoDataUrl = e.target.result;
-        
-        // Tạo thẻ video HTML với controls và style
-        const videoHtml = `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; display: block; background: #000;" src="${videoDataUrl}"></video>`;
-        
-        // Sử dụng jQuery để lấy vị trí con trỏ
-        const $editor = $('#quill-editor-container .ql-editor');
-        
-        // Lấy vị trí con trỏ hiện tại trong Quill
-        const range = quillEditor.getSelection(true);
-        const index = range ? range.index : quillEditor.getLength();
-        
-        // Chèn video vào Quill bằng dangerouslyPasteHTML
-        quillEditor.clipboard.dangerouslyPasteHTML(index, videoHtml);
-        
-        // Cập nhật textarea
-        updateTextareaContent();
-        
-        // Đặt con trỏ sau video
-        setTimeout(function() {
-            quillEditor.setSelection(index + 1, 0);
-        }, 10);
-        
-        // Đóng modal và thông báo
-        closeVideoModal();
-        showToast('Đã chèn video từ File thành công!', 'success');
-        setTimeout(updateToolbarStateQuill, 10);
-    };
-
-    reader.onerror = function() {
-        showToast('Lỗi đọc file video!', 'error');
-    };
-
-    reader.readAsDataURL(file);
-}
-
-/**
- * Cập nhật nội dung textarea từ Quill Editor
- */
-function updateTextareaContent() {
-    if (quillEditor) {
-        const textarea = document.getElementById('news_content');
-        if (textarea) {
-            textarea.value = quillEditor.root.innerHTML;
-        }
-    }
-}
-
-/**
- * Chèn video từ YouTube vào Quill Editor
- */
 window.insertYoutubeVideo = function() {
     if (!quillEditor) {
         showToast('Vui lòng đợi editor tải xong!', 'error');
@@ -1296,10 +980,8 @@ window.insertYoutubeVideo = function() {
         return;
     }
 
-    // Tạo embed URL cho YouTube
     const embedUrl = 'https://www.youtube.com/embed/' + videoId;
     
-    // Tạo HTML iframe với responsive container
     const videoHtml = `
         <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; margin: 10px 0;">
             <iframe 
@@ -1312,17 +994,11 @@ window.insertYoutubeVideo = function() {
         </div>
     `;
 
-    // Lấy vị trí con trỏ hiện tại
     const range = quillEditor.getSelection(true);
     const index = range ? range.index : quillEditor.getLength();
     
-    // Chèn video vào Quill
     quillEditor.clipboard.dangerouslyPasteHTML(index, videoHtml);
     
-    // Cập nhật textarea
-    updateTextareaContent();
-    
-    // Đặt con trỏ sau video
     setTimeout(function() {
         quillEditor.setSelection(index + 1, 0);
     }, 10);
@@ -1332,7 +1008,6 @@ window.insertYoutubeVideo = function() {
     setTimeout(updateToolbarStateQuill, 10);
 };
 
-// Hàm lấy YouTube ID từ URL
 window.getYoutubeId = function(url) {
     if (!url) return null;
 
@@ -1351,16 +1026,74 @@ window.getYoutubeId = function(url) {
     return null;
 };
 
-// ==================== VIDEO MODAL EVENTS (jQuery) ====================
+window.handleVideoFileUpload = function(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
 
-// Đóng modal khi click bên ngoài
+    if (file.size > 50 * 1024 * 1024) {
+        showToast('Video không được vượt quá 50MB!', 'error');
+        event.target.value = '';
+        return;
+    }
+
+    const validTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+    if (!validTypes.includes(file.type)) {
+        showToast('Định dạng video không hỗ trợ! Vui lòng chọn MP4, WebM, OGG hoặc MOV.', 'error');
+        event.target.value = '';
+        return;
+    }
+
+    const fileName = document.getElementById('videoFileName');
+    if (fileName) {
+        fileName.textContent = '📹 ' + file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+        fileName.style.display = 'block';
+    }
+
+    insertVideoFileWithQuill(file);
+};
+
+function insertVideoFileWithQuill(file) {
+    if (!quillEditor) {
+        showToast('Vui lòng đợi editor tải xong!', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        const videoDataUrl = e.target.result;
+        
+        const videoHtml = `<video controls style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; display: block; background: #000;" src="${videoDataUrl}"></video>`;
+        
+        const range = quillEditor.getSelection(true);
+        const index = range ? range.index : quillEditor.getLength();
+        
+        quillEditor.clipboard.dangerouslyPasteHTML(index, videoHtml);
+        
+        setTimeout(function() {
+            quillEditor.setSelection(index + 1, 0);
+        }, 10);
+        
+        closeVideoModal();
+        showToast('Đã chèn video từ File thành công!', 'success');
+        setTimeout(updateToolbarStateQuill, 10);
+    };
+
+    reader.onerror = function() {
+        showToast('Lỗi đọc file video!', 'error');
+    };
+
+    reader.readAsDataURL(file);
+}
+
+// ==================== VIDEO MODAL EVENTS ====================
+
 $(document).on('click', '#videoModal', function(e) {
     if (e.target === this) {
         closeVideoModal();
     }
 });
 
-// Cho phép Enter để chèn YouTube
 $(document).on('keydown', '#youtubeUrl', function(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
@@ -1368,12 +1101,10 @@ $(document).on('keydown', '#youtubeUrl', function(e) {
     }
 });
 
-// Xóa lỗi border khi người dùng nhập vào
 $(document).on('input', '#youtubeUrl', function() {
     this.style.borderColor = '#e2e8f0';
 });
 
-// Đóng modal bằng phím ESC
 $(document).on('keydown', function(e) {
     if (e.key === 'Escape') {
         const modal = document.getElementById('videoModal');
@@ -1383,84 +1114,194 @@ $(document).on('keydown', function(e) {
     }
 });
 
+// ==================== COLOR PICKER ====================
 
+// Khởi tạo color picker
+function initColorPicker() {
+    // Theme colors
+    const themeColorsHtml = themeColors.map(color => 
+        `<div class="color-item" data-color="${color}" style="background-color: ${color};"></div>`
+    ).join('');
 
+    $('.theme-colors, .highlight-theme-colors').html(themeColorsHtml);
 
-// ==================== NHẬP LINK VIDEO ====================
+    // Standard colors
+    const standardColorsHtml = standardColors.map(color => 
+        `<div class="color-item" data-color="${color}" style="background-color: ${color};"></div>`
+    ).join('');
 
-// Ghi đè hàm createLinkForTextarea
-window.createLinkForTextarea = function() {
-    if (!quillEditor) return;
+    $('.standard-colors, .highlight-standard-colors').html(standardColorsHtml);
 
-    const url = prompt('Nhập URL link:', 'https://');
-    if (url && url.trim()) {
-        const range = quillEditor.getSelection();
-        if (range && range.length > 0) {
-            quillEditor.format('link', url.trim());
-        } else {
-            const text = prompt('Nhập text hiển thị:', 'Xem thêm');
-            if (text && text.trim()) {
-                const index = range ? range.index : quillEditor.getLength();
-                quillEditor.insertText(index, text.trim());
-                quillEditor.setSelection(index, text.length);
-                quillEditor.format('link', url.trim());
-            }
+    // Color picker events
+    $(document).off('click', '.color-item').on('click', '.color-item', function(e) {
+        const color = $(this).data('color');
+        const isHighlight = $(this).closest('#highlightDropdown').length > 0;
+
+        applyColorToQuill(color, isHighlight);
+
+        $('#colorDropdown').hide();
+        $('#highlightDropdown').hide();
+        setTimeout(updateToolbarStateQuill, 10);
+    });
+
+    // No color options
+    $('#noColorOption').off('click').on('click', function() {
+        applyColorToQuill(null, false);
+        $('#colorDropdown').hide();
+    });
+
+    $('#noHighlightOption').off('click').on('click', function() {
+        applyColorToQuill(null, true);
+        $('#highlightDropdown').hide();
+    });
+
+    // More colors options
+    $('#moreColorsOption, #moreHighlightColorsOption').off('click').on('click', function() {
+        const isHighlight = $(this).attr('id') === 'moreHighlightColorsOption';
+        showMoreColorsModalForQuill(isHighlight);
+        $('#colorDropdown').hide();
+        $('#highlightDropdown').hide();
+    });
+
+    // Toggle dropdowns
+    $('#textColorBtn').off('click').on('click', function(e) {
+        e.stopPropagation();
+        $('#colorDropdown').toggle();
+        $('#highlightDropdown').hide();
+    });
+
+    $('#highlightColorBtn').off('click').on('click', function(e) {
+        e.stopPropagation();
+        $('#highlightDropdown').toggle();
+        $('#colorDropdown').hide();
+    });
+
+    // Close dropdowns when clicking outside
+    $(document).off('click.quillDropdown').on('click.quillDropdown', function(e) {
+        if (!$(e.target).closest('.color-picker-wrapper').length) {
+            $('#colorDropdown').hide();
+            $('#highlightDropdown').hide();
         }
-    }
-};
+    });
+}
 
-// Ghi đè hàm removeTextareaFormat
-window.removeTextareaFormat = function() {
+function applyColorToQuill(color, isHighlight) {
     if (!quillEditor) return;
 
-    const range = quillEditor.getSelection();
-    if (range) {
-        quillEditor.removeFormat(range.index, range.length);
+    const format = isHighlight ? 'background' : 'color';
+
+    if (color === null) {
+        quillEditor.format(format, false);
     } else {
-        quillEditor.root.innerHTML = quillEditor.root.innerHTML.replace(/<[^>]*>/g, '');
+        quillEditor.format(format, color);
     }
-    showToast('Đã xóa định dạng HTML!', 'success');
-};
 
-// Ghi đè hàm syncEditorContent
-window.syncEditorContent = function() {
-    if (quillEditor) {
-        const textarea = document.getElementById('news_content');
-        if (textarea) {
-            textarea.value = quillEditor.root.innerHTML;
+    // Update indicator
+    const indicatorId = isHighlight ? '#highlightIndicator' : '#colorIndicator';
+    $(indicatorId).css('background-color', color || 'transparent');
+
+    // Update button active state
+    if (!isHighlight) {
+        $('#textColorBtn').toggleClass('active', !!color);
+    } else {
+        $('#highlightColorBtn').toggleClass('active', !!color);
+    }
+}
+
+// ==================== MORE COLORS MODAL ====================
+
+function showMoreColorsModalForQuill(isHighlight) {
+    const modalHtml = `
+        <div class="more-colors-modal" id="moreColorsModal">
+            <div class="more-colors-content">
+                <h3>Chọn màu sắc</h3>
+                <div class="color-preview">
+                    <div class="color-preview-box" id="colorPreviewBox"></div>
+                    <div class="color-values">
+                        <input type="text" id="colorHexInput" placeholder="#000000" maxlength="7">
+                    </div>
+                </div>
+                <div class="color-slider">
+                    <label>Màu sắc</label>
+                    <input type="color" id="colorPickerInput" value="#000000">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-secondary" onclick="closeMoreColorsModal()">Hủy</button>
+                    <button class="btn-primary" onclick="applyMoreColorQuill(${isHighlight})">Chọn</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    $('body').append(modalHtml);
+
+    const colorPicker = document.getElementById('colorPickerInput');
+    const hexInput = document.getElementById('colorHexInput');
+    const previewBox = document.getElementById('colorPreviewBox');
+
+    colorPicker.addEventListener('input', function() {
+        const color = this.value;
+        hexInput.value = color;
+        previewBox.style.backgroundColor = color;
+    });
+
+    hexInput.addEventListener('input', function() {
+        const color = this.value;
+        if (/^#[0-9A-F]{6}$/i.test(color)) {
+            colorPicker.value = color;
+            previewBox.style.backgroundColor = color;
         }
-    }
-};
+    });
+}
 
-// Ghi đè hàm generateAIContent
-window.generateAIContent = function() {
+function closeMoreColorsModal() {
+    $('#moreColorsModal').remove();
+}
+
+function applyMoreColorQuill(isHighlight) {
+    const color = $('#colorHexInput').val();
+    if (color && /^#[0-9A-F]{6}$/i.test(color)) {
+        applyColorToQuill(color, isHighlight);
+    }
+    closeMoreColorsModal();
+    setTimeout(updateToolbarStateQuill, 10);
+}
+
+// ==================== FONT FAMILY HANDLER ====================
+
+$('#fontFamily').off('change').on('change', function() {
     if (!quillEditor) return;
+    const font = $(this).val();
+    if (font) {
+        quillEditor.format('font', font);
+    }
+    setTimeout(updateToolbarStateQuill, 10);
+});
 
-    // Hiển thị loading
-    showToast('Đang tạo nội dung bằng AI...', 'info');
+// ==================== HEADING SELECT HANDLER ====================
 
-    // Mô phỏng gọi API AI
-    setTimeout(function() {
-        const content = `
-            <h2>Tiêu đề bài viết</h2>
-            <p>Đây là nội dung được tạo tự động bởi AI. Bạn có thể chỉnh sửa để phù hợp với nhu cầu của mình.</p>
-            <p><strong>Lưu ý:</strong> Nội dung này chỉ mang tính tham khảo, vui lòng kiểm tra lại trước khi đăng.</p>
-            <ul>
-                <li>Điểm nổi bật 1</li>
-                <li>Điểm nổi bật 2</li>
-                <li>Điểm nổi bật 3</li>
-            </ul>
-            <p>Liên hệ để biết thêm chi tiết.</p>
-        `;
-
-        const range = quillEditor.getSelection();
-        if (range) {
-            quillEditor.insertText(range.index, content);
+$('#headingSelect').off('change').on('change', function() {
+    const value = $(this).val();
+    if (value) {
+        if (value === 'p') {
+            quillEditor.format('header', false);
         } else {
-            quillEditor.root.innerHTML += content;
+            const headerLevel = parseInt(value.replace('h', ''));
+            quillEditor.format('header', headerLevel);
         }
+    }
+    updateToolbarStateQuill();
+});
 
-        showToast('Đã tạo nội dung bằng AI!', 'success');
-    }, 1500);
-};
+// ==================== INITIALIZE ON DOM READY ====================
 
+$(document).ready(function() {
+    // Khởi tạo Quill Editor
+    initQuillEditor();
+
+    // Khởi tạo Color Picker
+    initColorPicker();
+
+    // Cập nhật toolbar state sau khi khởi tạo
+    setTimeout(updateToolbarStateQuill, 100);
+});
