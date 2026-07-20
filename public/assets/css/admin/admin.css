@@ -35,28 +35,22 @@ body {
 }
 
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 18px;
+    width: 8rem;
+    justify-self: start; /* góc trái */
+    align-self: start; /* góc trên */
+    z-index: 2;
 }
 
-.logo-icon {
-    width: 36px;
-    height: 36px;
-    background: #6366f1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    font-weight: bold;
+.logo img {
+    width: 100%;
+    height: auto;
 }
 
 .menu-items {
     list-style: none;
     flex: 1;
     margin-top: 30px;
+    padding: 0px;
 }
 
 .menu-item {
@@ -88,6 +82,11 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+.profile p{
+    margin-top: 0;
+    margin-bottom: 0rem;
+    padding: 0px;
 }
 
 .avatar {

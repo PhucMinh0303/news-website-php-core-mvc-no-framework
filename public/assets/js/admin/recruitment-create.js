@@ -282,34 +282,27 @@
   }
 
   // ============================================
-  // XỬ LÝ MỨC LƯƠNG - FORMAT VND
+  // XỬ LÝ MỨC LƯƠNG
   // ============================================
 
-  function formatSalaryWithVND(input) {
-    if (!input) return '';
-    
+  // Hàm định dạng số với dấu chấm
+  function formatNumberWithDots(number) {
     // Loại bỏ tất cả ký tự không phải số
-    let numberStr = input.replace(/[^0-9]/g, '');
-    
-    if (numberStr === '') {
-      return '';
-    }
+    let numStr = number.toString().replace(/[^0-9]/g, '');
+    if (numStr === '') return '';
     
     // Chuyển thành số và định dạng với dấu chấm
-    let number = parseInt(numberStr, 10);
-    let formatted = number.toLocaleString('vi-VN');
-    
-    // Thêm VND
-    return formatted + ' VND';
+    let num = parseInt(numStr, 10);
+    return num.toLocaleString('vi-VN');
   }
 
-  function extractSalaryNumber(formattedValue) {
-    if (!formattedValue) return '';
-    // Loại bỏ 'VND' và dấu chấm, giữ lại số
-    return formattedValue.replace(/ VND$/, '').replace(/\./g, '');
+  // Hàm trích xuất số từ chuỗi đã định dạng
+  function extractNumberFromFormatted(str) {
+    if (!str) return '';
+    return str.replace(/\./g, '');
   }
 
-  // Khởi tạo xử lý mức lương
+  // Hàm xử lý input mức lương
   function initSalaryField($form) {
     const $salaryInput = $form.find('#salary_range');
     const $salaryHidden = $form.find('#salary_value');
@@ -321,42 +314,129 @@
     
     $salaryInput.data('salary-bound', true);
     
-    // Lưu giá trị gốc khi focus
+    // Lưu vị trí cursor và giá trị trước đó
     let previousValue = '';
-    
-    $salaryInput.on('focus', function() {
-      // Lưu giá trị hiện tại khi focus vào
-      previousValue = $(this).val();
-    });
-    
-    $salaryInput.on('input', function() {
+    let cursorPosition = 0;
+
+    // Hàm xử lý khi người dùng nhập
+    $salaryInput.on('input', function(e) {
       let rawValue = $(this).val();
-      let cursorPosition = this.selectionStart;
+      let selectionStart = this.selectionStart;
+      let selectionEnd = this.selectionEnd;
+      let isDeleting = false;
       
-      // Nếu người dùng nhập chữ "VND" hoặc các ký tự không phải số
-      // thì chỉ giữ lại số
-      let numberOnly = rawValue.replace(/[^0-9]/g, '');
-      
-      // Nếu không có số, hiển thị trống
-      if (numberOnly === '') {
-        $(this).val('');
-        $salaryHidden.val('');
-        $salaryError.text('');
-        $salaryError.hide();
-        return;
+      // Kiểm tra nếu đang xóa (Backspace hoặc Delete)
+      if (e.originalEvent && e.originalEvent.inputType) {
+        isDeleting = e.originalEvent.inputType === 'deleteContentBackward' || 
+                     e.originalEvent.inputType === 'deleteContentForward';
       }
       
-      // Định dạng số với dấu chấm và VND
-      let number = parseInt(numberOnly, 10);
-      let formatted = number.toLocaleString('vi-VN') + ' VND';
+      // Tìm vị trí dấu "-" nếu có
+      let dashIndex = rawValue.indexOf('-');
+      let hasDash = dashIndex !== -1;
+      
+      // Tách phần trước và sau dấu "-"
+      let beforeDash = '';
+      let afterDash = '';
+      
+      if (hasDash) {
+        beforeDash = rawValue.substring(0, dashIndex).trim();
+        afterDash = rawValue.substring(dashIndex + 1).trim();
+      } else {
+        beforeDash = rawValue.trim();
+      }
+      
+      // Xử lý phần trước dấu "-"
+      let formattedBefore = '';
+      let numberBefore = '';
+      if (beforeDash) {
+        // Loại bỏ tất cả ký tự không phải số
+        numberBefore = beforeDash.replace(/[^0-9]/g, '');
+        if (numberBefore) {
+          let num = parseInt(numberBefore, 10);
+          formattedBefore = num.toLocaleString('vi-VN');
+        }
+      }
+      
+      // Xử lý phần sau dấu "-"
+      let formattedAfter = '';
+      let numberAfter = '';
+      if (hasDash && afterDash) {
+        numberAfter = afterDash.replace(/[^0-9]/g, '');
+        if (numberAfter) {
+          let num = parseInt(numberAfter, 10);
+          formattedAfter = num.toLocaleString('vi-VN');
+        }
+      }
+      
+      // Xây dựng giá trị mới
+      let newValue = '';
+      if (formattedBefore) {
+        newValue = formattedBefore;
+      }
+      
+      if (hasDash) {
+        // Nếu đang xóa và không còn số sau dấu "-", xóa luôn dấu "-"
+        if (isDeleting && !formattedAfter && afterDash === '') {
+          // Không thêm dấu "-" nếu đã xóa hết số sau dấu "-"
+        } else {
+          newValue += ' - ';
+          if (formattedAfter) {
+            newValue += formattedAfter;
+          }
+        }
+      }
+      
+      // Nếu đang xóa và không còn nội dung, để trống
+      if (isDeleting && !formattedBefore && !formattedAfter && beforeDash === '' && afterDash === '') {
+        newValue = '';
+      }
       
       // Cập nhật giá trị
-      $(this).val(formatted);
-      $salaryHidden.val(number);
+      $(this).val(newValue);
       
-      // Tính toán lại vị trí cursor
-      // Đặt cursor vào cuối text
-      this.setSelectionRange(formatted.length, formatted.length);
+      // Cập nhật hidden input
+      let finalNumberBefore = numberBefore || '';
+      let finalNumberAfter = numberAfter || '';
+      let finalValue = finalNumberBefore;
+      if (hasDash && !(isDeleting && !finalNumberAfter)) {
+        if (finalNumberAfter) {
+          finalValue += '-' + finalNumberAfter;
+        } else if (!isDeleting) {
+          // Nếu có dấu "-" nhưng chưa có số sau
+          finalValue += '-';
+        }
+      }
+      $salaryHidden.val(finalValue);
+      
+      // Tính toán vị trí cursor mới
+      let newCursorPos = newValue.length;
+      
+      // Nếu người dùng đang gõ ở phần sau dấu "-"
+      if (hasDash && selectionStart > dashIndex) {
+        // Tìm vị trí của dấu "-" trong giá trị mới
+        let newDashIndex = newValue.indexOf('-');
+        if (newDashIndex !== -1) {
+          // Nếu có nội dung sau dấu "-"
+          let afterDashContent = newValue.substring(newDashIndex + 2); // +2 cho " - "
+          // Đặt cursor ở cuối phần sau dấu "-"
+          newCursorPos = newDashIndex + 2 + afterDashContent.length;
+        }
+      } else {
+        // Nếu không có dấu "-" hoặc đang gõ phần trước
+        let beforeContent = hasDash ? newValue.substring(0, newValue.indexOf('-')).trim() : newValue;
+        newCursorPos = beforeContent.length;
+        if (hasDash && !(isDeleting && !formattedAfter && afterDash === '')) {
+          newCursorPos += 3; // " - "
+        }
+      }
+      
+      // Đặt cursor
+      try {
+        this.setSelectionRange(newCursorPos, newCursorPos);
+      } catch(e) {
+        // Bỏ qua lỗi nếu không đặt được cursor
+      }
       
       // Ẩn lỗi khi đang nhập hợp lệ
       $salaryError.text('');
@@ -364,47 +444,204 @@
       $(this).removeClass('error-field');
       $(this).closest('.form-group').find('.field-error-msg').remove();
     });
-    
+
+    // Xử lý khi người dùng nhấn phím
+    $salaryInput.on('keydown', function(e) {
+      // Cho phép các phím đặc biệt
+      let allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter', '-'];
+      
+      // Xử lý Ctrl + A (Select All)
+      if (e.ctrlKey && e.key === 'a') {
+        // Cho phép select all
+        return true;
+      }
+      
+      // Xử lý Ctrl + C (Copy)
+      if (e.ctrlKey && e.key === 'c') {
+        return true;
+      }
+      
+      // Xử lý Ctrl + V (Paste)
+      if (e.ctrlKey && e.key === 'v') {
+        // Cho phép paste nhưng sẽ xử lý sau
+        return true;
+      }
+      
+      // Xử lý Ctrl + X (Cut)
+      if (e.ctrlKey && e.key === 'x') {
+        return true;
+      }
+      
+      // Xử lý phím Backspace và Delete
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        let currentValue = $(this).val();
+        let selectionStart = this.selectionStart;
+        let selectionEnd = this.selectionEnd;
+        
+        // Nếu đang chọn một phần, cho phép xóa
+        if (selectionStart !== selectionEnd) {
+          return true;
+        }
+        
+        // Kiểm tra nếu đang ở vị trí có dấu "-"
+        let dashIndex = currentValue.indexOf('-');
+        if (dashIndex !== -1) {
+          // Nếu đang xóa ở vị trí dấu "-" hoặc gần dấu "-"
+          if (e.key === 'Backspace' && selectionStart === dashIndex + 3) {
+            // Đang xóa sau dấu "-" (ở khoảng trắng)
+            // Cho phép xóa
+            return true;
+          }
+          
+          if (e.key === 'Delete' && selectionStart === dashIndex) {
+            // Đang xóa dấu "-"
+            // Cho phép xóa
+            return true;
+          }
+        }
+        
+        return true;
+      }
+      
+      // Xử lý phím "-"
+      if (e.key === '-') {
+        let currentValue = $(this).val();
+        let selectionStart = this.selectionStart;
+        let selectionEnd = this.selectionEnd;
+        
+        // Nếu đã có dấu "-" và không có selection, không cho nhập thêm
+        if (currentValue.includes('-') && selectionStart === selectionEnd) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Nếu đang chọn một phần, cho phép thay thế
+        if (selectionStart !== selectionEnd) {
+          return true;
+        }
+        
+        // Cho phép nhập dấu "-"
+        return true;
+      }
+      
+      // Ngăn nhập ký tự đặc biệt (trừ số, dấu "-", Backspace, Delete, mũi tên)
+      if (!allowedKeys.includes(e.key) && !/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        return false;
+      }
+      
+      return true;
+    });
+
+    // Xử lý sau khi nhấn phím (đặc biệt là dấu "-")
+    $salaryInput.on('keyup', function(e) {
+      if (e.key === '-') {
+        let currentValue = $(this).val();
+        let selectionStart = this.selectionStart;
+        
+        // Nếu chưa có dấu "-" hoặc đã có nhưng đang ở cuối
+        if (!currentValue.includes('-')) {
+          // Tự động thêm khoảng cách 2 bên dấu "-"
+          let parts = currentValue.split('-');
+          if (parts.length > 1) {
+            let formattedParts = parts.map(part => part.trim());
+            let newValue = formattedParts.join(' - ');
+            $(this).val(newValue);
+            
+            // Đặt cursor sau dấu "-"
+            let dashIndex = newValue.indexOf('-');
+            if (dashIndex !== -1) {
+              let cursorPos = dashIndex + 3; // " - "
+              try {
+                this.setSelectionRange(cursorPos, cursorPos);
+              } catch(e) {}
+            }
+          }
+        }
+      }
+    });
+
     // Xử lý khi blur (rời khỏi input)
     $salaryInput.on('blur', function() {
       let value = $(this).val();
       
-      // Nếu trống hoặc chỉ có khoảng trắng
       if (!value || value.trim() === '') {
         $(this).val('');
         $salaryHidden.val('');
         return;
       }
       
-      // Kiểm tra xem đã có VND chưa
-      if (!value.includes('VND')) {
-        // Nếu chưa có VND, thử lấy số từ giá trị
-        let numberOnly = value.replace(/[^0-9]/g, '');
-        if (numberOnly !== '') {
-          let number = parseInt(numberOnly, 10);
-          let formatted = number.toLocaleString('vi-VN') + ' VND';
-          $(this).val(formatted);
-          $salaryHidden.val(number);
+      // Kiểm tra và chuẩn hóa định dạng
+      let parts = value.split('-').map(part => part.trim());
+      let formattedParts = [];
+      
+      parts.forEach(part => {
+        if (part) {
+          let numbers = part.replace(/[^0-9]/g, '');
+          if (numbers) {
+            let num = parseInt(numbers, 10);
+            formattedParts.push(num.toLocaleString('vi-VN'));
+          } else {
+            formattedParts.push(part);
+          }
+        } else {
+          formattedParts.push('');
+        }
+      });
+      
+      let formattedValue = formattedParts.join(' - ');
+      
+      // Nếu chỉ có 1 phần và không có dấu "-"
+      if (parts.length === 1) {
+        if (formattedParts[0]) {
+          formattedValue = formattedParts[0];
         }
       }
       
-      // Nếu có VND nhưng không có số
-      if (value.includes('VND')) {
-        let numberOnly = value.replace(/[^0-9]/g, '');
-        if (numberOnly === '') {
-          $(this).val('');
-          $salaryHidden.val('');
+      $(this).val(formattedValue);
+      
+      // Cập nhật hidden input
+      let numberParts = [];
+      parts.forEach(part => {
+        if (part) {
+          let numbers = part.replace(/[^0-9]/g, '');
+          numberParts.push(numbers || '');
+        } else {
+          numberParts.push('');
         }
+      });
+      
+      let finalValue = numberParts[0] || '';
+      if (numberParts.length > 1 && numberParts[1]) {
+        finalValue += '-' + numberParts[1];
+      }
+      $salaryHidden.val(finalValue);
+    });
+
+    // Xử lý paste
+    $salaryInput.on('paste', function(e) {
+      e.preventDefault();
+      
+      // Lấy dữ liệu từ clipboard
+      let clipboardData = e.originalEvent.clipboardData || window.clipboardData;
+      let pastedData = clipboardData.getData('text');
+      
+      if (!pastedData) return;
+      
+      // Lọc chỉ giữ số và dấu "-"
+      let filteredData = pastedData.replace(/[^0-9\-]/g, '');
+      
+      // Nếu có dữ liệu, chèn vào vị trí cursor
+      if (filteredData) {
+        let start = this.selectionStart;
+        let end = this.selectionEnd;
+        let currentValue = $(this).val();
+        let newValue = currentValue.substring(0, start) + filteredData + currentValue.substring(end);
+        $(this).val(newValue);
+        $(this).trigger('input');
       }
     });
-    
-    // Xử lý khi nhấn phím Enter hoặc Tab
-    $salaryInput.on('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === 'Tab') {
-        $(this).trigger('blur');
-      }
-    });
-    
+
     // Validate mức lương
     function validateSalary() {
       const value = $salaryInput.val();
@@ -416,20 +653,45 @@
       }
       
       // Kiểm tra xem có chứa số không
-      let numberOnly = value.replace(/[^0-9]/g, '');
-      if (numberOnly === '') {
+      let numbers = value.replace(/[^0-9]/g, '');
+      if (numbers === '') {
         $salaryError.text('Vui lòng nhập số tiền hợp lệ');
         $salaryError.show();
         $salaryInput.addClass('error-field');
         return false;
       }
       
-      let number = parseInt(numberOnly, 10);
-      if (number <= 0) {
-        $salaryError.text('Mức lương phải lớn hơn 0');
-        $salaryError.show();
-        $salaryInput.addClass('error-field');
-        return false;
+      // Kiểm tra nếu có dấu "-" thì cả 2 phần đều phải có số
+      if (value.includes('-')) {
+        let parts = value.split('-').map(part => part.trim());
+        let hasBothNumbers = true;
+        let hasAtLeastOneNumber = false;
+        
+        parts.forEach(part => {
+          if (part) {
+            let num = part.replace(/[^0-9]/g, '');
+            if (num !== '') {
+              hasAtLeastOneNumber = true;
+            }
+            if (num === '') {
+              hasBothNumbers = false;
+            }
+          }
+        });
+        
+        if (!hasBothNumbers && parts.length > 1) {
+          $salaryError.text('Vui lòng nhập đầy đủ cả 2 mức lương');
+          $salaryError.show();
+          $salaryInput.addClass('error-field');
+          return false;
+        }
+        
+        if (!hasAtLeastOneNumber) {
+          $salaryError.text('Vui lòng nhập số tiền hợp lệ');
+          $salaryError.show();
+          $salaryInput.addClass('error-field');
+          return false;
+        }
       }
       
       $salaryError.text('');
@@ -443,34 +705,102 @@
       // Đảm bảo format đúng trước khi submit
       let value = $salaryInput.val();
       if (value && value.trim() !== '') {
-        let numberOnly = value.replace(/[^0-9]/g, '');
-        if (numberOnly !== '') {
-          let number = parseInt(numberOnly, 10);
-          let formatted = number.toLocaleString('vi-VN') + ' VND';
-          $salaryInput.val(formatted);
-          $salaryHidden.val(number);
+        let parts = value.split('-').map(part => part.trim());
+        let formattedParts = [];
+        
+        parts.forEach(part => {
+          if (part) {
+            let numbers = part.replace(/[^0-9]/g, '');
+            if (numbers) {
+              let num = parseInt(numbers, 10);
+              formattedParts.push(num.toLocaleString('vi-VN'));
+            } else {
+              formattedParts.push(part);
+            }
+          } else {
+            formattedParts.push('');
+          }
+        });
+        
+        let formattedValue = formattedParts.join(' - ');
+        if (parts.length === 1) {
+          formattedValue = formattedParts[0] || '';
         }
+        $salaryInput.val(formattedValue);
+      }
+      
+      // Validate
+      if (!validateSalary()) {
+        e.preventDefault();
       }
     });
     
-    // Thêm hàm validate vào form để sử dụng trong validation chung
+    // Thêm hàm validate vào form
     $salaryInput.data('validate-function', validateSalary);
     
     // Xử lý giá trị ban đầu nếu có
     const initialValue = $salaryInput.val();
     if (initialValue && initialValue.trim() !== '') {
-      // Nếu là số nguyên, format lại
-      let numberOnly = initialValue.replace(/[^0-9]/g, '');
-      if (numberOnly !== '') {
-        let number = parseInt(numberOnly, 10);
-        let formatted = number.toLocaleString('vi-VN') + ' VND';
-        $salaryInput.val(formatted);
-        $salaryHidden.val(number);
+      // Format lại giá trị ban đầu
+      let parts = initialValue.split('-').map(part => part.trim());
+      let formattedParts = [];
+      
+      parts.forEach(part => {
+        if (part) {
+          let numbers = part.replace(/[^0-9]/g, '');
+          if (numbers) {
+            let num = parseInt(numbers, 10);
+            formattedParts.push(num.toLocaleString('vi-VN'));
+          } else {
+            formattedParts.push(part);
+          }
+        } else {
+          formattedParts.push('');
+        }
+      });
+      
+      let formattedValue = formattedParts.join(' - ');
+      if (parts.length === 1) {
+        formattedValue = formattedParts[0] || '';
       }
+      $salaryInput.val(formattedValue);
+      
+      // Cập nhật hidden input
+      let numberParts = [];
+      parts.forEach(part => {
+        if (part) {
+          let numbers = part.replace(/[^0-9]/g, '');
+          numberParts.push(numbers || '');
+        } else {
+          numberParts.push('');
+        }
+      });
+      
+      let finalValue = numberParts[0] || '';
+      if (numberParts.length > 1 && numberParts[1]) {
+        finalValue += '-' + numberParts[1];
+      }
+      $salaryHidden.val(finalValue);
     }
     
     return validateSalary;
   }
+
+  // Hàm khởi tạo form
+  function initRecruitmentForm(scope = document) {
+    const $scope = scope instanceof jQuery ? scope : $(scope);
+    const $form = $scope.find('#recruitmentForm');
+    
+    if (!$form.length) return;
+    
+    // Khởi tạo salary field
+    initSalaryField($form);
+  }
+
+  // Khởi tạo khi DOM ready
+  $(function() {
+    initRecruitmentForm();
+  });
 
   // ============================================
   // HIỂN THỊ LỖI TỪ SERVER
