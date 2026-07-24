@@ -2,9 +2,9 @@
 // models/ContactModel.php
 require_once __DIR__ . '/../core/Model.php';
 
-class ContactModel extends Model
+class FeedbackModel extends Model
 {
-    protected $table = 'contacts';
+    protected $table = 'Contacts';
 
     public function addContact($data)
     {

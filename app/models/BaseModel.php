@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../core/Database.php';
 
 class BaseModel
 {
@@ -8,64 +8,43 @@ class BaseModel
 
     public function __construct()
     {
-        $this->db = new Database();
+        $this->db = Database::getInstance();
         $this->conn = $this->db->getConnection();
     }
 
     public function __destruct()
     {
-        $this->conn->closeConnection();
+        if ($this->db) {
+            $this->db->closeConnection();
+        }
     }
 
     // Phương thức lấy dữ liệu (SELECT)
-    protected function select($sql, $params = [], $types = "")
+    protected function select($sql, $params = [])
     {
         $stmt = $this->conn->prepare($sql);
-
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $data = [];
-
-        while ($row = $result->fetch_assoc()) {
-            $data[] = $row;
-        }
-
-        $stmt->close();
-        return $data;
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Phương thức lấy 1 dòng duy nhất
-    protected function selectOne($sql, $params = [], $types = "")
+    protected function selectOne($sql, $params = [])
     {
-        $result = $this->select($sql, $params, $types);
-        return $result[0] ?? null;
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     // Phương thức thực thi (INSERT, UPDATE, DELETE)
-    protected function execute($sql, $params = [], $types = "")
+    protected function execute($sql, $params = [])
     {
         $stmt = $this->conn->prepare($sql);
-
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-
-        $result = $stmt->execute();
-        $insertId = $stmt->insert_id;
-        $affectedRows = $stmt->affected_rows;
-
-        $stmt->close();
+        $success = $stmt->execute($params);
 
         return [
-            'success' => $result,
-            'insert_id' => $insertId,
-            'affected_rows' => $affectedRows
+            'success' => $success,
+            'insert_id' => $success ? (int)$this->conn->lastInsertId() : 0,
+            'affected_rows' => $stmt->rowCount()
         ];
     }
 }
-
-?>

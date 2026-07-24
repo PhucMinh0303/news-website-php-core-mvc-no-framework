@@ -3,7 +3,7 @@
 -- =====================================================
 CREATE TABLE IF NOT EXISTS contacts
 (
-    id               INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id               INT PRIMARY KEY AUTO_INCREMENT,
     customer_name    VARCHAR(100) NOT NULL,
     phone            VARCHAR(20)  NOT NULL,
     email            VARCHAR(100),

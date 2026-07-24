@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Contact Management View for Admin Panel
  * Outlook-style interface for managing audience feedback and story tips
@@ -15,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Google Fonts: Inter for modern look -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-  
+
 </head>
 
 <body>
@@ -35,17 +36,18 @@
         <div class="search-box">
           <input type="text" id="searchInput" placeholder="Tìm trong thư..." />
         </div>
-        <div class="new-messages" id="newMessagesBadge">1 thư mới</div>
+
       </div>
 
 
       <div class="contact-header-right">
-        <button class="btn-archive" id="jumpToArchiveBtn">Jump to Archive</button>
+        <div class="new-messages" id="newMessagesBadge">1 thư mới</div>
         <div class="tabs" id="tabsContainer">
-            <div class="tab active" data-tab="inbox">Thư mục (<span id="inboxCount">3</span>)</div>
-            <div class="tab" data-tab="archive">Lưu trữ (<span id="archiveCount">2</span>)</div>
-            <div class="tab" data-tab="deleted">Mục đã xóa (<span id="deletedCount">1</span>)</div>
-            <!-- Slider div will be injected via JS -->
+
+          <div class="tab active" data-tab="inbox">Thư mục (<span id="inboxCount">3</span>)</div>
+          <div class="tab" data-tab="archive">Lưu trữ (<span id="archiveCount">2</span>)</div>
+          <div class="tab" data-tab="deleted">Mục đã xóa (<span id="deletedCount">1</span>)</div>
+          <!-- Slider div will be injected via JS -->
         </div>
 
       </div>

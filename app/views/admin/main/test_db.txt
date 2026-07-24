@@ -1,4 +1,4 @@
-﻿Sơ đồ luồng xử lý:
+﻿1/ Sơ đồ luồng xử lý test_db:
 
 Người dùng nhập form
          ↓
@@ -27,3 +27,62 @@ Trả về JSON response
 JavaScript cập nhật UI
          ↓
 Reload trang (nếu cần)
+
+2/ Sơ đồ luồng xử lý feedback:
+
+                    NGƯỜI DÙNG (Frontend)
+                            │
+                            │
+                    Nhập biểu mẫu phản hồi
+      (Họ tên, Email, SĐT, Chủ đề, Nội dung)
+                            │
+                            ▼
+              app/views/user/contact/index.php
+                            │
+                            ▼
+               AJAX / Form POST (submit)
+                            │
+                            ▼
+           app/controllers/FeedbackController.php
+                            │
+            Kiểm tra dữ liệu (Validation)
+                            │
+          Làm sạch dữ liệu (Sanitize)
+                            │
+                            ▼
+             app/models/FeedbackModel.php
+                            │
+                            ▼
+                  core/Database.php (PDO)
+                            │
+                            ▼
+                     MySQL Database
+                    bảng: feedbacks
+                            │
+──────────────────────────────────────────────────────────────
+                            │
+                    TRANG QUẢN TRỊ (Admin)
+                            │
+                            ▼
+          app/controllers/admin/FeedbackController.php
+                            │
+                            ▼
+              app/models/FeedbackModel.php
+                            │
+                            ▼
+                     MySQL Database
+                            │
+                            ▼
+       app/views/admin/main/feedback/index.php
+          (Danh sách thư giống Gmail)
+                            │
+        ┌──────────────┬──────────────┬─────────────┐
+        │              │              │
+        ▼              ▼              ▼
+   Xem chi tiết    Đánh dấu đã đọc   Xóa thư
+        │              │              │
+        └──────────────┴──────────────┘
+                       │
+                       ▼
+                  Cập nhật Database
+

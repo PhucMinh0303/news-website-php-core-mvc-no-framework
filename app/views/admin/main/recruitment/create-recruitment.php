@@ -23,7 +23,7 @@ unset($_SESSION['errors']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 
-    
+
 </head>
 
 <body>
@@ -121,17 +121,18 @@ unset($_SESSION['errors']);
                         <input type="hidden" name="salary" id="salary_value">
                         <small id="salary_error" class="error-text"></small>
                     </div>
+                    <!-- Trong create.php, sửa phần deadline -->
+                    <div class="form-group">
+                        <label>Hạn nộp hồ sơ: <span class="required">*</span></label>
+                        <input class="input-deadline" name="deadline" id="deadline" type="date"
+                            value="<?php echo htmlspecialchars($formData['deadline'] ?? ''); ?>"
+                            min="<?php echo date('Y-m-d'); ?>">
+                        <!-- Thêm container để hiển thị thông báo lỗi -->
+                        <small class="error-message deadline-error" style="display: none; color: #dc2626; font-size: 12px; margin-top: 5px;"></small>
+                    </div>
                 </div>
 
-                <!-- Trong create.php, sửa phần deadline -->
-                <div class="form-group">
-                    <label>Hạn nộp hồ sơ: <span class="required">*</span></label>
-                    <input class="input-deadline" name="deadline" id="deadline" type="date"
-                        value="<?php echo htmlspecialchars($formData['deadline'] ?? ''); ?>"
-                        min="<?php echo date('Y-m-d'); ?>">
-                    <!-- Thêm container để hiển thị thông báo lỗi -->
-                    <small class="error-message deadline-error" style="display: none; color: #dc2626; font-size: 12px; margin-top: 5px;"></small>
-                </div>
+
 
                 <div class="form-group">
                     <div class="label-row">

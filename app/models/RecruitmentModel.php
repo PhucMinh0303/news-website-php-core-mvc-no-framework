@@ -104,60 +104,51 @@ class RecruitmentModel extends Model
     }
 
     /**
-     * Lấy tin tuyển dụng theo slug
+     * Tạo slug từ tiêu đề
      */
-    public function getBySlug($slug)
+    public function createSlug($string)
     {
-        $sql = "SELECT * FROM {$this->table} WHERE slug = :slug";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['slug' => $slug]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Tạo slug từ title
-     */
-    private function createSlug($title)
-    {
-        $slug = strtolower(trim($title));
-        $slug = preg_replace('/[^a-z0-9-]/', '-', $slug);
-        $slug = preg_replace('/-+/', '-', $slug);
-        return trim($slug, '-');
-    }
-
-    /**
-     * Tạo slug duy nhất
-     */
-    private function generateUniqueSlug($title, $id = null)
-    {
-        $slug = $this->createSlug($title);
-        $originalSlug = $slug;
-        $counter = 1;
-
-        while ($this->slugExists($slug, $id)) {
-            $slug = $originalSlug . '-' . $counter;
-            $counter++;
-        }
-
-        return $slug;
+        $string = trim($string);
+        $string = strtolower($string);
+        $string = preg_replace('/[^a-z0-9-]/', '-', $string);
+        $string = preg_replace('/-+/', '-', $string);
+        return trim($string, '-');
     }
 
     /**
      * Kiểm tra slug đã tồn tại chưa
      */
-    private function slugExists($slug, $excludeId = null)
+    public function slugExists($slug, $excludeId = null)
     {
-        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE slug = :slug";
-        $params = ['slug' => $slug];
+        $sql = "SELECT COUNT(*) as count FROM news WHERE slug = :slug";
+        $params = [':slug' => $slug];
 
         if ($excludeId) {
             $sql .= " AND id != :id";
-            $params['id'] = $excludeId;
+            $params[':id'] = $excludeId;
         }
 
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchColumn() > 0;
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['count'] > 0;
+    }
+
+    /**
+     * Tạo slug duy nhất
+     */
+    public function generateUniqueSlug($title, $excludeId = null)
+    {
+        $slug = $this->createSlug($title);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while ($this->slugExists($slug, $excludeId)) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     /**
