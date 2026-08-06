@@ -65,6 +65,7 @@ class Router {
      * @param string $action Controller@method
      */
     public function addRoute($pattern, $action) {
+        
         $this->routes[$pattern] = $action;
     }
     

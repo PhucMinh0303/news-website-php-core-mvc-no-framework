@@ -16,8 +16,9 @@
     <script src="<?php echo View::asset('js/admin/contact-admin.js'); ?>"></script>
     <script src="<?php echo View::asset('js/admin/recruitment-create.js'); ?>"></script>
     <script src="<?php echo View::asset('js/admin/admin.js'); ?>"></script>
+    <script src="<?php echo View::asset('js/admin/slug.js'); ?>"></script>
     <script src="<?php echo View::asset('js/admin/news-create.js'); ?>"></script>
 
     </body>
 
-    </html> 
+    </html>

@@ -1,0 +1,102 @@
+﻿<div class="rich-editor-toolbar">
+                            <div class="tool-group">
+                                <select id="fontFamily" title="Font chữ">
+                                    <option value="Arial">Arial</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Verdana">Verdana</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Courier New">Courier New</option>
+                                    <option value="Roboto">Roboto</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-group">
+                                <button type="button" id="btnBold" onclick="wrapText('bold')" title="In đậm"><b>B</b></button>
+                                <button type="button" id="btnItalic" onclick="wrapText('italic')" title="In nghiêng"><i>I</i></button>
+                                <button type="button" id="btnUnderline" onclick="wrapText('underline')" title="Gạch chân"><u>U</u></button>
+                            </div>
+
+                            <div class="tool-group">
+                                <button type="button" onclick="wrapText('insertUnorderedList')" title="Danh sách có dấu chấm ở đầu dòng"><i class="fa-solid fa-list"></i></button>
+                                <button type="button" onclick="wrapText('insertOrderedList')" title="Danh sách có số ở đầu dòng">1.2.3</button>
+                            </div>
+
+                            <div class="tool-group">
+                                <button type="button" onclick="wrapText('justifyLeft')" title="Căn trái"><i class="fa-solid fa-align-left"></i></button>
+                                <button type="button" onclick="wrapText('justifyCenter')" title="Căn giữa"><i class="fa-solid fa-align-center"></i></button>
+                                <button type="button" onclick="wrapText('justifyRight')" title="Căn phải"><i class="fa-solid fa-align-right"></i></button>
+                            </div>
+
+                            <div class="tool-group">
+                                <select id="headingSelect" onchange="applyHeadingToTextarea(this.value)" title="Định dạng tiêu đề hoặc đoạn văn">
+                                    <option value="">Heading</option>
+                                    <option value="h1">H1</option>
+                                    <option value="h2">H2</option>
+                                    <option value="h3">H3</option>
+                                    <option value="h4">H4</option>
+                                    <option value="p">Normal</option>
+                                </select>
+                            </div>
+
+                            <div class="tool-group">
+                                <div class="color-picker-wrapper">
+                                    <button type="button" class="color-btn" id="textColorBtn" title="Màu chữ">
+                                        <span><i class="fa-solid fa-paint-roller"></i></span>
+                                        <div class="color-indicator" id="colorIndicator" style="background-color: #000000;"></div>
+                                    </button>
+                                    <div class="color-dropdown" id="colorDropdown" style="display: none;">
+                                        <div class="color-section theme-section">
+                                            <div class="color-title">Theme Colors</div>
+                                            <div class="color-grid theme-colors"></div>
+                                        </div>
+                                        <div class="color-section standard-section">
+                                            <div class="color-title">Standard Colors</div>
+                                            <div class="color-grid standard-colors"></div>
+                                        </div>
+                                        <div class="color-divider"></div>
+                                        <div class="color-option" id="noColorOption">
+                                            <span>No Color</span>
+                                        </div>
+                                        <div class="color-divider"></div>
+                                        <div class="color-option" id="moreColorsOption">
+                                            <span>More Colors...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Màu nền (Highlight) -->
+                                <div class="color-picker-wrapper">
+                                    <button type="button" class="color-btn" id="highlightColorBtn" title="Màu Hightlight">
+                                        <span><i class="fa-solid fa-highlighter"></i></span>
+                                        <div class="color-indicator" id="highlightIndicator" style="background-color: #ffffff;"></div>
+                                    </button>
+                                    <div class="color-dropdown" id="highlightDropdown" style="display: none;">
+                                        <div class="color-section theme-section">
+                                            <div class="color-title">Theme Colors</div>
+                                            <div class="color-grid highlight-theme-colors"></div>
+                                        </div>
+                                        <div class="color-section standard-section">
+                                            <div class="color-title">Standard Colors</div>
+                                            <div class="color-grid highlight-standard-colors"></div>
+                                        </div>
+                                        <div class="color-divider"></div>
+                                        <div class="color-option" id="noHighlightOption">
+                                            <span>No Color</span>
+                                        </div>
+                                        <div class="color-divider"></div>
+                                        <div class="color-option" id="moreHighlightColorsOption">
+                                            <span>More Colors...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tool-group">
+                                <button type="button" onclick="insertImageToTextarea()" title="Chèn ảnh"><i class="fa-solid fa-image"></i> Ảnh</button>
+                                <button type="button" onclick="openVideoModalForTextarea()" title="Chèn video"><i class="fa-solid fa-video"></i> Video</button>
+                            </div>
+
+                            <div class="tool-group">
+                                <button type="button" onclick="createLinkForTextarea()" title="Chèn link"><i class="fa-solid fa-link"></i> Link</button>
+                                <button type="button" onclick="removeTextareaFormat()" title="Xóa định dạng"><i class="fa-solid fa-recycle"></i> Xóa format</button>
+                            </div>
+                        </div>

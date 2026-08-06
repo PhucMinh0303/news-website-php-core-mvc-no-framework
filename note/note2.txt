@@ -1,0 +1,371 @@
+﻿Folder PATH listing for volume Software
+Volume serial number is 54A5-8CB0
+D:\XAMPP\HTDOCS\CAPITALAM2-MVC
+|   .gitignore
+|   .htaccess
+|   .prettierrc
+|   composer.json
+|   composer.lock
+|   index.php
+|   package-lock.json
+|   package.json
+|   README.md
+|   TODO.md
+|    
++---.vscode
+|       settings.json
+|       
++---app
+|   |   bootstrap.php
+|   |   
+|   +---config
+|   |       .env
+|   |       .env.example
+|   |       config.php
+|   |       database.php
+|   |       env.txt
+|   |       
+|   +---controllers
+|   |   |   ApplicationController.php
+|   |   |   ContactController.php
+|   |   |   HomeController.php
+|   |   |   NewsController.php
+|   |   |   NewsController_Vd.php
+|   |   |   NotFoundController.php
+|   |   |   PageController.php
+|   |   |   ProductController.php
+|   |   |   RecruitmentController.php
+|   |   |   UserController.php
+|   |   |   
+|   |   +---Admin
+|   |   |       AdminContactController.php
+|   |   |       AdminController.php
+|   |   |       AdminNewsController.php
+|   |   |       AdminRecruitmentController.php
+|   |   |       DatabaseSettingController.php
+|   |   |       
+|   |   \---User
+|   |           OrderController.php
+|   |           ProfileController.php
+|   |           RecruitmentController.php
+|   |           
+|   +---core
+|   |       App.php
+|   |       Config.php
+|   |       Controller.php
+|   |       Database.php
+|   |       Model.php
+|   |       Request.php
+|   |       Response.php
+|   |       Router.php
+|   |       View.php
+|   |       
+|   +---interfaces
+|   |       IApplicationRepository.php
+|   |       IRecruitmentRepository.php
+|   |       
+|   +---models
+|   |       ApplicationModel.php
+|   |       AuthorModel.php
+|   |       BaseModel.php
+|   |       CategoryModel.php
+|   |       ContactModel.php
+|   |       JobModel.php
+|   |       NewsModel.php
+|   |       NewsTitleModel.php
+|   |       ProductModel.php
+|   |       RecruitmentModel.php
+|   |       RecruitmentTitleModel.php
+|   |       UserModel.php
+|   |       
+|   +---repositories
+|   |       ApplicationRepository.php
+|   |       RecruitmentRepository.php
+|   |       
+|   +---services
+|   |       ApplicationService.php
+|   |       ApplicationValidator.php
+|   |       FileUploadService.php
+|   |       RecruitmentService.php
+|   |       
+|   \---views
+|       +---admin
+|       |   |   admin.php
+|       |   |   
+|       |   +---main
+|       |   |   |   application_admin.php
+|       |   |   |   contact_admin.php
+|       |   |   |   dashboard_admin.php
+|       |   |   |   test_db.php
+|       |   |   |   test_db.txt
+|       |   |   |   test_db2.txt
+|       |   |   |   
+|       |   |   +---news
+|       |   |   |       create-news.php
+|       |   |   |       create_vd.php
+|       |   |   |       news_admin.php
+|       |   |   |       
+|       |   |   \---recruitment
+|       |   |           create-recruitment.php
+|       |   |           recruitment_admin.php
+|       |   |           
+|       |   +---menu
+|       |   |       head-root-admin.php
+|       |   |       menu.php
+|       |   |       scripts-root-admin.php
+|       |   |       
+|       |   +---old_date
+|       |   |       contact_admin1.php
+|       |   |       
+|       |           
+|       +---Contact
+|       |       contact.php
+|       |       
+|       +---errors
+|       |       404.php
+|       |       
+|       +---homepage
+|       |       homepage.php
+|       |       
+|       +---Introduction
+|       |       Introduction.php
+|       |       
+|       +---investor1relations
+|       |       annual-report.php
+|       |       corporate-governance.php
+|       |       financial-information.php
+|       |       information-disclosure.php
+|       |       investor-relations.php
+|       |       shareholder-information.php
+|       |       
+|       +---News
+|       |       News-title.php
+|       |       News.php
+|       |       
+|       +---pages
+|       |   +---Contact
+|       |   |       contact-section.php
+|       |   |       contact.php
+|       |   |       
+|       |   +---include
+|       |   |       footer.php
+|       |   |       head-root.php
+|       |   |       header.php
+|       |   |       scripts-root.php
+|       |   |       
+|       |   +---introduce
+|       |   |       introduction.php
+|       |   |       section1.php
+|       |   |       section2.php
+|       |   |       section3-2.php
+|       |   |       section4.php
+|       |   |       section5.php
+|       |   |       
+|       |   +---investor-relations
+|       |   |       annual-report.php
+|       |   |       corporate-governance.php
+|       |   |       financial-information.php
+|       |   |       information-disclosure.php
+|       |   |       investor-relations.php
+|       |   |       shareholder-information.php
+|       |   |       
+|       |   +---News
+|       |   |       news-section.php
+|       |   |       news-title.php
+|       |   |       news2.php
+|       |   |       
+|       |   +---product-service
+|       |   |       asset-manegerment.html
+|       |   |       asset-manegerment.php
+|       |   |       business-management-consulting.html
+|       |   |       Business-management-consulting.php
+|       |   |       m&a-and-corporate-restructuring.html
+|       |   |       M&A-and-corporate-restructuring.php
+|       |   |       m&a-project-consulting.html
+|       |   |       M&A-Project-Consulting.php
+|       |   |       portfolio-management.html
+|       |   |       portfolio-management.php
+|       |   |       product-service-section.html
+|       |   |       product-service-section.php
+|       |   |       
+|       |   \---Recruitment
+|       |           recruitment-detail.php
+|       |           recruitment-section.php
+|       |           recruitment-title2.php
+|       |           recruitment.php
+|       |           
+|       +---product&service
+|       |       asset-manegerment.php
+|       |       Business-management-consulting.php
+|       |       M&A-and-corporate-restructuring.php
+|       |       M&A-Project-Consulting.php
+|       |       portfolio-management.php
+|       |       
+|       \---Recruitment
+|               Recruitment-title.php
+|               Recruitment.php
+|               
++---note
+|       note.txt
+|       
++---public
+|   |   api.php
+|   |   
+|   +---assets
+|   |   +---css
+|   |   |   |   responsive-mobile.css
+|   |   |   |   section10.css
+|   |   |   |   styles.css
+|   |   |   |   
+|   |   |   \---admin
+|   |   |           admin.css
+|   |   |           contact-application_admin.css
+|   |   |           news-recruitment_admin.css
+|   |   |           news-recruitment_create.css
+|   |   |           
+|   |   +---img
+|   |   |   |   logo-2.svg
+|   |   |   |   logo.svg
+|   |   |   |   shape-03.png
+|   |   |   |   
+|   |   |   +---footer
+|   |   |   |       footer-logo.png
+|   |   |   |       logo-cas-png-20251209102030yGW1WOGlvr.png
+|   |   |   |       
+|   |   |   +---header
+|   |   |   |       bg-logo-background.svg
+|   |   |   |       
+|   |   |   +---icon
+|   |   |   |       ic-06.svg
+|   |   |   |       ic-07.svg
+|   |   |   |       ic-08.svg
+|   |   |   |       ic-09.svg
+|   |   |   |       ic-10.svg
+|   |   |   |       quan-ly-danh-muc-dau-tu-1763277274-6hzt.svg
+|   |   |   |       quan-ly-tai-san-1763277271-sdxzn.svg
+|   |   |   |       
+|   |   |   +---introduction
+|   |   |   |       bg_r_gt_3.png
+|   |   |   |       co-cau-to-chuc-1765248339-lu0s1.jpg
+|   |   |   |       gia-tri-cot-loi-1763281085-inbxz.svg
+|   |   |   |       gioi-thieu-1763280729-3oo5p.png
+|   |   |   |       gioi-thieu-1763280729-kbvr3.png
+|   |   |   |       gioi-thieu-1763280729-qyiw.png
+|   |   |   |       shape-07.png
+|   |   |   |       su-menh-1763280876-fcqea.svg
+|   |   |   |       tam-nhin-1763280873-yj8y0.svg
+|   |   |   |       
+|   |   |   +---news
+|   |   |   |       cac-app-dau-tu-chung-khoan-uy-tin-nhat-tren-thi-truong-nam-2025-1763349359-ctajx.webp
+|   |   |   |       dau-tu-tai-chinh-4-0-nha-dau-tu-can-can-trong-voi-nhung-chieu-tro-lua-dao-1763350121-7qbwc.webp
+|   |   |   |       dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong-1763350202-indak.webp
+|   |   |   |       quan-ly-tai-san-ca-nhan-nen-bat-dau-tu-dau-1763348797-0ws4a.webp
+|   |   |   |       top-5-cac-dien-dan-dau-tu-tai-chinh-uy-tin-nhat-hien-nay-1763349148-h1mp8.webp
+|   |   |   |       
+|   |   |   +---product-service
+|   |   |   |   |   bg-cont.png
+|   |   |   |   |   
+|   |   |   |   +---logo
+|   |   |   |   |       m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg
+|   |   |   |   |       quan-ly-danh-muc-dau-tu-1763277274-6hzt.svg
+|   |   |   |   |       quan-ly-tai-san-1763277271-sdxzn.svg
+|   |   |   |   |       tu-van-dau-tu-phat-trien-du-an-1763277280-fpcox.svg
+|   |   |   |   |       tu-van-quan-tri-doanh-nghiep-1763277277-waxnv.svg
+|   |   |   |   |       
+|   |   |   |   \---news-img
+|   |   |   |           gia-tri-toi-thieu-cua-tai-san-co-dinh-2025-khau-hao-toi-uu-dong-tien-1763279715-stmlv.png
+|   |   |   |           hach-toan-ban-thanh-ly-tai-san-co-dinh-2025-1763279747-pafyy.png
+|   |   |   |           hach-toan-ghi-tang-tai-san-co-dinh-la-gi-2025-1763279742-tvjwk.png
+|   |   |   |           hach-toan-phan-bo-tai-san-co-dinh-2025-la-gi-1763279722-ftwxy.png
+|   |   |   |           hach-toan-phan-bo-tai-san-co-dinh-2025-la-gi-1763279790-igeb2.png
+|   |   |   |           
+|   |   |   +---recruitment
+|   |   |   |       truong-phong-nguon-von-1763953822-egprx.webp
+|   |   |   |       
+|   |   |   +---section1
+|   |   |   |   |   bg_body.jpg
+|   |   |   |   |   logo-capital-am-png-2025120910123384zwFTaMUk.png
+|   |   |   |   |   
+|   |   |   |   \---slide
+|   |   |   |           slide-01-4-png-20251117085601MjdQzhHBq.png
+|   |   |   |           slide-02-2-jpg-20251117085606kn0MGhh9lp.jpg
+|   |   |   |           slide-03-2-jpg-20251117085611Ry7YCiuXjs.jpg
+|   |   |   |           
+|   |   |   +---section2
+|   |   |   |       quan-ly-danh-muc-dau-tu-1763278649-w8fqo.png
+|   |   |   |       quan-ly-tai-san-1763278647-atky.png
+|   |   |   |       remove-bg-section1.png
+|   |   |   |       remove-bg-section2.png
+|   |   |   |       
+|   |   |   +---section3
+|   |   |   |   |   m-a-va-tai-cau-truc-doanh-nghiep-1763530344-dmsdt.png
+|   |   |   |   |   tu-van-dau-tu-phat-trien-du-an-1763530339-rqcrt.png
+|   |   |   |   |   tu-van-quan-tri-doanh-nghiep-1763530335-uswgw.png
+|   |   |   |   |   
+|   |   |   |   \---logo
+|   |   |   |       |   m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg
+|   |   |   |       |   tu-van-dau-tu-phat-trien-du-an-1763277280-fpcox.svg
+|   |   |   |       |   tu-van-quan-tri-doanh-nghiep-1763277277-waxnv.svg
+|   |   |   |       |   
+|   |   |   |       \---fix
+|   |   |   +---section4
+|   |   |   |   +---business-partner
+|   |   |   |   |       1-png-202512101420111Ny253URmE.png
+|   |   |   |   |       dt-01-1-png-20251116123231WbPknCazou.png
+|   |   |   |   |       dt-02-png-20251116123253C6nxMrRj0P.png
+|   |   |   |   |       dt-03-png-20251116123257UKosI7mqeb.png
+|   |   |   |   |       dt-04-png-20251116123259lrfcrXvVGM.png
+|   |   |   |   |       dt-05-png-20251116123304R4DWE2Us9q.png
+|   |   |   |   |       dt-06-png-20251116123306yv8Tfee6uc.png
+|   |   |   |   |       
+|   |   |   |   \---person
+|   |   |   |           1-png-20251121101801Y0fB30XQBD.webp
+|   |   |   |           2-png-20251121101807rtFJ66z3ho.webp
+|   |   |   |           shape-04.png
+|   |   |   |           
+|   |   |   \---section5
+|   |   |           mo-lenh-don-song-nhan-qua-nang-hang-1763272292-ql6yi.webp
+|   |   |           nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272625-jr69f.webp
+|   |   |           nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272692-veex8.webp
+|   |   |           phat-trien-dong-bo-cac-thi-truong-nen-tang-cho-tang-truong-ben-vung-1763272344-zc6do.webp
+|   |   |           pho-chu-tich-nasdaq-nang-hang-thi-truong-se-keo-them-nha-dau-tu-moi-toi-viet-nam-lam-gia-tang-thanh-khoan-1763272258-4fwwd.webp
+|   |   |           
+|   |   \---js
+|   |       |   config.js
+|   |       |   product-service.js
+|   |       |   script.js
+|   |       |   
+|   |       +---admin
+|   |       |       admin.js
+|   |       |       application-admin.js
+|   |       |       contact-admin.js
+|   |       |       news-create.js
+|   |       |       recruitment-create.js
+|   |       |       
+|   |       \---sections
+|   |               admin(contact_quill).js
+|   |               script-title.js
+|   |               section.js
+|   |               section1.js
+|   |               section3-2.js
+|   |               section4.js
+|   |               section5.js
+|   |               
+|   \---upload
+|       +---image
+|       \---recruitments
++---routes
+|       web_routes.php
+|       
+\---sql
+    |   capitalam2-mvc2.sql
+    |   
+    +---sql-main-title
+    |       application copy.sql
+    |       application.sql
+    |       categories.sql
+    |       contact.sql
+    |       news.sql
+    |       recruitments.sql
+    |       
+            

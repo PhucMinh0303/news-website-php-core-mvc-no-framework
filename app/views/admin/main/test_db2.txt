@@ -1,0 +1,86 @@
+﻿┌──────────────────────────────────────────────────────────────┐
+│                     ADMIN PANEL (Frontend)                   │
+│                                                              │
+│ app/views/admin/settings/database.php                        │
+│                                                              │
+│ Form:                                                        │
+│  - DB_HOST                                                   │
+│  - DB_NAME                                                   │
+│  - DB_USER                                                   │
+│  - DB_PASS                                                   │
+│  - DB_CHARSET                                                │
+│                                                              │
+│ [Lưu cấu hình]                                               │
+└───────────────────────┬──────────────────────────────────────┘
+                        │ POST
+                        ▼
+┌──────────────────────────────────────────────────────────────┐
+│                app/controllers/AdminController.php           │
+│                                                              │
+│ saveDatabaseConfig()                                         │
+│                                                              │
+│ - Nhận dữ liệu POST                                          │
+│ - Validate                                                   │
+│ - Gọi Model xử lý                                            │
+└───────────────────────┬──────────────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────────────┐
+│              app/models/SystemConfigModel.php                │
+│                                                              │
+│ updateDatabaseConfig()                                       │
+│                                                              │
+│ - Đọc file .env                                              │
+│ - Thay giá trị DB_HOST                                       │
+│ - Thay giá trị DB_NAME                                       │
+│ - Thay giá trị DB_USER                                       │
+│ - Thay giá trị DB_PASS                                       │
+│ - Thay giá trị DB_CHARSET                                    │
+│ - Ghi đè file .env                                           │
+│ - Trả true / false                                           │
+└───────────────────────┬──────────────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────────────┐
+│                          /.env                              │
+│                                                              │
+│ DB_HOST=localhost                                            │
+│ DB_NAME=capital                                              │
+│ DB_USER=root                                                 │
+│ DB_PASS=123456                                               │
+│ DB_CHARSET=utf8mb4                                           │
+│                                                              │
+│ (Được ghi đè bằng file_put_contents())                       │
+└───────────────────────┬──────────────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────────────┐
+│                app/models/SystemConfigModel.php              │
+│                                                              │
+│ Nhận kết quả ghi file                                        │
+│                                                              │
+│ true  → Thành công                                           │
+│ false → Thất bại                                              │
+└───────────────────────┬──────────────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────────────┐
+│                app/controllers/AdminController.php           │
+│                                                              │
+│ Chuẩn bị thông báo                                           │
+│                                                              │
+│ success                                                      │
+│ hoặc                                                         │
+│ error                                                        │
+└───────────────────────┬──────────────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────────────┐
+│            app/views/admin/settings/database.php             │
+│                                                              │
+│ Hiển thị kết quả                                             │
+│                                                              │
+│ ✓ Cập nhật cấu hình thành công                               │
+│ hoặc                                                         │
+│ ✗ Không thể ghi file .env                                    │
+└──────────────────────────────────────────────────────────────┘

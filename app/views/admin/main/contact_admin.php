@@ -122,46 +122,48 @@
           </div>
           <button class="reply-btn" id="replyBtn">Reply</button>
         </div>
+        <div class="detail-title" id="detailTitle">
+          <div class="detail-subject" id="detailSubject">Story Tip: Local Council Corruption</div>
 
-        <div class="detail-subject" id="detailSubject">Story Tip: Local Council Corruption</div>
-
-        <div class="detail-sender-info">
-          <div class="sender-name-large" id="detailSenderName">John Doe</div>
-          <div class="sender-email" id="detailSenderEmail">john@example.com</div>
-          <div class="sender-to">To: NovaNews Support Team</div>
-        </div>
-
-        <div class="detail-divider"></div>
-
-        <div class="message-content" id="detailContent">
-          I have evidence of council members taking bribes for development projects. Please contact me securely.<br />
-          This is a very sensitive matter and I would like to speak to someone in the investigative team specifically.
-        </div>
-
-        <hr />
-
-        <div class="notes-section">
-          <h4>INTERNAL ADMINISTRATIVE NOTES</h4>
-          <div class="note-box" id="internalNoteBox">
-            <strong>Alex Editor</strong> — 19:00 8/11/2023 <br />
-            Spoke to legal about this. Need more verification.
+          <div class="detail-sender-info">
+            <div class="sender-name-large" id="detailSenderName">John Doe</div>
+            <div class="sender-email" id="detailSenderEmail">john@example.com</div>
+            <div class="sender-to">To: NovaNews Support Team</div>
           </div>
-          <div class="add-note">
-            <input type="text" id="newNoteInput" placeholder="Add a private note for editors..." />
-            <button id="addNoteBtn">Add</button>
+
+          <div class="detail-divider"></div>
+
+          <div class="message-content" id="detailContent">
+            I have evidence of council members taking bribes for development projects. Please contact me securely.<br />
+            This is a very sensitive matter and I would like to speak to someone in the investigative team specifically.
+          </div>
+
+          <hr />
+
+          <div class="notes-section">
+            <h4>INTERNAL ADMINISTRATIVE NOTES</h4>
+            <div class="note-box" id="internalNoteBox">
+              <strong>Alex Editor</strong> — 19:00 8/11/2023 <br />
+              Spoke to legal about this. Need more verification.
+            </div>
+            <div class="add-note">
+              <input type="text" id="newNoteInput" placeholder="Add a private note for editors..." />
+              <button id="addNoteBtn">Add</button>
+            </div>
+          </div>
+
+          <div class="metadata" id="metadataArea">
+            <p><strong>Location:</strong> New York, USA (Mocked)</p>
+            <p><strong>Platform:</strong> Chrome v122 / MacOS</p>
+            <p><strong>IP Address:</strong> 192.168.1.104</p>
+            <p><strong>Page Source:</strong> /stories/latest-news</p>
           </div>
         </div>
-
-        <div class="metadata" id="metadataArea">
-          <p><strong>Location:</strong> New York, USA (Mocked)</p>
-          <p><strong>Platform:</strong> Chrome v122 / MacOS</p>
-          <p><strong>IP Address:</strong> 192.168.1.104</p>
-          <p><strong>Page Source:</strong> /stories/latest-news</p>
-        </div>
+        
       </div>
     </div>
   </main>
 </body>
-<script src="<?php echo View::asset('js/admin/contact-admin.js'); ?>"></script>
+
 
 </html>
