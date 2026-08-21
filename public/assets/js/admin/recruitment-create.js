@@ -1,5 +1,5 @@
 // ============================================
-// MODULE: RECRUITMENT FORM (Sau khi tách)
+// MODULE: RECRUITMENT FORM
 // ============================================
 (function($) {
     'use strict';
@@ -694,6 +694,14 @@
             if (!firstErrorElement) firstErrorElement = $slug;
         }
 
+        // Kiểm tra ảnh bằng ImagePreview module
+        var imageValidation = ImagePreview.validateImage($form, { required: true });
+        if (!imageValidation.valid) {
+            errors.push({ msg: imageValidation.message, field: $form.find('#uploadBox') });
+            $form.find('#uploadBox').addClass('error-field');
+            if (!firstErrorElement) firstErrorElement = $form.find('#uploadBox');
+        }
+
         if (errors.length > 0) {
             var errorMessages = errors.map(function(e) { return e.msg; });
             showToast('⚠️ Vui lòng kiểm tra lại:\n• ' + errorMessages.join('\n• '), 'error');
@@ -705,42 +713,6 @@
         }
 
         return true;
-    }
-
-    // ============================================
-    // PREVIEW ẢNH
-    // ============================================
-
-    function previewImage(input, $form) {
-        var $preview = $form.find('#imagePreview');
-        var $previewImg = $form.find('#previewImg');
-        var $uploadBox = $form.find('#uploadBox');
-        var $uploadText = $form.find('#uploadText');
-        var $uploadInfo = $form.find('#uploadInfo');
-
-        if (!input.files || !input.files[0]) {
-            return;
-        }
-
-        if (input.files[0].size > 2 * 1024 * 1024) {
-            showToast('Ảnh không được vượt quá 2MB!', 'error');
-            $(input).val('');
-            return;
-        }
-
-        var reader = new FileReader();
-
-        reader.onload = function(e) {
-            $previewImg.attr('src', e.target.result);
-            $preview.show();
-            $uploadBox.css('opacity', '0.5');
-            $uploadText.html('Đã chọn ảnh: ' + input.files[0].name);
-            $uploadInfo.html('Click để đổi ảnh khác');
-            $uploadBox.removeClass('error-field');
-            $uploadBox.closest('.form-group').find('.field-error-msg').remove();
-        };
-
-        reader.readAsDataURL(input.files[0]);
     }
 
     // ============================================
@@ -767,6 +739,11 @@
                 // Có thể thêm logic bổ sung nếu cần
             }
         });
+
+        // ============================================
+        // IMAGE PREVIEW - SỬ DỤNG MODULE ĐÃ TÁCH
+        // ============================================
+        var imagePreview = ImagePreview.init($form);
 
         // ============================================
         // CÁC HANDLER KHÁC
@@ -814,17 +791,6 @@
             if (!validateClientForm($form)) {
                 e.preventDefault();
             }
-        });
-
-        // Upload ảnh
-        $form.find('#uploadBox').on('click', function() {
-            $form.find('#imageInput').trigger('click');
-        });
-
-        $form.find('#imageInput').on('change', function() {
-            previewImage(this, $form);
-            $(this).removeClass('error-field');
-            $(this).closest('.form-group').find('.field-error-msg').remove();
         });
     }
 

@@ -172,7 +172,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 'DB_CHARSET' => trim($_POST['db_charset'])
             ];
 
-            // Kiểm tra kết nối
+            // ✅ THÊM: Validate config trước khi lưu
+            $validation = validateDatabaseConfig($config);
+            if (!$validation['valid']) {
+                throw new Exception(implode(', ', $validation['errors']));
+            }
+
+            // ✅ THÊM: Lưu cấu hình vào file .env
+            $updateResult = updateEnvFile($config);
+            if (!$updateResult) {
+                throw new Exception('Không thể ghi file .env. Vui lòng kiểm tra quyền ghi.');
+            }
+
+            // ✅ THÊM: Cập nhật hằng số hiện tại
+            if (defined('DB_HOST')) {
+                // Định nghĩa lại hằng số (chỉ trong request này)
+                // Lưu ý: Trong thực tế, cần reload để áp dụng
+            }
+
+            // Kiểm tra kết nối với cấu hình mới
             $testResult = Database::testConnection($config);
 
             if ($testResult['success']) {
@@ -190,9 +208,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 
                 echo json_encode([
                     'success' => true,
-                    'message' => '✅ Kết nối thành công!',
+                    'message' => '✅ Cập nhật cấu hình thành công!',
+                    'config' => $config, // Trả về config để cập nhật UI
                     'mysql_version' => $mysqlVersion,
-                    'current_time' => $currentTime
+                    'current_time' => $currentTime,
+                    'need_reload' => true // Báo hiệu cần reload
                 ]);
             } else {
                 $errorMsg = $testResult['error'];
@@ -200,16 +220,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 
                 // Đưa ra gợi ý dựa trên lỗi
                 if (strpos($errorMsg, 'Unknown database') !== false) {
-                    $suggestion = 'Database "' . $config['DB_NAME'] . '" chưa tồn tại.';
+                    $suggestion = 'Database "' . $config['DB_NAME'] . '" chưa tồn tại. Vui lòng tạo database trước.';
                 } elseif (strpos($errorMsg, 'Access denied') !== false) {
-                    $suggestion = 'Sai username hoặc password.';
+                    $suggestion = 'Sai username hoặc password. Kiểm tra lại thông tin đăng nhập.';
                 } elseif (strpos($errorMsg, 'Connection refused') !== false || strpos($errorMsg, 'SQLSTATE[HY000] [2002]') !== false) {
                     $suggestion = 'Không thể kết nối đến MySQL. Kiểm tra host và port.';
                 }
 
                 echo json_encode([
                     'success' => false,
-                    'message' => '❌ Kết nối thất bại',
+                    'message' => '❌ Kết nối thất bại với cấu hình mới',
                     'error' => $errorMsg,
                     'suggestion' => $suggestion
                 ]);
@@ -217,14 +237,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         } catch (Exception $e) {
             echo json_encode([
                 'success' => false,
-                'message' => '❌ Lỗi kiểm tra kết nối',
+                'message' => '❌ Lỗi cập nhật cấu hình',
                 'error' => $e->getMessage()
             ]);
         }
         exit;
     }
-
-    
 }
 
 ?>
@@ -881,6 +899,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                         }
 
                         // ===== MAIN UPDATE FUNCTION =====
+                        // Hàm updateConfig() - Sửa phần success và error
                         function updateConfig() {
                             log('=== BẮT ĐẦU CẬP NHẬT CẤU HÌNH ===');
 
@@ -902,16 +921,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                             var formData = new FormData($form[0]);
                             formData.append('ajax_action', 'update_config');
 
-                            // Log dữ liệu gửi đi
-                            log('Form data:');
-                            for (var pair of formData.entries()) {
-                                if (pair[0] !== 'db_pass') {
-                                    log(pair[0] + ': ' + pair[1]);
-                                } else {
-                                    log(pair[0] + ': ********');
-                                }
-                            }
-
                             // Gửi AJAX request
                             $.ajax({
                                 url: window.location.href,
@@ -926,33 +935,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                                     log('Server response:', data);
 
                                     if (data.success) {
-                                        // Cập nhật hiển thị
+                                        // ✅ Cập nhật UI với config mới
                                         if (data.config) {
                                             updateDisplay(data.config);
+
+                                            // Cập nhật thông tin hiển thị khác
+                                            if (data.mysql_version) {
+                                                $('#mysql-version').text(data.mysql_version);
+                                            }
+                                            if (data.current_time) {
+                                                $('#current-time').text(data.current_time);
+                                            }
                                         }
 
-                                        // Cập nhật trạng thái kết nối
+                                        // ✅ Cập nhật trạng thái kết nối
                                         updateConnectionStatus(true, data.message, data.config);
 
-                                        // Cập nhật thông tin hệ thống
-                                        if (data.mysql_version) {
-                                            $('#mysql-version').text(data.mysql_version);
-                                        }
-                                        if (data.current_time) {
-                                            $('#current-time').text(data.current_time);
-                                        }
-
-                                        // Hiển thị thông báo thành công
+                                        // ✅ Hiển thị thông báo thành công
                                         var successMsg = data.message || '✅ Cập nhật cấu hình thành công!';
                                         showNotification(successMsg, 'success');
                                         showToast('✅ Cập nhật thành công!', 'success');
 
-                                        log('Update successful, reloading page in ' + CONFIG.reloadDelay + 'ms');
+                                        log('Update successful');
 
-                                        // Reload trang để áp dụng config mới
-                                        setTimeout(function() {
-                                            location.reload();
-                                        }, CONFIG.reloadDelay);
+                                        // ✅ Reload trang để áp dụng config mới
+                                        if (data.need_reload !== false) {
+                                            log('Reloading page in ' + CONFIG.reloadDelay + 'ms');
+                                            setTimeout(function() {
+                                                location.reload();
+                                            }, CONFIG.reloadDelay);
+                                        }
 
                                     } else {
                                         // Xử lý lỗi từ server
@@ -964,6 +976,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                                             errorMsg += '<br><br>💡 ' + data.suggestion;
                                         }
 
+                                        // ✅ Cập nhật UI hiển thị lỗi
                                         updateConnectionStatus(false, data.error || data.message);
                                         showNotification('❌ ' + errorMsg, 'error');
                                         showToast('❌ Cập nhật thất bại!', 'error');
@@ -995,7 +1008,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                                                 errorMsg += '<br><br>💡 ' + response.suggestion;
                                             }
                                         } catch (e) {
-                                            // Nếu không parse được JSON, hiển thị raw response (giới hạn 200 ký tự)
                                             errorMsg = 'Lỗi server: ' + xhr.responseText.substring(0, 200);
                                             if (xhr.responseText.length > 200) {
                                                 errorMsg += '...';
@@ -1014,6 +1026,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                                     log('=== KẾT THÚC CẬP NHẬT ===');
                                 }
                             });
+                        }
+                        // ✅ THÊM: Hàm cập nhật toàn bộ UI với config mới
+                        function updateFullUI(config, mysqlVersion, currentTime) {
+                            log('Updating full UI with config:', config);
+
+                            // Cập nhật thông tin kết nối
+                            if (config.DB_HOST) {
+                                $('#display-host').text(config.DB_HOST);
+                                $('#db_host').val(config.DB_HOST);
+                            }
+                            if (config.DB_NAME) {
+                                $('#display-database').text(config.DB_NAME);
+                                $('#db_name').val(config.DB_NAME);
+                            }
+                            if (config.DB_USER) {
+                                $('#display-username').text(config.DB_USER);
+                                $('#db_user').val(config.DB_USER);
+                            }
+                            if (config.DB_PASS !== undefined) {
+                                $('#display-password').text(config.DB_PASS === '' ? '(rỗng)' : '•'.repeat(config.DB_PASS.length));
+                                $('#db_pass').val(config.DB_PASS);
+                            }
+                            if (config.DB_CHARSET) {
+                                $('#display-charset').text(config.DB_CHARSET);
+                                $('#db_charset').val(config.DB_CHARSET);
+                            }
+
+                            // Cập nhật thông tin hệ thống
+                            if (mysqlVersion) {
+                                $('#mysql-version').text(mysqlVersion);
+                            }
+                            if (currentTime) {
+                                $('#current-time').text(currentTime);
+                            }
+
+                            // Cập nhật trạng thái
+                            $('#connection-status').text('● Đã kết nối').css('color', '#27ae60');
+                            $('#header-status')
+                                .removeClass('error')
+                                .addClass('success');
+                            $('#status-title').text('✅ KẾT NỐI THÀNH CÔNG');
+                            $('#status-description').text('Database đã được kết nối thành công!');
+
+                            // Ẩn error detail
+                            $('#error-detail').hide();
+
+                            // Cập nhật info-box
+                            $('.info-box').first().css('border-left-color', '#667eea');
                         }
 
                         // ===== EVENT LISTENERS =====

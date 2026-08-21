@@ -4,8 +4,7 @@
     <a href="<?php echo View::url(''); ?>" class="logo-bg">
       <img
         src="<?php echo View::asset('img/section1/logo-capital-am-png-2025120910123384zwFTaMUk.png'); ?>"
-        alt="<?php echo View::escape(SITE_NAME); ?>"
-      />
+        alt="<?php echo View::escape(SITE_NAME); ?>" />
     </a>
   </div>
   <div class="header-container">
@@ -21,34 +20,26 @@
         </li>
 
         <li class="dropdown">
-          <a href="#"
-            >SẢN PHẨM & DỊCH VỤ<i class="fa-solid fa-angle-down"></i
-          ></a>
+          <a href="#">SẢN PHẨM & DỊCH VỤ<i class="fa-solid fa-angle-down"></i></a>
           <ul class="dropdown-menu">
             <li><a href="<?= View::url(route: 'asset-management'); ?>">Quản lý tài sản</a></li>
             <li>
               <a href="<?php echo View::url('portfolio-management'); ?>">Quản lý danh mục đầu tư</a>
             </li>
             <li>
-              <a href="<?php echo View::url('business-management'); ?>"
-                >Tư vấn quản lý doanh nghiệp</a
-              >
+              <a href="<?php echo View::url('business-management'); ?>">Tư vấn quản lý doanh nghiệp</a>
             </li>
             <li>
               <a href="<?php echo View::url('m&a-project'); ?>">Tư vấn dự án M&A</a>
             </li>
             <li>
-              <a href="<?php echo View::url('m&a-restructuring'); ?>"
-                >M&A và tái cấu trúc doanh nghiệp</a
-              >
+              <a href="<?php echo View::url('m&a-restructuring'); ?>">M&A và tái cấu trúc doanh nghiệp</a>
             </li>
           </ul>
         </li>
 
         <li class="dropdown">
-          <a href="#"
-            >QUAN HỆ NHÀ ĐẦU TƯ<i class="fa-solid fa-angle-down"></i
-          ></a>
+          <a href="#">QUAN HỆ NHÀ ĐẦU TƯ<i class="fa-solid fa-angle-down"></i></a>
           <ul class="dropdown-menu">
             <li><a href="<?php echo View::url('financial-information'); ?>">Thông tin tài chính</a></li>
             <li><a href="<?php echo View::url('annual-report'); ?>">Báo cáo thường niên</a></li>
@@ -58,9 +49,9 @@
           </ul>
         </li>
 
-        <li><a href="<?php echo View::url('Recruitment'); ?>">TUYỂN DỤNG</a></li>
-        <li><a href="<?php echo View::url('News'); ?>">TIN TỨC</a></li>
-        <li><a href="<?php echo View::url('Contact'); ?>">LIÊN HỆ</a></li>
+        <li><a href="<?php echo View::url('recruitment'); ?>">TUYỂN DỤNG</a></li>
+        <li><a href="<?php echo View::url('news'); ?>">TIN TỨC</a></li>
+        <li><a href="<?php echo View::url('contact'); ?>">LIÊN HỆ</a></li>
         <!-- SEARCH ICON -->
         <li></li>
       </ul>
@@ -100,8 +91,7 @@
     <a href="<?php echo View::url(''); ?>">
       <img
         src="<?php echo View::asset('img/section1/logo-capital-am-png-2025120910123384zwFTaMUk.png'); ?>"
-        alt="<?php echo View::escape(SITE_NAME); ?>"
-      />
+        alt="<?php echo View::escape(SITE_NAME); ?>" />
     </a>
   </div>
   <div class="dkdn_mb">
@@ -129,17 +119,13 @@
             <a href="<?php echo View::url('portfolio-management'); ?>">Quản lý danh mục đầu tư</a>
           </li>
           <li>
-            <a href="<?php echo View::url('business-management'); ?>"
-              >Tư vấn quản trị doanh nghiệp</a
-            >
+            <a href="<?php echo View::url('business-management'); ?>">Tư vấn quản trị doanh nghiệp</a>
           </li>
           <li>
             <a href="<?php echo View::url('m&a-project'); ?>">Tư vấn dự án M&amp;A</a>
           </li>
           <li>
-            <a href="<?php echo View::url('m&a-restructuring'); ?>"
-              >M&amp;A và tái cấu trúc doanh nghiệp</a
-            >
+            <a href="<?php echo View::url('m&a-restructuring'); ?>">M&amp;A và tái cấu trúc doanh nghiệp</a>
           </li>
         </ul>
         <!-- End .ul_ma_2 -->

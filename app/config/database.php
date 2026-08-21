@@ -111,40 +111,29 @@ function getDatabaseConfig()
 /**
  * Validate database configuration
  */
-function validateDatabaseConfig($config)
-{
+// Hàm này đã có trong database.php của bạn
+function validateDatabaseConfig($config) {
     $errors = [];
-
-    // Kiểm tra host
+    
     if (empty($config['DB_HOST'])) {
         $errors[] = 'Host không được để trống';
     }
-
-    // Kiểm tra database name
     if (empty($config['DB_NAME'])) {
         $errors[] = 'Database name không được để trống';
     }
-
-    // Kiểm tra username
     if (empty($config['DB_USER'])) {
         $errors[] = 'Username không được để trống';
     }
-
-    // Kiểm tra charset
     if (empty($config['DB_CHARSET'])) {
-        $config['DB_CHARSET'] = 'utf8mb4'; // Default
+        $config['DB_CHARSET'] = 'utf8mb4';
     }
-
-    // Kiểm tra host format
     if (!empty($config['DB_HOST']) && !preg_match('/^[a-zA-Z0-9\.\:\-]+$/', $config['DB_HOST'])) {
-        $errors[] = 'Host không hợp lệ. Chỉ chấp nhận ký tự chữ, số, dấu chấm, dấu hai chấm và dấu gạch ngang';
+        $errors[] = 'Host không hợp lệ';
     }
-
-    // Kiểm tra database name format
     if (!empty($config['DB_NAME']) && !preg_match('/^[a-zA-Z0-9\_\-]+$/', $config['DB_NAME'])) {
-        $errors[] = 'Database name không hợp lệ. Chỉ chấp nhận chữ, số, dấu gạch dưới và dấu gạch ngang';
+        $errors[] = 'Database name không hợp lệ';
     }
-
+    
     return [
         'valid' => empty($errors),
         'errors' => $errors,

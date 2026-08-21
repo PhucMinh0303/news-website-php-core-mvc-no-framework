@@ -957,6 +957,9 @@ unset($_SESSION['errors']);
     </main>
 
 </body>
-
+<script>
+    // Truyền lỗi từ PHP session sang JavaScript
+    window.serverErrors = <?php echo json_encode($_SESSION['errors'] ?? []); ?>;
+</script>
 
 </html>

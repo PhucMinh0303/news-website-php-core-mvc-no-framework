@@ -677,4 +677,574 @@ window.quillEditor = {
 };
 
 
+// ==================== news-create.js ====================
+// File chính - đã loại bỏ các hàm Quill Editor và image preview
 
+// ==================== TOAST NOTIFICATION ====================
+
+/**
+ * Hiển thị toast message với kiểu (success, error, info, warning)
+ * @param {string} message - Nội dung thông báo
+ * @param {string} type - Loại thông báo: 'success', 'error', 'info', 'warning'
+ */
+function showToast(message, type) {
+    // Xóa toast cũ nếu có
+    $('.toast').remove();
+
+    // Xác định icon và màu sắc cho từng loại
+    const configs = {
+        success: {
+            icon: '✅',
+            bgColor: '#10b981',
+            textColor: '#ffffff',
+            borderColor: '#059669'
+        },
+        error: {
+            icon: '❌',
+            bgColor: '#ef4444',
+            textColor: '#ffffff',
+            borderColor: '#dc2626'
+        },
+        warning: {
+            icon: '⚠️',
+            bgColor: '#f59e0b',
+            textColor: '#ffffff',
+            borderColor: '#d97706'
+        },
+        info: {
+            icon: 'ℹ️',
+            bgColor: '#3b82f6',
+            textColor: '#ffffff',
+            borderColor: '#2563eb'
+        }
+    };
+
+    const config = configs[type] || configs.info;
+
+    // Tạo toast với style đẹp hơn
+    const toast = $('<div>')
+        .addClass('toast')
+        .css({
+            'position': 'fixed',
+            'top': '80px',
+            'right': '20px',
+            'z-index': '99999',
+            'background': config.bgColor,
+            'color': config.textColor,
+            'padding': '16px 24px',
+            'border-radius': '12px',
+            'box-shadow': '0 10px 40px rgba(0,0,0,0.2)',
+            'font-size': '15px',
+            'font-weight': '500',
+            'max-width': '450px',
+            'min-width': '280px',
+            'border-left': '5px solid ' + config.borderColor,
+            'display': 'flex',
+            'align-items': 'flex-start',
+            'gap': '12px',
+            'opacity': '0',
+            'transform': 'translateX(50px)',
+            'transition': 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+            'font-family': "'Segoe UI', system-ui, -apple-system, sans-serif",
+            'line-height': '1.5'
+        })
+        .html(`
+            <div style="font-size: 22px; flex-shrink: 0; margin-top: 2px;">${config.icon}</div>
+            <div style="flex: 1; word-break: break-word;">${message.replace(/\n/g, '<br>')}</div>
+            <button onclick="$(this).closest('.toast').fadeOut(300, function(){ $(this).remove(); })" 
+                    style="background: transparent; border: none; color: ${config.textColor}; font-size: 18px; cursor: pointer; padding: 0 4px; opacity: 0.7; flex-shrink: 0; line-height: 1;">
+                ✕
+            </button>
+        `)
+        .hide();
+
+    $('body').append(toast);
+
+    // Hiệu ứng xuất hiện
+    setTimeout(() => {
+        toast.css({
+            'opacity': '1',
+            'transform': 'translateX(0)'
+        });
+    }, 50);
+
+    // Tự động ẩn sau 4 giây
+    setTimeout(() => {
+        toast.css({
+            'opacity': '0',
+            'transform': 'translateX(50px)'
+        });
+        setTimeout(() => {
+            toast.remove();
+        }, 400);
+    }, 4000);
+
+    // Click vào toast để đóng nhanh
+    toast.on('click', function(e) {
+        if (!$(e.target).closest('button').length) {
+            toast.css({
+                'opacity': '0',
+                'transform': 'translateX(50px)'
+            });
+            setTimeout(() => {
+                toast.remove();
+            }, 400);
+        }
+    });
+}
+
+// ===== CÁC HÀM TOAST TIỆN ÍCH =====
+function showSuccessToast(message) {
+    showToast(message, 'success');
+}
+
+function showErrorToast(message) {
+    showToast(message, 'error');
+}
+
+function showWarningToast(message) {
+    showToast(message, 'warning');
+}
+
+function showInfoToast(message) {
+    showToast(message, 'info');
+}
+
+// ==================== VALIDATION & REQUIRED FIELDS ====================
+
+const requiredFieldsMap = [
+    {
+        selector: '#news_title',
+        name: 'title',
+        label: 'Tiêu đề tin tức',
+        getMessage: function() { return 'Vui lòng nhập tiêu đề tin tức'; }
+    },
+    {
+        selector: 'input[name="author"]',
+        name: 'author',
+        label: 'Tác giả',
+        getMessage: function() { return 'Vui lòng nhập tên tác giả'; }
+    },
+    {
+        selector: '#news_content',
+        name: 'content',
+        label: 'Bài viết',
+        getMessage: function() { return 'Vui lòng nhập nội dung bài viết'; }
+    }
+];
+
+function getRequiredFields($form) {
+    const $requiredFields = [];
+
+    $form.find('label').each(function() {
+        const $label = $(this);
+        if ($label.find('.required').length) {
+            const forAttr = $label.attr('for');
+            let $field = null;
+
+            if (forAttr) {
+                $field = $form.find('#' + forAttr);
+            } else {
+                $field = $label.closest('.form-group').find('input, textarea, select').first();
+            }
+
+            if ($field && $field.length) {
+                const fieldName = $field.attr('name') || $field.attr('id');
+                $requiredFields.push({
+                    $element: $field,
+                    label: $label.clone().children().remove().end().text().trim(),
+                    name: fieldName
+                });
+            }
+        }
+    });
+
+    return $requiredFields;
+}
+
+// Scroll đến element bị lỗi với hiệu ứng highlight
+function scrollToErrorElement($element, offset = 120) {
+    if (!$element || !$element.length) return;
+
+    $element.removeClass('error-highlight');
+    void $element[0].offsetWidth;
+    $element.addClass('error-highlight');
+
+    const elementPosition = $element.offset().top;
+    const offsetPosition = elementPosition - offset;
+
+    $('html, body').animate({
+        scrollTop: offsetPosition
+    }, 500, function() {
+        if ($element.is(':visible') && !$element.is('input[readonly]')) {
+            $element.trigger('focus');
+        }
+    });
+
+    setTimeout(() => {
+        $element.removeClass('error-highlight');
+    }, 2000);
+}
+
+// ==================== VALIDATE CLIENT FORM ====================
+
+function validateClientForm($form) {
+    const requiredFields = getRequiredFields($form);
+    const errors = [];
+    let firstErrorElement = null;
+
+    $('.field-error-msg').remove();
+    $('.error-field').removeClass('error-field');
+
+    requiredFields.forEach(field => {
+        const $field = field.$element;
+        let value = '';
+
+        if ($field.is('select')) {
+            value = $field.val() || '';
+        } else if ($field.is('input[type="checkbox"]')) {
+            value = $field.is(':checked') ? 'checked' : '';
+        } else {
+            value = $field.val() || '';
+        }
+
+        let isValid = true;
+        let errorMessage = '';
+
+        if ($field.attr('type') === 'number') {
+            if (!value || parseInt(value, 10) <= 0) {
+                isValid = false;
+                errorMessage = `Vui lòng nhập ${field.label}`;
+            }
+        } else {
+            if ($field.is('textarea')) {
+                const quillContent = $field.val();
+                const strippedContent = quillContent ? quillContent.replace(/<[^>]*>/g, '').trim() : '';
+                if (!strippedContent) {
+                    isValid = false;
+                    errorMessage = `Vui lòng nhập ${field.label}`;
+                }
+            } else if (!value || value.trim() === '') {
+                isValid = false;
+                errorMessage = `Vui lòng nhập ${field.label}`;
+            }
+        }
+
+        if (!isValid) {
+            errors.push({ msg: errorMessage, field: $field });
+            $field.addClass('error-field');
+
+            const $errorMsg = $('<div>')
+                .addClass('field-error-msg')
+                .html('⚠️ ' + errorMessage);
+
+            const $parentGroup = $field.closest('.form-group');
+            if ($parentGroup.length) {
+                $parentGroup.find('.field-error-msg').remove();
+                if ($field.is('input[type="file"]')) {
+                    $field.parent().append($errorMsg);
+                } else if ($field.is('textarea') && $field.closest('.editor-instructions').length) {
+                    $field.closest('.form-group').append($errorMsg);
+                } else {
+                    $field.after($errorMsg);
+                }
+            } else {
+                $field.after($errorMsg);
+            }
+
+            if (!firstErrorElement) {
+                firstErrorElement = $field;
+            }
+        }
+    });
+
+    // Kiểm tra slug - sử dụng hàm từ slugUtils
+    const $slug = $form.find('#slug');
+    const slug = $slug.val();
+    if (slug && typeof window.slugUtils !== 'undefined' && !window.slugUtils.isValidSlug(slug)) {
+        errors.push({ 
+            msg: 'Slug không hợp lệ (chỉ chứa chữ thường, số và dấu gạch ngang)', 
+            field: $slug 
+        });
+        $slug.addClass('error-field');
+        if (!firstErrorElement) firstErrorElement = $slug;
+    }
+
+    if (errors.length > 0) {
+        const errorMessages = errors.map(e => e.msg);
+        showToast('⚠️ Vui lòng kiểm tra lại:\n• ' + errorMessages.join('\n• '), 'error');
+
+        if (firstErrorElement) {
+            scrollToErrorElement(firstErrorElement, 120);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+// ==================== DISPLAY SERVER ERRORS ====================
+
+function displayServerErrors(errors, $form) {
+    if (!errors || errors.length === 0) return false;
+
+    $('.field-error-msg').remove();
+    $('.error-field').removeClass('error-field');
+
+    const requiredFields = getRequiredFields($form);
+    let firstErrorElement = null;
+    let errorList = [];
+
+    const fieldMap = {};
+    requiredFields.forEach(field => {
+        if (field.name) {
+            fieldMap[field.name] = field;
+        }
+        if (field.$element.attr('id')) {
+            fieldMap[field.$element.attr('id')] = field;
+        }
+    });
+
+    const allFieldsMap = {
+        'slug': { $element: $('#slug'), label: 'Slug' },
+        'category_id': { $element: $('select[name="category_id"]'), label: 'Danh mục' },
+        'author_id': { $element: $('select[name="author_id"]'), label: 'Tác giả' },
+        'publish_date': { $element: $('input[name="publish_date"]'), label: 'Ngày đăng' },
+        'status': { $element: $('select[name="status"]'), label: 'Trạng thái' },
+        'featured_image': { $element: $('#imageInput'), label: 'Ảnh đại diện' }
+    };
+
+    Object.assign(fieldMap, allFieldsMap);
+
+    errors.forEach(error => {
+        errorList.push(error);
+
+        let $element = null;
+        let fieldLabel = '';
+
+        const errorLower = error.toLowerCase();
+
+        if (errorLower.includes('tiêu đề') || errorLower.includes('title')) {
+            $element = $('#news_title');
+            fieldLabel = 'Tiêu đề tin tức';
+        } else if (errorLower.includes('nội dung') || errorLower.includes('content')) {
+            $element = $('#news_content');
+            fieldLabel = 'Nội dung bài viết';
+        } else if (errorLower.includes('tác giả') || errorLower.includes('author')) {
+            $element = $('input[name="author"]');
+            fieldLabel = 'Tên tác giả';
+        } else if (errorLower.includes('slug')) {
+            $element = $('#slug');
+            fieldLabel = 'Slug';
+        } else if (errorLower.includes('danh mục') || errorLower.includes('category')) {
+            $element = $('select[name="category_id"]');
+            fieldLabel = 'Danh mục';
+        } else if (errorLower.includes('ngày đăng') || errorLower.includes('publish_date')) {
+            $element = $('input[name="publish_date"]');
+            fieldLabel = 'Ngày đăng';
+        } else if (errorLower.includes('ảnh') || errorLower.includes('image') || errorLower.includes('featured')) {
+            $element = $('#uploadBox');
+            fieldLabel = 'Ảnh đại diện';
+        } else {
+            for (let key in fieldMap) {
+                if (errorLower.includes(key.toLowerCase())) {
+                    $element = fieldMap[key].$element;
+                    fieldLabel = fieldMap[key].label;
+                    break;
+                }
+            }
+        }
+
+        if ($element && $element.length) {
+            $element.addClass('error-field');
+
+            const $errorMsg = $('<div>')
+                .addClass('field-error-msg')
+                .html('⚠️ ' + error);
+
+            const $parentGroup = $element.closest('.form-group');
+            if ($parentGroup.length) {
+                $parentGroup.find('.field-error-msg').remove();
+                if ($element.is('input[type="file"]')) {
+                    $element.parent().append($errorMsg);
+                } else if ($element.is('textarea') && $element.closest('.editor-instructions').length) {
+                    $element.closest('.form-group').append($errorMsg);
+                } else {
+                    $element.after($errorMsg);
+                }
+            } else {
+                $element.after($errorMsg);
+            }
+
+            if (!firstErrorElement) {
+                firstErrorElement = $element;
+            }
+        }
+    });
+
+    if (errorList.length > 0) {
+        showToast('⚠️ Có ' + errorList.length + ' lỗi cần sửa:\n• ' + errorList.join('\n• '), 'error');
+    }
+
+    if (firstErrorElement && firstErrorElement.length) {
+        setTimeout(function() {
+            scrollToErrorElement(firstErrorElement, 120);
+        }, 200);
+        return true;
+    }
+
+    return false;
+}
+
+// ==================== BIND FORM HANDLERS ====================
+
+function bindNewsFormHandlers($form) {
+    if (!$form.length || $form.data('news-init')) {
+        return;
+    }
+
+    $form.data('news-init', true);
+
+    // ===== GẮN CÁC HANDLER CHO SLUG TỪ FILE RIÊNG =====
+    if (typeof window.slugUtils !== 'undefined' && window.slugUtils.bindSlugHandlers) {
+        window.slugUtils.bindSlugHandlers($form);
+    }
+
+    // ===== GẮN CÁC HANDLER CHO IMAGE UPLOAD TỪ FILE RIÊNG =====
+    if (typeof window.imageHandler !== 'undefined' && window.imageHandler.bindHandlers) {
+        window.imageHandler.bindHandlers($form);
+    }
+
+    // Xóa lỗi khi người dùng nhập vào các field
+    $form.find('input, textarea, select').on('input change', function() {
+        $(this).removeClass('error-field');
+        $(this).closest('.form-group').find('.field-error-msg').remove();
+
+        if ($(this).is('textarea') && $(this).attr('id') === 'news_content') {
+            const content = $(this).val();
+            const strippedContent = content ? content.replace(/<[^>]*>/g, '').trim() : '';
+            if (strippedContent) {
+                $(this).removeClass('error-field');
+                $(this).closest('.form-group').find('.field-error-msg').remove();
+            }
+        }
+    });
+
+    // Xử lý submit form
+    $form.on('submit', function(e) {
+        // Cập nhật slug lần cuối trước khi submit
+        if (typeof window.slugUtils !== 'undefined' && window.slugUtils.updateSlug) {
+            window.slugUtils.updateSlug($form);
+        }
+
+        // Đồng bộ nội dung từ Quill Editor
+        if (typeof window.quillEditor !== 'undefined' && window.quillEditor.syncContent) {
+            window.quillEditor.syncContent();
+        }
+
+        if (!validateClientForm($form)) {
+            e.preventDefault();
+        }
+    });
+
+    // Tạo slug ban đầu nếu có title
+    const $title = $form.find('#news_title');
+    const $slug = $form.find('#slug');
+    const initialTitle = $title.val();
+    const initialSlug = $slug.val();
+
+    if (initialTitle && initialTitle.trim() !== '') {
+        if (typeof window.slugUtils !== 'undefined' && window.slugUtils.generateSlugFromTitle) {
+            if (!initialSlug || initialSlug.trim() === '' || initialSlug !== window.slugUtils.generateSlugFromTitle(initialTitle)) {
+                if (typeof window.slugUtils.updateSlug === 'function') {
+                    window.slugUtils.updateSlug($form);
+                }
+            }
+        }
+    }
+}
+
+// ==================== INITIALIZATION ====================
+
+function initNewsForm(scope = document, serverErrors = null) {
+    const $scope = scope instanceof jQuery ? scope : $(scope);
+    const $form = $scope.find('#newsForm');
+
+    if (!$form.length) return;
+
+    bindNewsFormHandlers($form);
+
+    // Đảm bảo slug sync sau khi init
+    if (typeof window.slugUtils !== 'undefined' && window.slugUtils.ensureSlugSync) {
+        window.slugUtils.ensureSlugSync($form);
+    }
+
+    if (serverErrors && serverErrors.length > 0) {
+        displayServerErrors(serverErrors, $form);
+    }
+}
+
+// ==================== EXPOSE GLOBAL FUNCTIONS ====================
+
+window.newsForm = {
+    init: initNewsForm,
+
+    generateAITitle: function() {
+        const $form = $('#newsForm');
+        const $title = $form.find('#news_title');
+
+        if (!$form.length || !$title.length) {
+            return;
+        }
+
+        const aiTitles = [
+            'Tin tức mới nhất về công nghệ 2026 - Cập nhật xu hướng',
+            'Hướng dẫn chi tiết cách sử dụng phần mềm mới nhất',
+            'Thông báo quan trọng: Thay đổi chính sách bảo mật',
+            'Tổng hợp tin tức nổi bật tuần qua - Đừng bỏ lỡ',
+            'Chia sẻ kinh nghiệm làm việc hiệu quả từ chuyên gia',
+            'Cập nhật tính năng mới - Nâng cấp hệ thống'
+        ];
+
+        $title.val(aiTitles[Math.floor(Math.random() * aiTitles.length)]);
+        if (typeof window.slugUtils !== 'undefined' && window.slugUtils.updateSlug) {
+            window.slugUtils.updateSlug($form);
+        }
+        $title.removeClass('error-field');
+        $title.closest('.form-group').find('.field-error-msg').remove();
+        showToast('Đã tạo gợi ý tiêu đề!', 'success');
+    },
+
+    generateAIContent: function() {
+        showToast('Tính năng tạo nội dung bằng AI đang phát triển!', 'info');
+    },
+
+    generateAIImage: function() {
+        showToast('Tính năng tạo ảnh bằng AI đang phát triển!', 'info');
+    }
+};
+
+// ==================== AUTO INIT ON DOM READY ====================
+
+$(document).ready(function() {
+    // Khởi tạo Quill Editor từ file quill-editor.js
+    if (typeof window.quillEditor !== 'undefined' && window.quillEditor.init) {
+        window.quillEditor.init();
+    }
+
+    // Khởi tạo Color Picker từ file quill-editor.js
+    if (typeof initColorPicker === 'function') {
+        initColorPicker();
+    }
+
+    // Khởi tạo form với server errors
+    const serverErrors = window.serverErrors || null;
+    window.newsForm.init(document, serverErrors);
+
+    // Cập nhật toolbar state sau khi khởi tạo
+    setTimeout(function() {
+        if (typeof updateToolbarStateQuill === 'function') {
+            updateToolbarStateQuill();
+        }
+    }, 100);
+});

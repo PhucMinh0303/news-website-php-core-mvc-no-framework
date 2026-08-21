@@ -181,9 +181,11 @@ unset($_SESSION['errors']);
                             </option>
                         </select>
 
-                        <small>• Draft (0): Lưu tạm, chưa hiển thị<br>
-                            • Open (1): Đang tuyển dụng<br>
-                            • Closed (2): Ngưng nhận hồ sơ</small>
+                        <small>
+                            • <strong>Bản nháp</strong>: Chưa hiển thị ra ngoài<br>
+                            • <strong>Đã đăng</strong>: Hiển thị công khai trên website<br>
+                            • <strong>Lưu trữ</strong>: Ẩn khỏi giao diện người dùng
+                        </small>
                     </div>
 
                     <div class="thumbnail-box">

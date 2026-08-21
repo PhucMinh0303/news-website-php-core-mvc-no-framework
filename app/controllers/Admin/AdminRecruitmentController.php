@@ -55,7 +55,7 @@ class AdminRecruitmentController extends Controller
      */
     public function create()
     {
-        $this->view('admin/main/recruitment/create');
+        $this->view('admin/main/recruitment/create-recruitment');
     }
 
     /**
