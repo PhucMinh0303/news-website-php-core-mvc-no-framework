@@ -10,12 +10,14 @@ CREATE TABLE `recruitments`
     `image`         VARCHAR(255) DEFAULT 'default-job.webp',
     `work_location` TEXT         NULL,
     `degree`        VARCHAR(100) DEFAULT 'Cao Đẳng - Đại Học',
+    `work_type`     VARCHAR(50)  DEFAULT 'Toàn thời gian',
     `quantity`      INT          DEFAULT 1,
     `salary_range`  VARCHAR(100) NULL,
     `deadline`      DATE         NOT NULL,
     `description`   TEXT         NULL,
     `requirements`  TEXT         NULL,
     `benefits`      TEXT         NULL,
+    `views`         INT          DEFAULT 0,
     `status`        TINYINT      DEFAULT 1,
     `created_at`    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -47,6 +49,8 @@ VALUES ('Trưởng phòng nguồn vốn', 'truong-phong-nguon-von',
 -- Thêm cột nếu chưa có (ví dụ: benefits, requirements, salary_range, v.v.)
 -- Lưu ý: Nếu cột đã tồn tại, sẽ báo lỗi, có thể kiểm tra trước hoặc bỏ qua
 ALTER TABLE `recruitments`
+  ADD COLUMN IF NOT EXISTS `work_type` VARCHAR(50) DEFAULT 'Toàn thời gian' AFTER `degree`,
+    ADD COLUMN IF NOT EXISTS `views` INT DEFAULT 0 AFTER `benefits`,
     ADD COLUMN IF NOT EXISTS `salary_range` VARCHAR(100) NULL AFTER `quantity`,
     ADD COLUMN IF NOT EXISTS `description` TEXT NULL AFTER `deadline`,
     ADD COLUMN IF NOT EXISTS `requirements` TEXT NULL AFTER `description`,

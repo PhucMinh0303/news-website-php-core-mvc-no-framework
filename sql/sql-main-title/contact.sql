@@ -1,52 +1,53 @@
--- =====================================================
--- 8. Bảng contacts
--- =====================================================
+-- Bảng thư liên hệ dùng chung với ContactModel và màn quản trị.
 CREATE TABLE IF NOT EXISTS contacts
 (
-    customer_id               INT PRIMARY KEY AUTO_INCREMENT,
+    id               INT PRIMARY KEY AUTO_INCREMENT,
     customer_name    VARCHAR(100) NOT NULL,
     phone            VARCHAR(20)  NOT NULL,
-    email            VARCHAR(100),
+    email            VARCHAR(100) NULL,
     content          TEXT         NOT NULL,
     contact_type     ENUM ('general', 'support', 'feedback', 'complaint', 'recruitment', 'partnership') DEFAULT 'general',
-    category_id      INT,
-    source           ENUM ('website', 'mobile', 'email', 'phone', 'social')                             DEFAULT 'website',
-    ip_address       VARCHAR(45),
-    user_agent       TEXT,
-    page_url         VARCHAR(500),
-    referrer_url     VARCHAR(500),
-    status           ENUM ('new', 'read', 'replied', 'processing', 'resolved', 'spam')                  DEFAULT 'new',
-    priority         ENUM ('low', 'medium', 'high', 'urgent')                                           DEFAULT 'medium',
-    assigned_to      INT,
-    response_content TEXT,
-    response_by      INT,
-    response_at      TIMESTAMP    NULL,
-    customer_id      INT,
-    created_at       TIMESTAMP                                                                          DEFAULT CURRENT_TIMESTAMP,
-    updated_at       TIMESTAMP                                                                          DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (assigned_to) REFERENCES authors (id) ON DELETE SET NULL,
-    FOREIGN KEY (response_by) REFERENCES authors (id) ON DELETE SET NULL
+    category_id      INT NULL,
+    source           ENUM ('website', 'mobile', 'email', 'phone', 'social') DEFAULT 'website',
+    ip_address       VARCHAR(45) NULL,
+    user_agent       TEXT NULL,
+    page_url         VARCHAR(500) NULL,
+    referrer_url     VARCHAR(500) NULL,
+    status           ENUM ('new', 'read', 'replied', 'processing', 'resolved', 'spam', 'archived') DEFAULT 'new',
+    priority         ENUM ('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
+    assigned_to      INT NULL,
+    response_content TEXT NULL,
+    response_by      INT NULL,
+    response_at      TIMESTAMP NULL,
+    customer_id      INT NULL,
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_contacts_status (status),
+    INDEX idx_contacts_created_at (created_at),
+    INDEX idx_contacts_email (email),
+    INDEX idx_contacts_phone (phone)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
--- Thêm dữ liệu mẫu cho contacts
-INSERT INTO contacts (customer_name, phone, email, content, contact_type, category_id, source, status, priority)
-VALUES ('Nguyễn Văn A', '0909123456', 'nguyena@gmail.com', 'Tôi cần hỗ trợ về sản phẩm X', 'support', 2, 'website',
-        'new', 'medium'),
-       ('Trần Thị B', '0918234567', 'tranthib@yahoo.com', 'Ứng tuyển vị trí lập trình viên', 'recruitment', 3,
-        'website', 'new', 'high'),
-       ('Lê Văn C', '0987654321', 'levanc@gmail.com', 'Website bị lỗi không đăng nhập được', 'support', 1, 'mobile',
-        'processing', 'urgent'),
-       ('Phạm Thị D', '0978123456', NULL, 'Đề xuất hợp tác kinh doanh', 'partnership', 4, 'email', 'read', 'low'),
-       ('Hoàng Văn E', '0967890123', 'hoange@gmail.com', 'Khiếu nại về chất lượng dịch vụ', 'complaint', 6, 'website',
-        'replied', 'high');
+-- Upgrade existing contacts tables; CREATE TABLE IF NOT EXISTS does not alter them.
+ALTER TABLE contacts
+    ADD COLUMN IF NOT EXISTS contact_type ENUM ('general', 'support', 'feedback', 'complaint', 'recruitment', 'partnership') DEFAULT 'general',
+    ADD COLUMN IF NOT EXISTS category_id INT NULL,
+    ADD COLUMN IF NOT EXISTS source ENUM ('website', 'mobile', 'email', 'phone', 'social') DEFAULT 'website',
+    ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45) NULL,
+    ADD COLUMN IF NOT EXISTS user_agent TEXT NULL,
+    ADD COLUMN IF NOT EXISTS page_url VARCHAR(500) NULL,
+    ADD COLUMN IF NOT EXISTS referrer_url VARCHAR(500) NULL,
+    ADD COLUMN IF NOT EXISTS status ENUM ('new', 'read', 'replied', 'processing', 'resolved', 'spam', 'archived') DEFAULT 'new',
+    ADD COLUMN IF NOT EXISTS priority ENUM ('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
+    ADD COLUMN IF NOT EXISTS assigned_to INT NULL,
+    ADD COLUMN IF NOT EXISTS response_content TEXT NULL,
+    ADD COLUMN IF NOT EXISTS response_by INT NULL,
+    ADD COLUMN IF NOT EXISTS response_at TIMESTAMP NULL,
+    ADD COLUMN IF NOT EXISTS customer_id INT NULL,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 
--- Tạo index cho bảng contacts
-CREATE INDEX idx_contacts_status ON contacts (status);
-CREATE INDEX idx_contacts_created_at ON contacts (created_at);
-CREATE INDEX idx_contacts_email ON contacts (email);
-CREATE INDEX idx_contacts_phone ON contacts (phone);
-CREATE INDEX idx_contacts_type ON contacts (contact_type);
-CREATE INDEX idx_contacts_priority ON contacts (priority);
-CREATE INDEX idx_contacts_assigned_to ON contacts (assigned_to);
+  ALTER TABLE contacts
+    MODIFY COLUMN status ENUM ('new', 'read', 'replied', 'processing', 'resolved', 'spam', 'archived') DEFAULT 'new';

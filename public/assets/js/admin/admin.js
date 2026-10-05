@@ -1,12 +1,15 @@
 // Hàm tải nội dung HTML vào một container
 async function loadHTML(url, containerId) {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const html = await response.text();
     const container = document.getElementById(containerId);
     container.innerHTML = html;
-    initQuillEditor(container);
     window.recruitmentForm?.init?.(container);
   } catch (error) {
     console.error("Lỗi tải file:", error);
@@ -22,9 +25,19 @@ window.addEventListener("load", async () => {
     /\/+$/,
     "",
   );
+  const initialPage = window.ADMIN_INITIAL_PAGE || "dashboard";
+  const initialMainUrl =
+    initialPage === "dashboard" ? mainBaseUrl : `${mainBaseUrl}/${initialPage}`;
 
-  await loadHTML(menuUrl, "menu-container");
-  await loadHTML(mainBaseUrl, "main-container");
+  const menuContainer = document.getElementById("menu-container");
+  const mainContainer = document.getElementById("main-container");
+
+  if (menuContainer && !menuContainer.innerHTML.trim()) {
+    await loadHTML(menuUrl, "menu-container");
+  }
+  if (mainContainer && !mainContainer.innerHTML.trim()) {
+    await loadHTML(initialMainUrl, "main-container");
+  }
 
   // Sau khi menu được tải, gắn sự kiện click cho các mục
   attachMenuEvents(mainBaseUrl);
@@ -33,7 +46,12 @@ window.addEventListener("load", async () => {
 // Hàm xử lý click menu
 function attachMenuEvents(mainBaseUrl) {
   const menuItems = document.querySelectorAll(".menu-item");
-  const mainContainer = document.getElementById("main-container");
+
+  const setActiveMenu = (page) => {
+    menuItems.forEach((item) => {
+      item.classList.toggle("active", item.dataset.page === page);
+    });
+  };
 
   const buildMainUrl = (page) => {
     if (!page || page === "main") return mainBaseUrl;
@@ -51,6 +69,8 @@ function attachMenuEvents(mainBaseUrl) {
     item.addEventListener("click", async (e) => {
       e.preventDefault();
 
+      const link = item.querySelector("a[href]");
+
       // Bỏ class active khỏi tất cả menu items
       menuItems.forEach((i) => i.classList.remove("active"));
 
@@ -61,7 +81,11 @@ function attachMenuEvents(mainBaseUrl) {
       const page = item.dataset.page; // ví dụ: "articles", "contact", ...
 
       // Xây dựng đường dẫn file main tương ứng
-      const mainFile = buildMainUrl(page);
+      const mainFile = item.dataset.url || link?.href || buildMainUrl(page);
+
+      if (link && window.location.href !== link.href) {
+        window.history.pushState({ page }, "", link.href);
+      }
 
       // Tải nội dung mới vào main-container
       await loadHTML(mainFile, "main-container");
@@ -78,7 +102,16 @@ function attachMenuEvents(mainBaseUrl) {
 
     e.preventDefault();
     const page = target.dataset.page;
-    const mainFile = buildMainUrl(page);
+    const mainFile = target.dataset.mainUrl || buildMainUrl(page);
+
+    if (target.dataset.menuPage) {
+      setActiveMenu(target.dataset.menuPage);
+    }
+
+    if (target.dataset.url && window.location.href !== target.dataset.url) {
+      window.history.pushState({ page }, "", target.dataset.url);
+    }
+
     await loadHTML(mainFile, "main-container");
   });
 }

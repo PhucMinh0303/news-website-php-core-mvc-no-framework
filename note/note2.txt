@@ -110,6 +110,7 @@ D:\XAMPP\HTDOCS\CAPITALAM2-MVC
 |       |   |   \---recruitment
 |       |   |           create-recruitment.php
 |       |   |           recruitment_admin.php
+|       |   |           edit-recruitment.php
 |       |   |           
 |       |   +---menu
 |       |   |       head-root-admin.php

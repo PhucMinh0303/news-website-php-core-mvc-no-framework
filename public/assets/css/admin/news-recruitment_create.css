@@ -1,16 +1,16 @@
 .create-page {
-  max-width: 1300px;
+  max-width: 1380px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color: #1f2937;
 }
 
 .create-page .add-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3a5f 0%, #256b67 100%);
   color: #fff;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 14px;
   margin-bottom: 30px;
   font-size: 24px;
   font-weight: 700;
@@ -19,9 +19,10 @@
 
 .create-page .add-container {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  padding: clamp(20px, 3vw, 34px);
 }
 
 .create-page .form-group {
@@ -49,7 +50,7 @@
 }
 
 .create-page .ai-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #0f766e;
   color: #fff;
   border: 0;
   padding: 6px 12px;
@@ -105,6 +106,443 @@
 .create-page textarea {
   resize: vertical;
   font-family: inherit;
+}
+
+.video-modal-content {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  padding: 30px 35px;
+  overflow-y: auto;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+#videoModal {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  animation: videoModalFadeIn 0.3s ease;
+}
+
+#videoModal.show {
+  display: flex !important;
+}
+
+@keyframes videoModalFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+#videoModal .video-modal-title {
+  margin: 0 0 25px;
+  color: #1e293b;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+#videoModal .video-input-section,
+#videoModal .video-file-section {
+  margin-bottom: 20px;
+}
+
+#videoModal .video-input-label,
+#videoModal .video-file-label {
+  display: block;
+  margin: 0 0 8px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#videoModal .video-input-wrapper {
+  display: flex;
+  gap: 10px;
+}
+
+#videoModal .video-input-field {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+#videoModal .video-input-field:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#videoModal .video-input-field::placeholder {
+  color: #94a3b8;
+}
+
+#videoModal .video-insert-btn,
+#videoModal .video-cancel-btn {
+  padding: 10px 24px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#videoModal .video-insert-btn {
+  flex: 0 0 auto;
+  background: #3b82f6;
+  color: #fff;
+  white-space: nowrap;
+}
+
+#videoModal .video-insert-btn:hover {
+  background: #2563eb;
+}
+
+#videoModal .video-divider {
+  position: relative;
+  margin: 20px 0;
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+}
+
+#videoModal .video-divider::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: #e2e8f0;
+  content: '';
+}
+
+#videoModal .video-divider span {
+  position: relative;
+  z-index: 1;
+  padding: 0 15px;
+  background: #fff;
+}
+
+#videoModal .video-upload-box {
+  padding: 25px 20px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #fafbfc;
+  cursor: pointer;
+  text-align: center;
+}
+
+#videoModal .video-upload-box:hover {
+  border-color: #3b82f6;
+  background: #f8fafc;
+}
+
+#videoModal .video-upload-icon {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 40px;
+}
+
+#videoModal .video-upload-text {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#videoModal .video-file-name {
+  display: none;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #3b82f6;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+#videoModal .video-cancel-btn {
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+#videoModal .video-cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .video-modal-content {
+    max-width: 100%;
+    margin: 10px;
+    padding: 20px;
+  }
+
+  #videoModal .video-modal-title {
+    margin-bottom: 20px;
+    font-size: 18px;
+  }
+
+  #videoModal .video-input-wrapper {
+    flex-direction: column;
+  }
+
+  #videoModal .video-insert-btn {
+    width: 100%;
+  }
+
+  #videoModal .video-upload-box {
+    padding: 20px 15px;
+  }
+
+  #videoModal .video-upload-icon {
+    font-size: 32px;
+  }
+}
+
+.create-page .editor-instructions {
+  min-width: 0;
+}
+
+.create-page .rich-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: #f8f9fa;
+}
+
+.create-page .rich-editor-toolbar .tool-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-right: 4px;
+  padding-right: 8px;
+  border-right: 1px solid #e5e7eb;
+}
+
+.create-page .rich-editor-toolbar .tool-group:last-child {
+  margin-right: 0;
+  padding-right: 0;
+  border-right: 0;
+}
+
+.create-page .rich-editor-toolbar button {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.create-page .rich-editor-toolbar button:hover {
+  background: #e5e7eb;
+}
+
+.create-page .rich-editor-toolbar button.active,
+.create-page .rich-editor-toolbar button.align-active {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.create-page .rich-editor-toolbar button.active i,
+.create-page .rich-editor-toolbar button.align-active i {
+  color: #fff;
+}
+
+.create-page .rich-editor-toolbar select {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 13px;
+}
+
+.create-page .rich-editor-toolbar input[type="color"] {
+  width: 32px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.create-page .rich-editor-content {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 400px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 8px 8px;
+  background: #fff;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+
+.create-page .rich-editor-content:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.create-page .rich-editor-content:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.create-page .rich-editor-content img,
+.create-page .rich-editor-content iframe {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.create-page .rich-editor-content a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.create-page .rich-editor-content a:hover {
+  color: #2563eb;
+}
+
+.create-page .color-picker-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.create-page .color-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 42px;
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.create-page .color-btn:hover {
+  background: #e5e7eb;
+}
+
+.create-page .color-btn span {
+  font-size: 16px;
+}
+
+.create-page .color-indicator {
+  width: 20px;
+  height: 3px;
+  margin-top: 2px;
+  border-radius: 2px;
+}
+
+.create-page .color-dropdown {
+  position: absolute;
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  margin-top: 5px;
+  padding: 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.create-page .color-title {
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.create-page .theme-section .color-title {
+  color: #4338ca;
+}
+
+.create-page .standard-section .color-title {
+  color: #b45309;
+}
+
+.create-page .color-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 20px);
+  gap: 3px;
+}
+
+.create-page .color-item {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.create-page .color-item:hover {
+  transform: scale(1.1);
+  border-color: #1e88e5;
+}
+
+.create-page .color-divider {
+  height: 1px;
+  margin: 8px 0;
+  background: #e5e7eb;
+}
+
+.create-page .color-option {
+  padding: 5px 8px;
+  border-radius: 3px;
+  color: #333;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.create-page .color-option:hover {
+  background: #f0f0f0;
 }
 
 .create-page small {
@@ -197,13 +635,13 @@
 }
 
 .create-page .btn-publish {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1e3a5f;
   color: #fff;
 }
 
 .create-page .btn-publish:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
 }
 
 .create-page .btn-secondary {
@@ -340,5 +778,32 @@
 
   .create-page .action-buttons {
     flex-direction: column;
+  }
+
+  .create-page .action-buttons button {
+    width: 100%;
+  }
+
+  .create-page .rich-editor-toolbar {
+    gap: 5px;
+    padding: 7px;
+  }
+}
+
+@media (max-width: 560px) {
+  .create-page .add-header {
+    font-size: 18px;
+    padding: 16px;
+  }
+
+  .create-page .label-row,
+  .create-page .thumbnail-box .thumb-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .create-page .ai-btn {
+    width: 100%;
   }
 }

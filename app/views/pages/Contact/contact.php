@@ -1,10 +1,16 @@
 <?php
+
 /**
  * Contact Form Page - Contact Us
  */
+$contactOldInput = $_SESSION['contact_old_input'] ?? $_SESSION['old_input'] ?? [];
+$contactErrors = $_SESSION['contact_errors'] ?? $_SESSION['errors'] ?? [];
+$contactSuccess = $_SESSION['contact_success'] ?? $_SESSION['success'] ?? null;
+unset($_SESSION['contact_old_input'], $_SESSION['contact_errors'], $_SESSION['contact_success']);
+unset($_SESSION['old_input'], $_SESSION['errors'], $_SESSION['success']);
 ?>
 <main class="section10">
-  
+
   <section class="f_contact">
     <div class="min_wrap_contact r_p69">
       <div class="l_f_contact">
@@ -29,9 +35,7 @@
           <li>
             <p>Email</p>
             <div>
-              <a href="mailto:info@capitalam.vn" title="info@capitalam.vn"
-                >info@capitalam.vn</a
-              >
+              <a href="mailto:info@capitalam.vn" title="info@capitalam.vn">info@capitalam.vn</a>
             </div>
           </li>
           <li>
@@ -48,13 +52,18 @@
           </li>
         </ul>
         <!--end list_info_f_contact-->
-        <form method="post" action="<?php echo View::url('contact/send'); ?>">
+        <?php if ($contactSuccess): ?>
+          <p class="validate_text" role="status"><?php echo View::escape($contactSuccess); ?></p>
+        <?php endif; ?>
+        <?php foreach ($contactErrors as $contactError): ?>
+          <p class="validate_text" role="alert"><?php echo View::escape($contactError); ?></p>
+        <?php endforeach; ?>
+        <form method="post" action="<?php echo View::url('contact/submit'); ?>">
           <input
             style="display: none"
             type="text"
             name="key_check"
-            value="<?php echo View::escape(session_id()); ?>"
-          />
+            value="<?php echo View::escape(session_id()); ?>" />
           <ul class="form_l_f_contact">
             <li>
               <input
@@ -62,9 +71,8 @@
                 class="ipt_l_f_contact box-sizing-fix"
                 name="ten"
                 placeholder="Họ tên *"
-                value=""
-                required=""
-              />
+                value="<?php echo View::escape($contactOldInput['ten'] ?? ''); ?>"
+                required="" />
             </li>
             <li>
               <input
@@ -72,9 +80,8 @@
                 class="ipt_l_f_contact box-sizing-fix"
                 name="dt"
                 placeholder="Điện thoại *"
-                value=""
-                required=""
-              />
+                value="<?php echo View::escape($contactOldInput['dt'] ?? ''); ?>"
+                required="" />
             </li>
             <li>
               <input
@@ -82,8 +89,7 @@
                 class="ipt_l_f_contact box-sizing-fix"
                 name="email"
                 placeholder="Email"
-                value=""
-              />
+                value="<?php echo View::escape($contactOldInput['email'] ?? ''); ?>" />
             </li>
             <li>
               <input
@@ -91,20 +97,17 @@
                 class="ipt_l_f_contact box-sizing-fix"
                 name="cap"
                 placeholder="Mã bảo mật *"
-                required=""
-              />
+                required="" />
               <img
                 src="<?php echo BASE_URL; ?>scripts/capcha/dongian.php"
                 alt="Mã bảo mật"
-                class="img_capcha"
-              />
+                class="img_capcha" />
             </li>
             <li>
               <textarea
                 class="txt_l_f_contact box-sizing-fix"
                 name="noidung"
-                placeholder="Nội dung"
-              ></textarea>
+                placeholder="Nội dung"><?php echo View::escape($contactOldInput['noidung'] ?? ''); ?></textarea>
             </li>
             <p class="validate_text"></p>
             <li>
@@ -126,8 +129,7 @@
           style="border: 0"
           allowfullscreen=""
           loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
       <!--end r_f_contact-->
     </div>

@@ -12,13 +12,6 @@ class BaseModel
         $this->conn = $this->db->getConnection();
     }
 
-    public function __destruct()
-    {
-        if ($this->db) {
-            $this->db->closeConnection();
-        }
-    }
-
     // Phương thức lấy dữ liệu (SELECT)
     protected function select($sql, $params = [])
     {

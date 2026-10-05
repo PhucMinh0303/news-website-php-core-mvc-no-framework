@@ -1,35 +1,14 @@
 <?php
-/**
- * IApplicationRepository Interface
- * Defines contract for application data access
- */
+// app/interfaces/IRecruitmentRepository.php
 
-interface IApplicationRepository
+interface IRecruitmentRepository
 {
-    /**
-     * Save application
-     *
-     * @param array $data
-     * @return bool
-     */
-    public function save($data);
-
-    /**
-     * Check if already applied
-     *
-     * @param int $recruitmentId
-     * @param string $email
-     * @param string $ipAddress
-     * @return bool
-     */
-    public function hasApplied($recruitmentId, $email, $ipAddress);
-
-    /**
-     * Get applications by recruitment ID
-     *
-     * @param int $recruitmentId
-     * @return array
-     */
-    public function getByRecruitmentId($recruitmentId);
+    public function getActiveRecruitmentsPaginated($limit, $offset);
+    public function getDetail($slug);
+    public function incrementViews($id);
+    public function countActive();
+    public function getByPosition($position, $limit);
+    public function getFeaturedRecruitments($limit);
+    public function getAllPositions();
+    public function search($keyword, $limit, $offset);
 }
-

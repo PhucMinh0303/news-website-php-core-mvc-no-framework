@@ -88,6 +88,12 @@
 
             $slugElement.val(newSlug);
 
+            // Cập nhật hidden field slug_original nếu tồn tại
+            const $slugOriginal = $slugElement.closest('form').find('#slug_original, #slugOriginal');
+            if ($slugOriginal.length) {
+                $slugOriginal.val(newSlug);
+            }
+
             // Hiệu ứng highlight khi cập nhật
             $slugElement.css({
                 backgroundColor: settings.highlightColor,
@@ -95,7 +101,7 @@
             });
 
             setTimeout(function() {
-                $slugElement.css('backgroundColor', '#f3f4f6');
+                $slugElement.css('backgroundColor', '');
             }, settings.highlightDuration);
 
             // Callback nếu có
@@ -108,41 +114,63 @@
         lockEditing: function($slugElement, message) {
             if (!$slugElement.length) return;
 
-            const lockMessage = message || 'Slug được tạo tự động từ tiêu đề!';
+            const lockMessage = message || 'Slug được tạo tự động từ tiêu đề, không thể chỉnh sửa trực tiếp';
 
+            // Ngăn chặn copy, cut, paste
             $slugElement.on('copy cut paste', function(e) {
                 e.preventDefault();
-                alert(lockMessage);
                 return false;
             });
 
+            // Ngăn chặn nhập liệu
             $slugElement.on('keydown', function(e) {
+                // Cho phép các phím: Tab, Home, End, Arrow keys
+                const allowedKeys = [9, 35, 36, 37, 38, 39, 40];
+                if (allowedKeys.indexOf(e.which) !== -1) {
+                    return;
+                }
                 e.preventDefault();
-                alert(lockMessage);
                 return false;
             });
 
+            // Ngăn chặn click chuột phải
+            $slugElement.on('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Thêm tooltip
             $slugElement.attr('title', lockMessage);
+            $slugElement.attr('readonly', true);
+
+            // Style để hiển thị readonly
+            $slugElement.css({
+                cursor: 'not-allowed',
+                backgroundColor: '#f3f4f6'
+            });
         },
 
         // Bind vào form - HỖ TRỢ CẢ HAI FORM
         bindToForm: function($form, options) {
             const self = this;
-            
-            // Tìm title và slug trong form - hỗ trợ cả 2 loại id
             const $title = $form.find('#recruitment_title, #news_title');
             const $slug = $form.find('#slug');
 
             if (!$title.length || !$slug.length) {
                 console.warn('Không tìm thấy title hoặc slug trong form');
-                return;
+                return null;
             }
+
+            // Xác định loại form dựa trên ID title
+            const isRecruitment = $form.find('#recruitment_title').length > 0;
+            const isNews = $form.find('#news_title').length > 0;
 
             const settings = $.extend({
                 lockEditing: true,
                 lockMessage: 'Slug được tạo tự động từ tiêu đề, không thể chỉnh sửa trực tiếp',
                 updateOnInput: true,
-                autoGenerateInitial: true
+                autoGenerateInitial: true,
+                onUpdate: null
             }, options);
 
             // Tự động cập nhật khi nhập title
@@ -174,7 +202,15 @@
                 },
                 updateSlug: function() {
                     self.autoUpdate($title, $slug);
-                }
+                },
+                getTitle: function() {
+                    return $title;
+                },
+                getSlug: function() {
+                    return $slug;
+                },
+                isRecruitment: isRecruitment,
+                isNews: isNews
             };
         }
     };
@@ -185,7 +221,7 @@
     const ImagePreview = {
         // Cấu hình mặc định
         defaults: {
-            maxSize: 2 * 1024 * 1024, // 2MB
+            maxSize: 15 * 1024 * 1024, // 2MB
             previewSelector: '#imagePreview',
             previewImgSelector: '#previewImg',
             uploadBoxSelector: '#uploadBox',
@@ -640,6 +676,21 @@
     // ============================================
 
     $(function() {
+        // Tự động init SlugGenerator cho các form
+        $('form').each(function() {
+            const $form = $(this);
+            const hasTitle = $form.find('#recruitment_title, #news_title').length > 0;
+            const hasSlug = $form.find('#slug').length > 0;
+            
+            if (hasTitle && hasSlug) {
+                // Kiểm tra nếu chưa được init
+                if (!$form.data('slug-init')) {
+                    $form.data('slug-init', true);
+                    SlugGenerator.bindToForm($form);
+                }
+            }
+        });
+
         // Tự động init ImagePreview cho các form có uploadBox và imageInput
         $('form').each(function() {
             const $form = $(this);
@@ -647,8 +698,162 @@
                 // Kiểm tra nếu chưa được init
                 if (!$form.data('image-preview-init')) {
                     $form.data('image-preview-init', true);
-                    ImagePreview.init($form);
+                    const imagePreview = ImagePreview.init($form);
+                    if (imagePreview) {
+                        $form.data('image-preview-api', imagePreview);
+                    }
                 }
+            }
+        });
+
+        // ============================================
+        // HỖ TRỢ CHO create-news.php (VIDEO MODAL)
+        // ============================================
+        
+        // Định nghĩa các hàm global cho video modal nếu chưa tồn tại
+        if (typeof window.openVideoModalForTextarea !== 'function') {
+            window.openVideoModalForTextarea = function() {
+                const modal = document.getElementById('videoModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    modal.classList.add('show');
+                    // Focus vào input
+                    const input = document.getElementById('youtubeUrl');
+                    if (input) setTimeout(function() { input.focus(); }, 100);
+                }
+            };
+        }
+
+        if (typeof window.closeVideoModal !== 'function') {
+            window.closeVideoModal = function() {
+                const modal = document.getElementById('videoModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    modal.classList.remove('show');
+                    // Reset input
+                    const input = document.getElementById('youtubeUrl');
+                    if (input) input.value = '';
+                    // Reset file input
+                    const fileInput = document.getElementById('videoFileInput');
+                    if (fileInput) fileInput.value = '';
+                    const fileName = document.getElementById('videoFileName');
+                    if (fileName) {
+                        fileName.style.display = 'none';
+                        fileName.textContent = '';
+                    }
+                }
+            };
+        }
+
+        if (typeof window.insertYoutubeVideo !== 'function') {
+            window.insertYoutubeVideo = function() {
+                const urlInput = document.getElementById('youtubeUrl');
+                const url = urlInput ? urlInput.value.trim() : '';
+                
+                if (!url) {
+                    alert('Vui lòng nhập URL YouTube');
+                    return;
+                }
+
+                // Lấy video ID từ URL
+                let videoId = '';
+                const patterns = [
+                    /(?:youtube\.com\/watch\?v=)([^&]+)/,
+                    /(?:youtu\.be\/)([^?]+)/,
+                    /(?:youtube\.com\/embed\/)([^?]+)/
+                ];
+
+                for (const pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match) {
+                        videoId = match[1];
+                        break;
+                    }
+                }
+
+                if (!videoId) {
+                    alert('URL YouTube không hợp lệ. Vui lòng nhập đúng định dạng.');
+                    return;
+                }
+
+                // Tạo iframe embed
+                const embedCode = `<div class="video-wrapper"><iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+                
+                // Chèn vào textarea
+                const textarea = document.getElementById('news_content');
+                if (textarea) {
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const text = textarea.value;
+                    const before = text.substring(0, start);
+                    const after = text.substring(end);
+                    textarea.value = before + embedCode + after;
+                    textarea.selectionStart = textarea.selectionEnd = start + embedCode.length;
+                    textarea.focus();
+                }
+
+                closeVideoModal();
+            };
+        }
+
+        if (typeof window.handleVideoFileUpload !== 'function') {
+            window.handleVideoFileUpload = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Kiểm tra loại file
+                if (!file.type.startsWith('video/')) {
+                    alert('Vui lòng chọn file video');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Kiểm tra kích thước (tối đa 50MB)
+                if (file.size > 50 * 1024 * 1024) {
+                    alert('Video không được vượt quá 50MB');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Hiển thị tên file
+                const fileName = document.getElementById('videoFileName');
+                if (fileName) {
+                    fileName.textContent = '📹 ' + file.name;
+                    fileName.style.display = 'block';
+                }
+
+                // Tạo URL để preview
+                const url = URL.createObjectURL(file);
+                const embedCode = `<div class="video-wrapper"><video width="100%" controls><source src="${url}" type="${file.type}">Trình duyệt của bạn không hỗ trợ video.</video></div>`;
+                
+                // Chèn vào textarea
+                const textarea = document.getElementById('news_content');
+                if (textarea) {
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const text = textarea.value;
+                    const before = text.substring(0, start);
+                    const after = text.substring(end);
+                    textarea.value = before + embedCode + after;
+                    textarea.selectionStart = textarea.selectionEnd = start + embedCode.length;
+                    textarea.focus();
+                }
+
+                closeVideoModal();
+            };
+        }
+
+        // Đóng modal khi click bên ngoài
+        $(document).on('click', '#videoModal', function(e) {
+            if (e.target === this) {
+                closeVideoModal();
+            }
+        });
+
+        // Đóng modal với phím ESC
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeVideoModal();
             }
         });
     });

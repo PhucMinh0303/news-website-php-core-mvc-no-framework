@@ -772,22 +772,6 @@
                 slugBinding.updateSlug();
             }
 
-            // Format salary
-            var $salaryInput = $form.find('#salary_range');
-            var $salaryHidden = $form.find('#salary_value');
-            if ($salaryInput.length) {
-                var value = $salaryInput.val();
-                if (value && value.trim() !== '') {
-                    var numberOnly = value.replace(/[^0-9]/g, '');
-                    if (numberOnly !== '') {
-                        var number = parseInt(numberOnly, 10);
-                        var formatted = number.toLocaleString('vi-VN') + ' VND';
-                        $salaryInput.val(formatted);
-                        $salaryHidden.val(number);
-                    }
-                }
-            }
-
             if (!validateClientForm($form)) {
                 e.preventDefault();
             }
@@ -893,3 +877,4 @@
     });
 
 })(jQuery);
+

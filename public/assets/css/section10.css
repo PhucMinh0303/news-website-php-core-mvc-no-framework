@@ -611,6 +611,7 @@ ul {
 }
 .but_03:hover {
   background: #003265;
+
   color: #f6f6f6;
 }
 .r_p36 {
@@ -620,7 +621,7 @@ ul {
 /*----*/
 /*recruitment-title2*/
 .min_wrap2 {
-  display: flex;
+  /*display: flex;*/
   flex-wrap: wrap;
   gap: 20px;
 }

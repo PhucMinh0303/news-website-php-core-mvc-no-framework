@@ -42,7 +42,13 @@
           An Khánh, Tp. Hồ Chí Minh
         </p>
 
-        <h3>Chi nhánh</h3>
+        <h3>Chi nhánh Tp. Hồ Chí Minh</h3>
+        <p>
+          <i class="fas fa-map-marker-alt"></i> Tầng 5, Tòa nhà Vinatex, Số 14 Võ Văn Kiệt, Phường Sài Gòn, TP. Hồ Chí Minh
+        </p>
+        
+
+        <h3>Chi nhánh Hà Nội</h3>
         <p>
           <i class="fas fa-map-marker-alt"></i> Tầng 8, Toà nhà số 2A Đại Cố
           Việt, Phường Hai Bà Trưng, Tp. Hà Nội

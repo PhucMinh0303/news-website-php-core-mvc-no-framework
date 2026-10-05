@@ -6,19 +6,24 @@
  */
 
 // Dữ liệu được truyền từ controller
-$recruitments = $data['recruitments'] ?? [];
-$status_filter = $data['status_filter'] ?? '';
-$search_keyword = $data['search_keyword'] ?? '';
-$current_page = $data['current_page'] ?? 1;  // Đổi tên từ $page thành $current_page
-$total_pages = $data['total_pages'] ?? 1;
-$total_records = $data['total_records'] ?? 0;
+$recruitments = $recruitments ?? [];
+$status_filter = $status_filter ?? '';
+$search_keyword = $search_keyword ?? '';
+$current_page = $current_page ?? 1;
+$total_pages = $total_pages ?? 1;
+$total_records = $total_records ?? 0;
+$successMessage = $_SESSION['success'] ?? '';
+unset($_SESSION['success']);
 
 // Hiển thị thông báo
-if (isset($_SESSION['success'])): ?>
+if ($successMessage !== ''): ?>
     <div class="alert alert-success" style="background: #d1fae5; color: #065f46; padding: 12px; margin: 10px 0; border-radius: 6px;">
-        <?php echo $_SESSION['success'];
-        unset($_SESSION['success']); ?>
+        <?php echo htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8'); ?>
     </div>
+<?php endif; ?>
+
+<?php if ($successMessage === 'Hiển thị thành công'): ?>
+    <div id="recruitment-success-message" data-message="Hiển thị thành công" hidden></div>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['error'])): ?>
@@ -43,13 +48,13 @@ function getStatusInfo($status)
 {
     switch ((int)$status) {
         case 1:
-            return ['text' => 'Published', 'class' => 'status-published', 'dot' => '#10b981'];
+            return ['text' => 'Đang tuyển', 'class' => 'status-published', 'dot' => '#10b981'];
         case 0:
-            return ['text' => 'Draft', 'class' => 'status-draft', 'dot' => '#f59e0b'];
+            return ['text' => 'Bản nháp', 'class' => 'status-draft', 'dot' => '#f59e0b'];
         case 2:
-            return ['text' => 'Archived', 'class' => 'status-archived', 'dot' => '#6b7280'];
+            return ['text' => 'Đã đóng', 'class' => 'status-archived', 'dot' => '#6b7280'];
         default:
-            return ['text' => 'Unknown', 'class' => 'status-unknown', 'dot' => '#9ca3af'];
+            return ['text' => 'Không xác định', 'class' => 'status-unknown', 'dot' => '#9ca3af'];
     }
 }
 
@@ -68,13 +73,13 @@ function formatDeadline($deadline)
     if ($is_expired) {
         return [
             'date' => $formatted_date,
-            'badge' => '<span class="badge expired">Expired</span>',
+            'badge' => '<span class="badge expired">Hết hạn</span>',
             'is_expired' => true
         ];
     } elseif ($interval->days <= 7) {
         return [
             'date' => $formatted_date,
-            'badge' => '<span class="badge soon">' . $interval->days . ' days left</span>',
+            'badge' => '<span class="badge soon">Còn ' . $interval->days . ' ngày</span>',
             'is_expired' => false
         ];
     } else {
@@ -93,19 +98,19 @@ function formatDate($date)
     $datetime = new DateTime($date);
     return $datetime->format('d/m/Y');
 }
+
+
 ?>
-
-
 
 <main class="main">
     <div class="main-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <h1>Quản lý Tuyển dụng</h1>
-        <button type="button" class="btn-primary" data-page="create-recruitment">
+        <a href="<?php echo htmlspecialchars(Router::url('admin/recruitment/create'), ENT_QUOTES, 'UTF-8'); ?>" class="btn-primary" data-page="create-recruitment">
             <i class="fa-solid fa-plus"></i> Đăng tin mới
-        </button>
+        </a>
     </div>
 
-    <!-- Stats Cards - Bổ sung từ news_admin -->
+    <!-- Stats Cards -->
     <div class="stats-container">
         <div class="stat-card total">
             <div class="stat-number"><?php echo $total_records; ?></div>
@@ -146,7 +151,7 @@ function formatDate($date)
         </div>
     </div>
 
-    <!-- Filter Bar - Cải tiến từ news_admin -->
+    <!-- Filter Bar -->
     <div class="filter-bar">
         <form method="GET" action="" class="search-form">
             <input type="text" name="search" placeholder="Tìm kiếm theo tiêu đề hoặc mô tả..."
@@ -169,14 +174,16 @@ function formatDate($date)
             <a href="?page=recruitment&p=1" class="btn-secondary">Xóa bộ lọc</a>
         <?php endif; ?>
     </div>
+
     <div class="posts-table">
         <div class="table-header">
             <div>TIÊU ĐỀ</div>
-            <div>HẠN NỘP</div>
+            <div>HÌNH ẢNH</div>
+
             <div>TRẠNG THÁI</div>
             <div>THAO TÁC</div>
-
         </div>
+
         <!-- Hiển thị thông báo nếu không có dữ liệu -->
         <?php if (empty($recruitments)): ?>
             <div class="empty-state">
@@ -191,30 +198,36 @@ function formatDate($date)
         <?php else: ?>
             <?php foreach ($recruitments as $job): ?>
                 <?php
-                // Xác định đường dẫn ảnh đúng
-                $image_path = 'assets/images/default-job.webp';
-                if (!empty($job['image']) && $job['image'] != 'default-job.webp') {
-                    $image_path = 'uploads/recruitments/' . $job['image'];
+                // Ảnh được upload từ create-recruitment.php vào public/upload/recruitments
+                $image_path = null;
+                if (!empty($job['image']) && $job['image'] !== 'default-job.webp') {
+                    $image_file = ROOT_PATH . 'public/upload/recruitments/' . $job['image'];
+                    $image_directory = 'public/upload/recruitments/';
+
+                    // Giữ khả năng hiển thị các ảnh đã upload trước khi đổi thư mục.
+                    if (!is_file($image_file)) {
+                        $image_file = ROOT_PATH . 'public/uploads/recruitments/' . $job['image'];
+                        $image_directory = 'public/uploads/recruitments/';
+                    }
+
+                    if (is_file($image_file)) {
+                        $image_path = BASE_URL . $image_directory . rawurlencode($job['image']);
+                    }
                 }
 
                 $deadline_info = formatDeadline($job['deadline']);
                 $quantity = (int)($job['quantity'] ?? 1);
-                $degree = $job['degree'] ?? 'Cao Đẳng - Đại Học';
+                $degree = $job['degree'] ?? 'Không yêu cầu';
                 $salary_range = $job['salary_range'] ?? 'Thỏa thuận';
+                $work_type = $job['work_type'] ?? 'Toàn thời gian';
                 $statusInfo = getStatusInfo($job['status']);
                 ?>
                 <div class="table-row">
+                    <!-- Cột Tiêu đề và thông tin chi tiết -->
                     <div class="col-title">
-                        <?php if ($image_path && $image_path != 'assets/images/default-job.webp'): ?>
-                            <img src="<?php echo htmlspecialchars($image_path); ?>" class="post-thumb" alt="Thumbnail" onerror="this.src='assets/images/default-job.webp'">
-                        <?php else: ?>
-                            <div class="post-thumb" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center;">
-                                <i class="fa-solid fa-image" style="color: #9ca3af;"></i>
-                            </div>
-                        <?php endif; ?>
                         <div class="title-info">
                             <div class="post-title">
-                                <a href="/recruitment/<?php echo htmlspecialchars($job['slug'] ?? $job['id']); ?>" target="_blank">
+                                <a href="<?php echo htmlspecialchars(Router::url('admin/recruitment', [$job['slug'] ?? $job['id']]), ENT_QUOTES, 'UTF-8'); ?>">
                                     <?php echo htmlspecialchars($job['title']); ?>
                                 </a>
                             </div>
@@ -223,7 +236,21 @@ function formatDate($date)
                                     <i class="fa-solid fa-users"></i> SL: <?php echo $quantity; ?>
                                 </span>
                                 <span class="meta-item">
-                                    <i class="fa-solid fa-chart-simple"></i> Lương: <?php echo htmlspecialchars($salary_range); ?>
+                                    <i class="fa-solid fa-clock"></i> <?php echo htmlspecialchars($work_type); ?>
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fa-solid fa-money-bill-wave"></i> <?php echo htmlspecialchars($salary_range); ?>
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <?php echo htmlspecialchars(strlen($job['work_location'] ?? '') > 30 ? substr($job['work_location'], 0, 30) . '...' : ($job['work_location'] ?? 'Chưa đặt')); ?>
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fa-solid fa-graduation-cap"></i> <?php echo htmlspecialchars($degree); ?>
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fa-regular fa-calendar"></i> Hạn: <?php echo $deadline_info['date']; ?>
+                                    <?php echo $deadline_info['badge']; ?>
                                 </span>
                                 <span class="meta-item">
                                     <i class="fa-regular fa-calendar"></i> Đăng: <?php echo formatDate($job['created_at'] ?? $job['publish_date'] ?? ''); ?>
@@ -231,29 +258,23 @@ function formatDate($date)
                             </div>
                         </div>
                     </div>
-
-                    <div class="col-location">
-                        <span class="location-badge">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <?php
-                            $location = $job['work_location'] ?? '';
-                            echo htmlspecialchars(strlen($location) > 60 ? substr($location, 0, 60) . '...' : ($location ?: 'Chưa đặt'));
-                            ?>
-                        </span>
+                    <!-- Cột Hình ảnh -->
+                    <div class="col-image">
+                        <?php if ($image_path): ?>
+                            <img src="<?php echo htmlspecialchars($image_path); ?>" class="post-thumb" alt="Thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="post-thumb" style="display: none; background: #e5e7eb; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-image" style="color: #9ca3af; font-size: 20px;"></i>
+                            </div>
+                        <?php else: ?>
+                            <div class="post-thumb" style="background: #e5e7eb; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-image" style="color: #9ca3af; font-size: 20px;"></i>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
-                    <div class="col-degree">
-                        <i class="fa-solid fa-graduation-cap" style="color: #6b7280;"></i>
-                        <?php echo htmlspecialchars($degree); ?>
-                    </div>
 
-                    <div class="col-deadline">
-                        <div class="deadline <?php echo $deadline_info['is_expired'] ? 'expired' : ''; ?>">
-                            <i class="fa-regular fa-calendar"></i> <?php echo $deadline_info['date']; ?>
-                            <?php echo $deadline_info['badge']; ?>
-                        </div>
-                    </div>
 
+                    <!-- Cột Trạng thái - từ status -->
                     <div class="col-status">
                         <span class="status-badge <?php echo $statusInfo['class']; ?>">
                             <span class="dot" style="background: <?php echo $statusInfo['dot']; ?>"></span>
@@ -261,23 +282,31 @@ function formatDate($date)
                         </span>
                     </div>
 
+
+
+                    <!-- Cột Thao tác -->
                     <div class="col-actions">
                         <div class="action-buttons">
-                            <a href="/admin/main/recruitment/edit/<?php echo $job['id']; ?>" class="icon-btn edit" title="Sửa">
+                            <a href="<?php echo htmlspecialchars(Router::url('admin/recruitment/edit', [(int) $job['id']])); ?>" class="icon-btn edit" title="Sửa">
                                 <i class="fa-solid fa-pen"></i>
                             </a>
-                            <a href="/admin/main/recruitment/toggle-status/<?php echo $job['id']; ?>" class="icon-btn status" title="Đổi trạng thái" onclick="return confirm('Bạn có chắc muốn đổi trạng thái tin này?')">
+                            <a href="<?php echo htmlspecialchars(Router::url('admin/recruitment/toggle-status', [$job['id']])); ?>" class="icon-btn status" title="Đổi trạng thái" onclick="return confirm('Bạn có chắc muốn đổi trạng thái tin này?')">
                                 <i class="fa-solid fa-arrows-rotate"></i>
                             </a>
-                            <a href="/admin/main/recruitment/delete/<?php echo $job['id']; ?>" class="icon-btn delete" title="Xóa" onclick="return confirm('Bạn có chắc muốn xóa tin này? Hành động này không thể hoàn tác.')">
-                                <i class="fa-solid fa-trash"></i>
-                            </a>
+                            <form method="POST" action="<?php echo htmlspecialchars(Router::url('admin/recruitment')); ?>" onsubmit="return confirm('Bạn có chắc muốn xoá tin này? Hành động này không thể hoàn tác.');" style="display: inline;">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="id" value="<?php echo (int)$job['id']; ?>">
+                                <input type="hidden" name="p" value="<?php echo (int)$current_page; ?>">
+                                <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter, ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="hidden" name="search" value="<?php echo htmlspecialchars($search_keyword, ENT_QUOTES, 'UTF-8'); ?>">
+                                <button type="submit" class="icon-btn delete" title="Xoá" aria-label="Xoá tin tuyển dụng">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
-
-
 
             <div style="margin-top: 16px; text-align: center; color: #6b7280; font-size: 13px;">
                 <i class="fa-regular fa-file-lines"></i> Hiển thị <?php echo count($recruitments); ?> / <?php echo $total_records; ?> tin tuyển dụng
@@ -288,6 +317,7 @@ function formatDate($date)
                 <?php endif; ?>
             </div>
         <?php endif; ?>
+
         <!-- Phân trang -->
         <?php if ($total_pages > 1): ?>
             <div class="pagination">
@@ -316,28 +346,18 @@ function formatDate($date)
             </div>
         <?php endif; ?>
     </div>
-    <div style="margin-top: 16px; text-align: center; color: #6b7280; font-size: 13px;">
-        Hiển thị <?php echo count($recruitments); ?> / <?php echo $total_records; ?> bài viết
-    </div>
-
 </main>
 
 <script>
-    // Hàm hỗ trợ cho các action (giữ lại từ original)
+    // Hàm hỗ trợ cho các action
     function editRecruitment(id) {
-        window.location.href = '/admin/main/recruitment/edit/' + id;
-    }
-
-    function deleteRecruitment(id, title) {
-        if (confirm('Bạn có chắc muốn xóa tin "' + title + '"? Hành động này không thể hoàn tác.')) {
-            window.location.href = '/admin/main/recruitment/delete/' + id;
-        }
+        window.location.href = '<?php echo htmlspecialchars(Router::url('admin/recruitment/edit')); ?>/' + id;
     }
 
     function toggleStatus(id, currentStatus) {
         var action = currentStatus == 1 ? 'đóng' : 'mở';
         if (confirm('Bạn có chắc muốn ' + action + ' tin tuyển dụng này?')) {
-            window.location.href = '/admin/main/recruitment/toggle-status/' + id;
+            window.location.href = '<?php echo htmlspecialchars(Router::url('admin/recruitment/toggle-status')); ?>/' + id;
         }
     }
 
@@ -346,7 +366,7 @@ function formatDate($date)
         btn.addEventListener('click', function() {
             const page = this.getAttribute('data-page');
             if (page === 'create-recruitment') {
-                window.location.href = '/admin/main/recruitment/create';
+                window.location.href = '<?php echo htmlspecialchars(Router::url('admin/recruitment/create')); ?>';
             }
         });
     });

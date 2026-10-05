@@ -18,6 +18,12 @@ class AdminController extends Controller
      */
     public function menu()
     {
+        if (!$this->isAjax()) {
+            $this->setPageTitle('Admin Panel');
+            $this->render('admin/admin');
+            return;
+        }
+
         // Render without layout
         $this->render('admin/menu/menu', false);
     }
@@ -29,6 +35,12 @@ class AdminController extends Controller
      */
     public function main($page = 'dashboard')
     {
+        if (!$this->isAjax()) {
+            $this->setPageTitle('Admin Panel');
+            $this->render('admin/admin');
+            return;
+        }
+
         $allowedPages = [
             'dashboard' => 'admin/main/dashboard_admin',
             'news' => 'admin/main/news/news_admin',
@@ -48,5 +60,10 @@ class AdminController extends Controller
 
         // Render without layout
         $this->render($view, false);
+    }
+
+    public function testDb()
+    {
+        $this->main('test-db');
     }
 }

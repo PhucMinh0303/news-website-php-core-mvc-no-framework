@@ -54,7 +54,7 @@ class RecruitmentModel extends Model
     /**
      * Lấy tất cả tin tuyển dụng active cho User
      */
-    public function getActiveJobs($limit = null, $offset = 0, $search = null, $workType = null)
+    public function getActiveJobs($limit = null, $offset = 0, $search = null, $location = null)
     {
         $sql = "SELECT * FROM {$this->table} 
                 WHERE status = 1 AND deadline >= CURDATE()";
@@ -65,9 +65,9 @@ class RecruitmentModel extends Model
             $params['search'] = "%{$search}%";
         }
 
-        if (!empty($workType)) {
-            $sql .= " AND work_type = :work_type";
-            $params['work_type'] = $workType;
+        if (!empty($location)) {
+            $sql .= " AND work_location LIKE :location";
+            $params['location'] = "%{$location}%";
         }
 
         $sql .= " ORDER BY created_at DESC";
@@ -104,6 +104,25 @@ class RecruitmentModel extends Model
     }
 
     /**
+     * Lấy tin tuyển dụng theo slug
+     */
+    public function getBySlug($slug)
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE slug = :slug";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['slug' => $slug]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Tăng lượt xem tin tuyển dụng
+     */
+    public function incrementViews($id)
+    {
+        return false;
+    }
+
+    /**
      * Tạo slug từ tiêu đề
      */
     public function createSlug($string)
@@ -120,7 +139,7 @@ class RecruitmentModel extends Model
      */
     public function slugExists($slug, $excludeId = null)
     {
-        $sql = "SELECT COUNT(*) as count FROM news WHERE slug = :slug";
+        $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE slug = :slug";
         $params = [':slug' => $slug];
 
         if ($excludeId) {
@@ -241,7 +260,9 @@ class RecruitmentModel extends Model
     {
         $sql = "DELETE FROM {$this->table} WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
-        return $stmt->execute(['id' => $id]);
+        $stmt->execute(['id' => (int)$id]);
+
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -288,7 +309,7 @@ class RecruitmentModel extends Model
     /**
      * Đếm số tin active cho User
      */
-    public function countActive($search = null, $workType = null)
+    public function countActive($search = null, $location = null)
     {
         $sql = "SELECT COUNT(*) as total FROM {$this->table} 
                 WHERE status = 1 AND deadline >= CURDATE()";
@@ -299,9 +320,9 @@ class RecruitmentModel extends Model
             $params['search'] = "%{$search}%";
         }
 
-        if (!empty($workType)) {
-            $sql .= " AND work_type = :work_type";
-            $params['work_type'] = $workType;
+        if (!empty($location)) {
+            $sql .= " AND work_location LIKE :location";
+            $params['location'] = "%{$location}%";
         }
 
         $stmt = $this->conn->prepare($sql);

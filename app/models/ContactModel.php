@@ -2,36 +2,84 @@
 // models/ContactModel.php
 require_once __DIR__ . '/../core/Model.php';
 
-class FeedbackModel extends Model
+class ContactModel extends Model
 {
-    protected $table = 'Contacts';
+    protected $table = 'contacts';
+
+    public function getAllContacts()
+    {
+        return $this->fetchAll(
+            "SELECT * FROM contacts ORDER BY created_at DESC"
+        );
+    }
+
+    public function getSimpleStats()
+    {
+        $rows = $this->fetchAll("SELECT status, COUNT(*) AS total FROM contacts GROUP BY status");
+        $stats = ['total' => 0];
+        foreach ($rows as $row) {
+            $stats[$row['status']] = (int)$row['total'];
+            $stats['total'] += (int)$row['total'];
+        }
+        return $stats;
+    }
+
+    public function getContactById($id)
+    {
+        return $this->findById((int)$id);
+    }
+
+    public function getNotes($contactId)
+    {
+        return $this->fetchAll(
+            "SELECT * FROM contact_histories WHERE contact_id = ? AND action = 'note_added' ORDER BY created_at DESC",
+            [(int)$contactId]
+        );
+    }
+
+    public function moveToTrash($id)
+    {
+        return $this->update((int)$id, ['status' => 'spam']);
+    }
+
+    public function restoreFromTrash($id)
+    {
+        return $this->update((int)$id, ['status' => 'read']);
+    }
+
+    public function forceDelete($id)
+    {
+        return $this->delete((int)$id);
+    }
+
+    public function addNote($contactId, $note)
+    {
+        return $this->insertHistory((int)$contactId, $note);
+    }
+
+    private function insertHistory($contactId, $note)
+    {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO contact_histories (contact_id, action, note) VALUES (?, 'note_added', ?)"
+        );
+        return $stmt->execute([$contactId, $note]);
+    }
 
     public function addContact($data)
     {
-        // Use the stored procedure
-        $sql = "CALL AddNewContact(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        $params = [
-            $data['customer_id'] ?? null,
-            $data['customer_name'],
-            $data['phone'],
-            $data['email'] ?? null,
-            $data['content'],
-            $data['contact_type'] ?? 'general',
-            $data['category_id'] ?? null,
-            $data['source'] ?? 'website',
-            $data['ip_address'] ?? null,
-            $data['user_agent'] ?? null,
-            $data['page_url'] ?? null,
-            $data['referrer_url'] ?? null,
-            $data['priority'] ?? 'medium',
-            $data['created_by'] ?? null,
-            $data['created_at'] ?? date('Y-m-d H:i:s'),
-        ];
-
-        $stmt = $this->conn->query($sql, $params);
-        $result = $stmt->fetch();
-        return $result['contact_id'] ?? null;
+        return $this->insert([
+            'customer_name' => $data['customer_name'],
+            'phone' => $data['phone'],
+            'email' => $data['email'] ?? null,
+            'content' => $data['content'],
+            'contact_type' => $data['contact_type'] ?? 'general',
+            'category_id' => $data['category_id'] ?? null,
+            'source' => $data['source'] ?? 'website',
+            'ip_address' => $data['ip_address'] ?? null,
+            'user_agent' => $data['user_agent'] ?? null,
+            'page_url' => $data['page_url'] ?? null,
+            'referrer_url' => $data['referrer_url'] ?? null,
+        ]);
     }
 
     public function getPendingContacts()
@@ -43,7 +91,7 @@ class FeedbackModel extends Model
                 WHERE c.status IN ('new', 'read', 'processing')
                 ORDER BY FIELD(c.priority, 'urgent', 'high', 'medium', 'low'), c.created_at";
 
-        return $this->conn->fetchAll($sql);
+        return $this->fetchAll($sql);
     }
 
     public function updateContactStatus($id, $status, $responseContent = null, $responseBy = null)
@@ -56,7 +104,12 @@ class FeedbackModel extends Model
             $data['response_by'] = $responseBy;
         }
 
-        return $this->conn->updateById($id, $data);
+        return $this->update((int)$id, $data);
+    }
+
+    public function updateStatus($id, $status)
+    {
+        return $this->updateContactStatus($id, $status);
     }
 
     public function getContactStats()
@@ -69,7 +122,7 @@ class FeedbackModel extends Model
                 GROUP BY status
                 ORDER BY FIELD(status, 'new', 'processing', 'read', 'replied', 'resolved')";
 
-        return $this->conn->fetchAll($sql);
+        return $this->fetchAll($sql);
     }
 
     public function getDailyStats($days = 30)
@@ -84,7 +137,7 @@ class FeedbackModel extends Model
                 GROUP BY DATE(created_at)
                 ORDER BY date DESC";
 
-        return $this->conn->fetchAll($sql, [$days]);
+        return $this->fetchAll($sql, [$days]);
     }
 
     public function getContactHistory($contactId)
@@ -93,6 +146,6 @@ class FeedbackModel extends Model
                 WHERE contact_id = ? 
                 ORDER BY created_at DESC";
 
-        return $this->conn->fetchAll($sql, [$contactId]);
+        return $this->fetchAll($sql, [$contactId]);
     }
 }

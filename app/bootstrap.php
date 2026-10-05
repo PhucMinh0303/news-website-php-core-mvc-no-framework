@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Bootstrap - Initializes the MVC Application
  */
@@ -7,25 +8,37 @@
 require_once __DIR__ . '/config/config.php';
 
 // Autoloader for classes
-spl_autoload_register(function($class) {
+spl_autoload_register(function ($class) {
     // Try to load from core
     $coreFile = APP_PATH . 'core/' . $class . '.php';
     if (file_exists($coreFile)) {
         require_once $coreFile;
         return;
     }
-    
+
     // Try to load from controllers
     $controllerFile = APP_PATH . 'controllers/' . $class . '.php';
     if (file_exists($controllerFile)) {
         require_once $controllerFile;
         return;
     }
-    
+
     // Try to load from models
     $modelFile = APP_PATH . 'models/' . $class . '.php';
     if (file_exists($modelFile)) {
         require_once $modelFile;
+        return;
+    }
+    // Try to load from services
+    $serviceFile = APP_PATH . 'services/' . $class . '.php';
+    if (file_exists($serviceFile)) {
+        require_once $serviceFile;
+        return;
+    }
+    // Try to load from repositories
+    $repositoryFile = APP_PATH . 'repositories/' . $class . '.php';
+    if (file_exists($repositoryFile)) {
+        require_once $repositoryFile;
         return;
     }
     // Try to load from views
@@ -41,5 +54,3 @@ require_once APP_PATH . 'core/Router.php';
 require_once APP_PATH . 'core/Controller.php';
 require_once APP_PATH . 'core/Model.php';
 require_once APP_PATH . 'core/View.php';
-
-?>

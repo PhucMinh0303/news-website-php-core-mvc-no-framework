@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Section 2 - Core Values and Services
  */
@@ -42,18 +43,16 @@
       </div>
 
       <div class="section2-right">
-        <a href="<?php echo View::url('page/asset-management'); ?>" class="section2-box">
+        <a href="<?= View::url(route: 'asset-management'); ?>" class="section2-box">
           <div class="section2-title">
             <img
               src="<?php echo View::asset('img/icon/quan-ly-tai-san-1763277271-sdxzn.svg'); ?>"
-              class="title-icon"
-            />
+              class="title-icon" />
             <h3>quản lý tài sản</h3>
           </div>
           <div class="section2-img-wrap">
             <img
-              src="<?php echo View::asset('img/section2/quan-ly-tai-san-1763278647-atky.png'); ?>"
-            />
+              src="<?php echo View::asset('img/section2/quan-ly-tai-san-1763278647-atky.png'); ?>" />
           </div>
           <p>
             Chúng tôi cung cấp các giải pháp quản lý tài sản toàn diện, tối ưu
@@ -62,18 +61,16 @@
             khai thác các cơ hội đầu tư phù hợp với mục tiêu dài hạn.
           </p>
         </a>
-        <a href="<?php echo View::url('page/portfolio-management'); ?>" class="section2-box">
+        <a href="<?php echo View::url('portfolio-management'); ?>" class="section2-box">
           <div class="section2-title">
             <img
               src="<?php echo View::asset('img/icon/quan-ly-danh-muc-dau-tu-1763277274-6hzt.svg'); ?>"
-              class="title-icon"
-            />
+              class="title-icon" />
             <h3>quản lý danh mục đầu tư</h3>
           </div>
           <div class="section2-img-wrap">
             <img
-              src="<?php echo View::asset('img/section2/quan-ly-danh-muc-dau-tu-1763278649-w8fqo.png'); ?>"
-            />
+              src="<?php echo View::asset('img/section2/quan-ly-danh-muc-dau-tu-1763278649-w8fqo.png'); ?>" />
           </div>
           <p>
             Capital AM thiết kế và vận hành các danh mục đầu tư cá nhân và tổ

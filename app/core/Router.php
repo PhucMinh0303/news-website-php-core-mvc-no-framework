@@ -8,7 +8,7 @@
 class Router
 {
     private $routes = [];
-    
+
     public function __construct()
     {
         $this->registerRoutes();
@@ -29,17 +29,35 @@ class Router
         $this->addRoute('admin/menu', 'AdminController@menu');
         $this->addRoute('admin/main', 'AdminController@main');
         $this->addRoute('admin/main/@slug', 'AdminController@main');
+        $this->addRoute('admin/@page', 'AdminController@main'); // Route chính cho /admin/page
 
+        // Admin dashboard
+        $this->addRoute('admin/dashboard', 'AdminController@main');
         // Admin news routes
         $this->addRoute('admin/news', 'AdminNewsController@index');
         $this->addRoute('admin/news/create', 'AdminNewsController@create');
-        $this->addRoute('admin/news/store', 'AdminNewsController@store');
+        $this->addRoute('admin/news/@slug', 'AdminNewsController@editBySlug');
+        $this->addRoute('admin/news/edit/@id', 'AdminNewsController@edit');
+        $this->addRoute('admin/news/update/@id', 'AdminNewsController@update');
+        $this->addRoute('admin/news/delete/@id', 'AdminNewsController@destroy');
+        $this->addRoute('admin/news/toggle-status/@id', 'AdminNewsController@toggleStatus');
         // Admin recruitment routes
         $this->addRoute('admin/recruitment', 'AdminRecruitmentController@index');
         $this->addRoute('admin/recruitment/create', 'AdminRecruitmentController@create');
         $this->addRoute('admin/recruitment/store', 'AdminRecruitmentController@store');
+        $this->addRoute('admin/recruitment/@slug', 'AdminRecruitmentController@edit');
+        $this->addRoute('admin/recruitment/edit/@id', 'AdminRecruitmentController@edit');
+        $this->addRoute('admin/recruitment/update/@id', 'AdminRecruitmentController@update');
+        $this->addRoute('admin/recruitment/delete/@id', 'AdminRecruitmentController@delete');
+        $this->addRoute('admin/recruitment/toggle-status/@id', 'AdminRecruitmentController@toggleStatus');
         // Admin contact management
         $this->addRoute('admin/contact', 'AdminContactController@index');
+        $this->addRoute('admin/contact/view/@id', 'AdminContactController@detail');
+        $this->addRoute('admin/contact/update', 'AdminContactController@update');
+        $this->addRoute('admin/contact/delete/@id', 'AdminContactController@delete');
+        $this->addRoute('admin/contact/restore/@id', 'AdminContactController@restore');
+        $this->addRoute('admin/contact/force-delete/@id', 'AdminContactController@forceDelete');
+        $this->addRoute('admin/contact/add-note', 'AdminContactController@addNote');
         // Test database route
         $this->addRoute('admin/test-db', 'AdminController@testDb');
 
@@ -55,15 +73,18 @@ class Router
 
         // News
         $this->addRoute('news', 'NewsController@index');
+        $this->addRoute('news/page/@id', 'NewsController@index');
         $this->addRoute('News/News-title', 'NewsController@show');
-        $this->addRoute('news/@id', 'NewsController@detail');
+        $this->addRoute('news/@slug', 'NewsController@show');
 
         // Recruitment
         $this->addRoute('recruitment', 'RecruitmentController@index');
-        $this->addRoute('recruitment/@slug', 'RecruitmentController@detail');
+        $this->addRoute('recruitment/apply', 'RecruitmentController@apply');
+        $this->addRoute('recruitment/@slug', 'RecruitmentController@show');
 
         // Contact
         $this->addRoute('contact', 'ContactController@index');
+        $this->addRoute('contact/submit', 'ContactController@send');
         $this->addRoute('contact/send', 'ContactController@send');
 
         // Investor Relations pages
@@ -97,6 +118,17 @@ class Router
         // Log for debugging
         error_log("Routing path: " . $path);
 
+        // POST from the create form uses the generated slug as the URL.
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST'
+            && preg_match('#^admin/news/([a-z0-9-]+)$#i', $path, $matches)
+        ) {
+            return [
+                'controller' => 'AdminNewsController',
+                'action' => 'store',
+                'params' => [$matches[1]]
+            ];
+        }
+
         // Try exact match first
         if (isset($this->routes[$path])) {
             return $this->parseAction($this->routes[$path]);
@@ -120,16 +152,28 @@ class Router
     {
         $parts = explode('/', $path);
 
+        // Unmapped admin sub-pages fall back to the generic admin page loader
+        // instead of guessing a controller/method that may not exist.
+        if (strtolower($parts[0]) === 'admin') {
+            return [
+                'controller' => 'AdminController',
+                'action' => 'main',
+                'params' => [$parts[1] ?? 'dashboard']
+            ];
+        }
+
         if (count($parts) >= 2) {
             $controller = ucfirst($parts[0]) . 'Controller';
             $method = $parts[1];
             $params = array_slice($parts, 2);
 
-            return [
-                'controller' => $controller,
-                'action' => $method,
-                'params' => $params
-            ];
+            if (class_exists($controller) && method_exists($controller, $method)) {
+                return [
+                    'controller' => $controller,
+                    'action' => $method,
+                    'params' => $params
+                ];
+            }
         }
 
         // Default to 404
@@ -198,9 +242,10 @@ class Router
         // Convert route pattern to regex
         $regexPattern = preg_quote($pattern, '#');
 
-        // Replace parameter placeholders with regex patterns
-        $regexPattern = str_replace('\@id', '(?P<id>[0-9]+)', $regexPattern);
-        $regexPattern = str_replace('\@slug', '(?P<slug>[a-z0-9-]+)', $regexPattern);
+        // Replace any @paramName placeholder with a regex pattern (not just @id/@slug)
+        $regexPattern = preg_replace_callback('/@([a-zA-Z_][a-zA-Z0-9_]*)/', function ($matches) {
+            return $matches[1] === 'id' ? '([0-9]+)' : '([a-zA-Z0-9\-_]+)';
+        }, $regexPattern);
 
         // Add start and end anchors (case-insensitive)
         $regex = '#^' . $regexPattern . '$#i';
@@ -238,8 +283,9 @@ class Router
 
         // Build regex pattern
         $regexPattern = preg_quote($pattern, '#');
-        $regexPattern = str_replace('\@id', '([0-9]+)', $regexPattern);
-        $regexPattern = str_replace('\@slug', '([a-z0-9-]+)', $regexPattern);
+        $regexPattern = preg_replace_callback('/@([a-zA-Z_][a-zA-Z0-9_]*)/', function ($m) {
+            return $m[1] === 'id' ? '([0-9]+)' : '([a-zA-Z0-9\-_]+)';
+        }, $regexPattern);
 
         if (preg_match('#^' . $regexPattern . '$#i', $path, $matches)) {
             // Remove full match and keys, keep only values

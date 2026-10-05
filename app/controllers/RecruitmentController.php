@@ -19,7 +19,7 @@ class RecruitmentController extends Controller
      */
     public function index()
     {
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $page = max(1, isset($_GET['page']) ? (int)$_GET['page'] : 1);
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
@@ -27,12 +27,10 @@ class RecruitmentController extends Controller
         $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
         $location = isset($_GET['location']) ? trim($_GET['location']) : '';
 
-        $jobs = [];
-        $total = 0;
+        $jobs = $this->recruitmentModel->getActiveJobs($limit, $offset, $keyword, $location);
+        $total = $this->recruitmentModel->countActive($keyword, $location);
 
-        
-
-        $total_pages = ceil($total / $limit);
+        $total_pages = $total > 0 ? (int)ceil($total / $limit) : 1;
 
         // Lấy các job nổi bật (recent jobs)
         /*$recentJobs = $this->recruitmentModel->getRecentJobs(5);*/
@@ -47,7 +45,7 @@ class RecruitmentController extends Controller
             'location' => $location
         ];
 
-        $this->view('recruitment/recruitment', $data);
+        $this->view('Recruitment/Recruitment', $data);
     }
 
     /**
@@ -75,15 +73,12 @@ class RecruitmentController extends Controller
             $job['can_apply'] = true;
         }
 
-        // Tăng lượt xem
-        $this->recruitmentModel->incrementViews($job['id']);
-
         // Lấy các job liên quan (cùng vị trí hoặc cùng địa điểm)
         /*$relatedJobs = $this->recruitmentModel->getRelatedJobs($job['id'], $job['work_location'], 3);*/
 
-        $this->view('recruitment/recruitment-detail', [
-            'job' => $job,
-            /*'relatedJobs' => $relatedJobs*/
+        $this->view('Recruitment/Recruitment-detail', [
+            'recruitment' => $job,
+            'relatedRecruitments' => []
         ]);
     }
 
@@ -93,24 +88,24 @@ class RecruitmentController extends Controller
     public function apply()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /recruitment');
+            header('Location: ' . Router::url('recruitment'));
             return;
         }
 
         $recruitmentId = (int)($_POST['recruitment_id'] ?? 0);
 
         // Kiểm tra job có tồn tại và còn nhận hồ sơ không
-        $job = $this->recruitmentModel->findById($recruitmentId);
+        $job = $this->recruitmentModel->getById($recruitmentId);
         if (!$job || $job['status'] != 1 || strtotime($job['deadline']) < strtotime(date('Y-m-d'))) {
             $_SESSION['error'] = 'Tin tuyển dụng này đã đóng hoặc không tồn tại!';
-            header("Location: /recruitment");
+            header('Location: ' . Router::url('recruitment'));
             return;
         }
 
-        $fullname = trim($_POST['fullname'] ?? '');
-        $phone = trim($_POST['phone'] ?? '');
+        $fullname = trim($_POST['ten'] ?? '');
+        $phone = trim($_POST['dt'] ?? '');
         $email = trim($_POST['email'] ?? '');
-        $content = trim($_POST['content'] ?? '');
+        $content = trim($_POST['noidung'] ?? '');
         $ipAddress = $_SERVER['REMOTE_ADDR'];
 
         // Validate
@@ -145,21 +140,21 @@ class RecruitmentController extends Controller
 
         // Xử lý upload CV
         $cvFile = '';
-        if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] === UPLOAD_ERR_OK) {
+        if (isset($_FILES['filechon']) && $_FILES['filechon']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/../public/uploads/cvs/';
             if (!file_exists($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
 
-            $fileExt = strtolower(pathinfo($_FILES['cv_file']['name'], PATHINFO_EXTENSION));
+            $fileExt = strtolower(pathinfo($_FILES['filechon']['name'], PATHINFO_EXTENSION));
             $allowedExt = ['pdf', 'doc', 'docx'];
             $maxSize = 5 * 1024 * 1024; // 5MB
 
-            if ($_FILES['cv_file']['size'] > $maxSize) {
+            if ($_FILES['filechon']['size'] > $maxSize) {
                 $errors[] = 'Kích thước file CV không được vượt quá 5MB';
             } elseif (in_array($fileExt, $allowedExt)) {
                 $cvFile = uniqid() . '_' . time() . '.' . $fileExt;
-                move_uploaded_file($_FILES['cv_file']['tmp_name'], $uploadDir . $cvFile);
+                move_uploaded_file($_FILES['filechon']['tmp_name'], $uploadDir . $cvFile);
             } else {
                 $errors[] = 'CV phải là file PDF, DOC hoặc DOCX';
             }
@@ -193,7 +188,7 @@ class RecruitmentController extends Controller
         header("Location: /recruitment/" . $job['slug']);
     }
 
-    
+
 
     /**
      * Gửi email xác nhận ứng tuyển

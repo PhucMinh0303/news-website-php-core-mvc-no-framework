@@ -2,8 +2,8 @@
 -- Bảng recruitments (Tuyển dụng)
 -- =====================================================
 CREATE TABLE `recruitments` (
-    `recruitments_id` INT AUTO_INCREMENT PRIMARY KEY,
-    `recruitments_title` VARCHAR(255) NOT NULL COMMENT 'Tiêu đề tin tuyển dụng',
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `title` VARCHAR(255) NOT NULL COMMENT 'Tiêu đề tin tuyển dụng',
     `slug` VARCHAR(255) NOT NULL UNIQUE COMMENT 'Slug URL',
     `image` VARCHAR(255) DEFAULT 'default-job.webp' COMMENT 'Ảnh đại diện',
     `work_location` TEXT NULL COMMENT 'Địa điểm làm việc',

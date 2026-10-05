@@ -1,85 +1,111 @@
 <?php
-/**
- * FileUploadService
- * Handles file upload operations
- */
+// app/services/FileUploadService.php
 
 class FileUploadService
 {
-    private $uploadBaseDir;
-    private $uploadSubDir = 'cv';
+    private $uploadPath;
+    private $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    private $maxSize = 15 * 1024 * 1024; // 15MB
 
     public function __construct()
     {
-        $this->uploadBaseDir = $_SERVER['DOCUMENT_ROOT'] . '/capitalam2-mvc/public/uploads/';
+        $this->uploadPath = __DIR__ . '/../../public/upload/';
+
+        // Tạo thư mục nếu chưa tồn tại
+        if (!is_dir($this->uploadPath)) {
+            mkdir($this->uploadPath, 0755, true);
+        }
     }
 
     /**
-     * Upload CV file
-     *
-     * @param array $file
-     * @param string $fullname
-     * @return array ['success' => bool, 'path' => string|null, 'error' => string|null]
+     * Upload file
      */
-    public function uploadCV($file, $fullname)
+    public function upload($file, $subDir = '')
     {
-        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
-            return [
-                'success' => false,
-                'path' => null,
-                'error' => 'Lỗi upload file'
-            ];
+        // Kiểm tra lỗi upload
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return ['success' => false, 'message' => $this->getUploadErrorMessage($file['error'])];
         }
 
-        try {
-            $uploadDir = $this->uploadBaseDir . $this->uploadSubDir . '/';
+        // Kiểm tra định dạng file
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
 
+        if (!in_array($mimeType, $this->allowedTypes)) {
+            return ['success' => false, 'message' => 'Chỉ chấp nhận file ảnh JPG, PNG, WEBP, GIF'];
+        }
+
+        // Kiểm tra kích thước
+        if ($file['size'] > $this->maxSize) {
+            return ['success' => false, 'message' => 'File quá lớn. Tối đa 15MB'];
+        }
+
+        // Tạo tên file mới (không trùng)
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename = date('YmdHis') . '_' . uniqid() . '.' . $extension;
+
+        // Xác định đường dẫn lưu
+        $uploadDir = $this->uploadPath;
+        if (!empty($subDir)) {
+            $uploadDir .= $subDir . '/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
+        }
 
-            $fileExt = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9]/', '_', $fullname) . '.' . $fileExt;
-            $relativePath = 'uploads/' . $this->uploadSubDir . '/' . $fileName;
-            $fullPath = $uploadDir . $fileName;
+        $filePath = $uploadDir . $filename;
 
-            if (move_uploaded_file($file['tmp_name'], $fullPath)) {
-                return [
-                    'success' => true,
-                    'path' => $relativePath,
-                    'error' => null
-                ];
-            }
-
+        // Di chuyển file
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
             return [
-                'success' => false,
-                'path' => null,
-                'error' => 'Không thể upload CV. Vui lòng thử lại.'
-            ];
-        } catch (Exception $e) {
-            return [
-                'success' => false,
-                'path' => null,
-                'error' => $e->getMessage()
+                'success' => true,
+                'filename' => $filename,
+                'path' => $filePath
             ];
         }
+
+        return ['success' => false, 'message' => 'Không thể lưu file. Vui lòng kiểm tra quyền ghi thư mục.'];
     }
 
     /**
-     * Delete file
-     *
-     * @param string $filePath Relative path to file
-     * @return bool
+     * Xóa file
      */
-    public function deleteFile($filePath)
+    public function delete($subDir, $filename)
     {
-        $fullPath = $_SERVER['DOCUMENT_ROOT'] . '/capitalam2-mvc/public/' . $filePath;
-
-        if (file_exists($fullPath) && is_file($fullPath)) {
-            return unlink($fullPath);
+        if (empty($filename) || $filename == 'default-job.webp') {
+            return true;
         }
 
+        $filePath = $this->uploadPath . $subDir . '/' . $filename;
+        if (file_exists($filePath) && is_file($filePath)) {
+            return unlink($filePath);
+        }
         return false;
     }
-}
 
+    /**
+     * Lấy thông báo lỗi upload
+     */
+    private function getUploadErrorMessage($errorCode)
+    {
+        switch ($errorCode) {
+            case UPLOAD_ERR_INI_SIZE:
+                return 'File vượt quá giới hạn cho phép của server (upload_max_filesize).';
+            case UPLOAD_ERR_FORM_SIZE:
+                return 'File vượt quá giới hạn cho phép của form.';
+            case UPLOAD_ERR_PARTIAL:
+                return 'File chỉ được upload một phần.';
+            case UPLOAD_ERR_NO_FILE:
+                return 'Không có file nào được chọn.';
+            case UPLOAD_ERR_NO_TMP_DIR:
+                return 'Thiếu thư mục tạm để lưu file.';
+            case UPLOAD_ERR_CANT_WRITE:
+                return 'Không thể ghi file vào thư mục.';
+            case UPLOAD_ERR_EXTENSION:
+                return 'Upload bị chặn bởi PHP extension.';
+            default:
+                return 'Lỗi không xác định khi upload file.';
+        }
+    }
+}

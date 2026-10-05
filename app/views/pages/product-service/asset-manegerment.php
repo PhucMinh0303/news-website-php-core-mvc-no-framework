@@ -86,7 +86,7 @@
         </div>
         <div class="news">
           <!-- Card 1 -->
-          <a href="<?php echo View::url('news/1'); ?>" class="news-card">
+          <a href="<?php echo View::url('news/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon'); ?>" class="news-card">
             <div class="news-img">
               <img
                 src="<?php echo View::asset('img/section5/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272692-veex8.webp'); ?>"
@@ -105,7 +105,7 @@
           </a>
 
           <!-- Card 2 -->
-          <a href="<?php echo View::url('news/2'); ?>" class="news-card">
+          <a href="<?php echo View::url('news/dau-tu-tai-chinh-voi-so-von-nho-nen-hay-khong'); ?>" class="news-card">
             <div class="news-img">
               <img
                 src="<?php echo View::asset('img/section5/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272625-jr69f.webp'); ?>"

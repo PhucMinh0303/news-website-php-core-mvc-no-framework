@@ -1,4 +1,5 @@
 <?php
+
 /**
  * IRecruitmentRepository Interface
  * Defines contract for recruitment data access
@@ -79,5 +80,13 @@ interface IRecruitmentRepository
      * @return array
      */
     public function getAllPositions();
-}
 
+    /**
+     * Update a recruitment by ID.
+     *
+     * @param int $id
+     * @param array $data
+     * @return bool
+     */
+    public function update($id, $data);
+}

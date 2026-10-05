@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Base Controller Class
  * All controllers inherit from this class
@@ -67,9 +68,15 @@ class Controller
     /**
      * Render a view file
      */
-    protected function render($view, $layout = null)
+    protected function render($view, $data = [], $layout = null)
     {
         $this->view = $view;
+
+        if (is_array($data)) {
+            $this->data = array_merge($this->data, $data);
+        } elseif (is_bool($data) || is_string($data)) {
+            $layout = $data;
+        }
 
         if ($layout !== null) {
             $this->layout = $layout;
@@ -230,15 +237,8 @@ class Controller
      */
     protected function view($view, $data = [])
     {
-        extract($data);
-
-        $viewFile = APP_PATH . 'views/' . $view . '.php';
-
-        if (file_exists($viewFile)) {
-            require_once $viewFile;
-        } else {
-            die("View {$view} not found");
-        }
+        $this->view = $view;
+        $this->data = array_merge($this->data, $data);
     }
 
     /**

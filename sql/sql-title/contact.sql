@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS contacts
     user_agent       TEXT,
     page_url         VARCHAR(500),
     referrer_url     VARCHAR(500),
-    status           ENUM ('new', 'read', 'replied', 'processing', 'resolved', 'spam')                  DEFAULT 'new',
+    status           ENUM ('new', 'read', 'replied', 'processing', 'resolved', 'spam', 'archived')       DEFAULT 'new',
     priority         ENUM ('low', 'medium', 'high', 'urgent')                                           DEFAULT 'medium',
     assigned_to      INT,
     response_content TEXT,

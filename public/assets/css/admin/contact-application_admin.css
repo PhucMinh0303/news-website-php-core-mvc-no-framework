@@ -321,8 +321,7 @@
     }
 }
 
-#archiveEmpty,
-#deletedEmpty {
+#archiveEmpty {
     width: 320px;
     background: #fff;
     border-right: 1px solid #e9edf2;
@@ -335,8 +334,7 @@
     color: #6c757d;
 }
 
-#archiveEmpty h3,
-#deletedEmpty h3 {
+#archiveEmpty h3 {
     font-size: 1rem;
     margin-bottom: 8px;
     font-weight: 500;

@@ -12,16 +12,36 @@ class NewsModel extends Model
         parent::__construct();
     }
 
+    private function getNewsSelectSql(): string
+    {
+        return "SELECT n.news_id AS id,
+                       n.news_title AS title,
+                       n.news_slug AS slug,
+                       n.category_id,
+                       COALESCE(c.name, n.category) AS category_name,
+                       NULL AS author_id,
+                       n.author,
+                       n.publish_date,
+                       n.image,
+                       n.avatar_img,
+                       n.video,
+                       n.content,
+                       n.views,
+                       n.status,
+                       n.created_at,
+                       n.updated_at
+                FROM news n
+                LEFT JOIN categories c ON n.category_id = c.id";
+    }
+
     /**
      * Lấy danh sách bài viết đã publish cho frontend
      */
     public function getPublishedNews($limit = null, $offset = 0)
     {
-        $sql = "SELECT n.*, c.name as category_name 
-                FROM news n 
-                LEFT JOIN categories c ON n.category_id = c.id 
-                WHERE n.status = 'published' 
-                ORDER BY n.publish_date DESC";
+        $sql = $this->getNewsSelectSql() . "
+            WHERE n.status = 'published'
+            ORDER BY n.publish_date DESC";
 
         if ($limit) {
             $sql .= " LIMIT :limit OFFSET :offset";
@@ -52,12 +72,10 @@ class NewsModel extends Model
      */
     public function getHotNews($limit = 5)
     {
-        $sql = "SELECT n.*, c.name as category_name
-                FROM news n 
-                LEFT JOIN categories c ON n.category_id = c.id
-                WHERE n.status = 'published' 
-                ORDER BY n.views DESC, n.publish_date DESC 
-                LIMIT :limit";
+        $sql = $this->getNewsSelectSql() . "
+            WHERE n.status = 'published'
+            ORDER BY n.views DESC, n.publish_date DESC
+            LIMIT :limit";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -70,12 +88,10 @@ class NewsModel extends Model
      */
     public function getLatestNews($limit = 5)
     {
-        $sql = "SELECT n.*, c.name as category_name
-                FROM news n 
-                LEFT JOIN categories c ON n.category_id = c.id
-                WHERE n.status = 'published' 
-                ORDER BY n.publish_date DESC 
-                LIMIT :limit";
+        $sql = $this->getNewsSelectSql() . "
+            WHERE n.status = 'published'
+            ORDER BY n.publish_date DESC
+            LIMIT :limit";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -88,10 +104,7 @@ class NewsModel extends Model
      */
     public function getBySlug($slug)
     {
-        $sql = "SELECT n.*, c.name as category_name 
-                FROM news n 
-                LEFT JOIN categories c ON n.category_id = c.id 
-                WHERE n.slug = :slug";
+        $sql = $this->getNewsSelectSql() . " WHERE n.news_slug = :slug";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([':slug' => $slug]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -102,10 +115,7 @@ class NewsModel extends Model
      */
     public function getById($id)
     {
-        $sql = "SELECT n.*, c.name as category_name 
-                FROM news n 
-                LEFT JOIN categories c ON n.category_id = c.id 
-                WHERE n.id = :id";
+        $sql = $this->getNewsSelectSql() . " WHERE n.news_id = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -114,12 +124,9 @@ class NewsModel extends Model
     /**
      * Lấy danh sách bài viết cho admin (có filter)
      */
-    public function getAllAdmin($status = null, $limit = 10, $offset = 0, $search = null)
+    public function getAllAdmin($status = null, $limit = 10, $offset = 0, $search = null): array
     {
-        $sql = "SELECT n.*, c.name as category_name 
-                FROM news n 
-                LEFT JOIN categories c ON n.category_id = c.id 
-                WHERE 1=1";
+        $sql = $this->getNewsSelectSql() . " WHERE 1=1";
         $params = [];
 
         if ($status !== null && $status !== '') {
@@ -128,20 +135,20 @@ class NewsModel extends Model
         }
 
         if ($search) {
-            $sql .= " AND (n.title LIKE :search OR n.author LIKE :search)";
+            $sql .= " AND (n.news_title LIKE :search OR n.author LIKE :search)";
             $params[':search'] = "%{$search}%";
         }
 
         $sql .= " ORDER BY n.publish_date DESC, n.created_at DESC LIMIT :limit OFFSET :offset";
-        
+
         $stmt = $this->conn->prepare($sql);
-        
+
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        
+
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -160,7 +167,7 @@ class NewsModel extends Model
         }
 
         if ($search) {
-            $sql .= " AND (title LIKE :search OR author LIKE :search)";
+            $sql .= " AND (news_title LIKE :search OR author LIKE :search)";
             $params[':search'] = "%{$search}%";
         }
 
@@ -206,14 +213,14 @@ class NewsModel extends Model
      */
     public function slugExists($slug, $excludeId = null)
     {
-        $sql = "SELECT COUNT(*) as count FROM news WHERE slug = :slug";
+        $sql = "SELECT COUNT(*) as count FROM news WHERE news_slug = :slug";
         $params = [':slug' => $slug];
-        
+
         if ($excludeId) {
-            $sql .= " AND id != :id";
+            $sql .= " AND news_id != :id";
             $params[':id'] = $excludeId;
         }
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($params);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -223,17 +230,17 @@ class NewsModel extends Model
     /**
      * Tạo slug duy nhất
      */
-    public function generateUniqueSlug($title, $excludeId = null)
+    public function generateUniqueSlug($title, $excludeId = null): string
     {
         $slug = $this->createSlug($title);
         $originalSlug = $slug;
         $counter = 1;
-        
+
         while ($this->slugExists($slug, $excludeId)) {
             $slug = $originalSlug . '-' . $counter;
             $counter++;
         }
-        
+
         return $slug;
     }
 
@@ -243,7 +250,7 @@ class NewsModel extends Model
     public function uploadImage($file)
     {
         $targetDir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/news/';
-        
+
         if (!file_exists($targetDir)) {
             mkdir($targetDir, 0777, true);
         }
@@ -255,7 +262,7 @@ class NewsModel extends Model
         if (move_uploaded_file($file['tmp_name'], $targetFile)) {
             return ['success' => true, 'path' => $relativePath];
         }
-        
+
         return ['success' => false, 'error' => 'Upload failed'];
     }
 
@@ -287,7 +294,7 @@ class NewsModel extends Model
      */
     public function incrementViews($id)
     {
-        $sql = "UPDATE news SET views = views + 1 WHERE id = :id";
+        $sql = "UPDATE news SET views = views + 1 WHERE news_id = :id";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([':id' => $id]);
     }
@@ -298,15 +305,14 @@ class NewsModel extends Model
     public function create($data)
     {
         try {
-            $sql = "INSERT INTO news (title, slug, category_id, author_id, author, publish_date, image, content, views, status) 
-                    VALUES (:title, :slug, :category_id, :author_id, :author, :publish_date, :image, :content, :views, :status)";
-            
+            $sql = "INSERT INTO news (news_title, news_slug, category_id, author, publish_date, image, content, views, status)
+                    VALUES (:title, :slug, :category_id, :author, :publish_date, :image, :content, :views, :status)";
+
             $stmt = $this->conn->prepare($sql);
             $result = $stmt->execute([
                 ':title' => $data['title'],
                 ':slug' => $data['slug'],
                 ':category_id' => $data['category_id'] ?? null,
-                ':author_id' => $data['author_id'] ?? null,
                 ':author' => $data['author'],
                 ':publish_date' => $data['publish_date'] ?? date('Y-m-d'),
                 ':image' => $data['image'] ?? null,
@@ -314,7 +320,7 @@ class NewsModel extends Model
                 ':views' => $data['views'] ?? 0,
                 ':status' => $data['status'] ?? 'draft'
             ]);
-            
+
             if ($result) {
                 return $this->conn->lastInsertId();
             }
@@ -331,25 +337,23 @@ class NewsModel extends Model
     public function update($id, $data)
     {
         try {
-            $sql = "UPDATE news SET 
-                        title = :title,
-                        slug = :slug,
+            $sql = "UPDATE news SET
+                        news_title = :title,
+                        news_slug = :slug,
                         category_id = :category_id,
-                        author_id = :author_id,
                         author = :author,
                         publish_date = :publish_date,
                         image = :image,
                         content = :content,
                         status = :status
-                    WHERE id = :id";
-            
+                    WHERE news_id = :id";
+
             $stmt = $this->conn->prepare($sql);
             return $stmt->execute([
                 ':id' => $id,
                 ':title' => $data['title'],
                 ':slug' => $data['slug'],
                 ':category_id' => $data['category_id'] ?? null,
-                ':author_id' => $data['author_id'] ?? null,
                 ':author' => $data['author'],
                 ':publish_date' => $data['publish_date'] ?? date('Y-m-d'),
                 ':image' => $data['image'] ?? null,
@@ -367,7 +371,7 @@ class NewsModel extends Model
      */
     public function updateStatus($id, $status)
     {
-        $sql = "UPDATE news SET status = :status WHERE id = :id";
+        $sql = "UPDATE news SET status = :status WHERE news_id = :id";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([':id' => $id, ':status' => $status]);
     }
@@ -378,7 +382,7 @@ class NewsModel extends Model
     public function delete($id)
     {
         try {
-            $sql = "DELETE FROM news WHERE id = :id";
+            $sql = "DELETE FROM news WHERE news_id = :id";
             $stmt = $this->conn->prepare($sql);
             return $stmt->execute([':id' => $id]);
         } catch (PDOException $e) {
@@ -393,7 +397,7 @@ class NewsModel extends Model
     public function getCategories()
     {
         try {
-            $stmt = $this->conn->query("SELECT id, name, slug FROM categories WHERE status = 'active' ORDER BY name");
+            $stmt = $this->conn->query("SELECT id, name, slug FROM categories ORDER BY name");
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error getting categories: " . $e->getMessage());
@@ -407,7 +411,7 @@ class NewsModel extends Model
     public function getAuthors()
     {
         try {
-            $stmt = $this->conn->query("SELECT id, name, email, bio FROM authors WHERE status = 'active' ORDER BY name");
+            $stmt = $this->conn->query("SELECT id, full_name AS name, email, bio FROM authors WHERE status = 'active' ORDER BY full_name");
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error getting authors: " . $e->getMessage());
@@ -415,4 +419,3 @@ class NewsModel extends Model
         }
     }
 }
-?>
