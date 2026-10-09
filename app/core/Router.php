@@ -36,6 +36,7 @@ class Router
         // Admin news routes
         $this->addRoute('admin/news', 'AdminNewsController@index');
         $this->addRoute('admin/news/create', 'AdminNewsController@create');
+        $this->addRoute('admin/news-image/upload', 'AdminNewsController@uploadContentImage');
         $this->addRoute('admin/news/@slug', 'AdminNewsController@editBySlug');
         $this->addRoute('admin/news/edit/@id', 'AdminNewsController@edit');
         $this->addRoute('admin/news/update/@id', 'AdminNewsController@update');
@@ -58,6 +59,8 @@ class Router
         $this->addRoute('admin/contact/restore/@id', 'AdminContactController@restore');
         $this->addRoute('admin/contact/force-delete/@id', 'AdminContactController@forceDelete');
         $this->addRoute('admin/contact/add-note', 'AdminContactController@addNote');
+        // Admin application management
+        $this->addRoute('admin/application/update', 'AdminApplicationController@update');
         // Test database route
         $this->addRoute('admin/test-db', 'AdminController@testDb');
 
