@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * create-news.php - View thêm bài viết mới trong admin panel
@@ -101,7 +101,7 @@ unset($_SESSION['errors']);
             <?php endif; ?>
         </div>
 
-        <form method="POST" action="<?php echo htmlspecialchars($editId ? Router::url('admin/news/update', [$editId]) : Router::url('admin/news/store')); ?>" enctype="multipart/form-data" id="newsForm" <?php echo $isEditing ? ' data-edit-mode="1"' : ''; ?>>
+        <form method="POST" action="<?php echo htmlspecialchars($editId ? Router::url('admin/news/update', [$editId]) : Router::url('admin/news/store')); ?>" data-upload-image-url="<?php echo htmlspecialchars(Router::url('admin/news-image/upload'), ENT_QUOTES, 'UTF-8'); ?>" enctype="multipart/form-data" id="newsForm" <?php echo $isEditing ? ' data-edit-mode="1"' : ''; ?>>
             <?php if ($isEditing): ?>
                 <input type="hidden" name="id" value="<?php echo (int) $editId; ?>">
             <?php endif; ?>

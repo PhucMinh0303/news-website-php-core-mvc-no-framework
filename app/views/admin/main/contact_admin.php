@@ -108,7 +108,7 @@ $escapeContactValue = static function ($value) {
       <div class="detail-header">
         <div class="tools">
           <button class="btn-icon" id="expandBtn" title="Mở rộng"><i class="fa-solid fa-expand"></i></button>
-          <button class="btn-icon" id="archiveMsgBtn" title="Lưu trữ"><i class="fa-solid fa-box-archive"></i></button>
+          <button class="btn-icon" id="archiveMsgBtn" title="<?php echo $selectedTab === 'archive' ? 'quay về thư mục' : 'Lưu trữ'; ?>"><i class="fa-solid <?php echo $selectedTab === 'archive' ? 'fa-reply' : 'fa-box-archive'; ?>"></i></button>
           <button class="btn-icon" id="deleteMsgBtn" title="Xoá"><i class="fa-solid fa-trash"></i></button>
         </div>
         <button class="reply-btn" id="replyBtn">Reply</button>
