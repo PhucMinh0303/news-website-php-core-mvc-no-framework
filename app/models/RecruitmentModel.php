@@ -93,6 +93,23 @@ class RecruitmentModel extends Model
     }
 
     /**
+     * Lấy các tin tuyển dụng đang mở, ngoại trừ tin hiện tại
+     */
+    public function getRelatedJobs($excludeId, $limit = 3)
+    {
+        $sql = "SELECT * FROM {$this->table}
+                WHERE status = 1 AND deadline >= CURDATE() AND id != :exclude_id
+                ORDER BY created_at DESC
+                LIMIT :limit";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue('exclude_id', (int)$excludeId, PDO::PARAM_INT);
+        $stmt->bindValue('limit', max(1, (int)$limit), PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Lấy tin tuyển dụng theo ID
      */
     public function getById($id)

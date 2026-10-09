@@ -5,17 +5,50 @@ require_once __DIR__ . '/RecruitmentModel.php';
 
 class ApplicationModel extends Model
 {
-    protected $table = 'applications';
+    protected $table = 'job_applications';
 
-    // ... giữ nguyên các phương thức hiện có ...
+    /**
+     * Lưu hồ sơ ứng tuyển
+     */
+    public function createApplication($data)
+    {
+        $sql = "INSERT INTO {$this->table}
+                    (recruitment_id, full_name, phone, email, content, cv_file)
+                VALUES
+                    (:recruitment_id, :full_name, :phone, :email, :content, :cv_file)";
+
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([
+            'recruitment_id' => $data['recruitment_id'],
+            'full_name' => $data['full_name'],
+            'phone' => $data['phone'],
+            'email' => $data['email'],
+            'content' => $data['content'] ?? null,
+            'cv_file' => $data['cv_file']
+        ]);
+    }
+
+    /**
+     * Lấy danh sách hồ sơ ứng tuyển cho trang quản trị
+     */
+    public function getAllApplications()
+    {
+        $sql = "SELECT a.*, r.title AS recruitment_title
+                FROM {$this->table} a
+                LEFT JOIN recruitments r ON a.recruitment_id = r.id
+                ORDER BY a.created_at DESC, a.id DESC";
+
+        $stmt = $this->conn->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     /**
      * Lấy chi tiết đơn ứng tuyển kèm thông tin bài tuyển dụng
      */
     public function getDetailWithJob($applicationId)
     {
-        $sql = "SELECT a.*, r.recruitment_title, r.slug, r.location 
-                FROM applications a 
+        $sql = "SELECT a.*, r.title AS recruitment_title, r.slug, r.work_location
+                FROM {$this->table} a
                 JOIN recruitments r ON a.recruitment_id = r.id 
                 WHERE a.id = :id";
 
