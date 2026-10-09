@@ -1,3 +1,9 @@
+.section-related-jobs{
+  padding: 4rem 0!important;
+}
+
+
+
 /*product&service*/
 .section10-container {
   background: linear-gradient(
@@ -959,6 +965,33 @@ strong {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 40px;
   font-weight: 500;
+  padding-top: 0%;
+}
+/* ===== Fly In Animation (PowerPoint style) ===== */
+.news .news-card {
+    opacity: 0;
+    transform: translateX(-120px) scale(0.92);
+    filter: blur(3px);
+    transition:
+        opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.8s ease;
+    will-change: transform, opacity;
+}
+
+.news .news-card:nth-child(even) {
+    transform: translateX(120px) scale(0.92);
+}
+
+.news .news-card.fly-in {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+}
+
+/* Class dùng để "tắt transition" khi reset, tránh bị animate ngược */
+.news .news-card.no-transition {
+    transition: none !important;
 }
 
 .news-card {
@@ -1025,7 +1058,7 @@ ul {
   list-style: none;
 }
 .list_news > li {
-  padding: 2rem 0;
+  padding: 1rem 0;
   border-bottom: 0.1rem dashed #d9d9d9;
   display: flex;
   gap: 16px;
@@ -1119,50 +1152,72 @@ ul {
 .fa-calendar-range {
   --fa: "\e0d6";
 }
-.des_list_news {
-  display: -webkit-box;
-
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  color: #7c898d;
-  font-size: 14px;
-}
-.page {
-  padding-top: 4rem;
-  font-size: 16px;
-  text-align: center;
+/*page*/
+/* ===== Pagination ===== */
+.pagination-wrapper {
+    margin-top: 30px;
+    text-align: left;
 }
 
-.PageNum span {
-  background-color: #003265;
-  color: #fff;
-  font-weight: 600;
-  display: inline-block;
-  padding: 3px 7px;
-  margin: 0px 3px 5px 0px;
-  min-width: 30px;
-  text-align: center;
-  border: 1px solid #eee;
-  font-size: #003265;
-  border-radius: 0.4rem;
+.PageNum {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
+
+.PageNum span,
 .PageNum a {
-  background-color: #fff;
-  display: inline-block;
-  color: #222;
-  padding: 3px 7px;
-  margin: 0px 3px 5px 0px;
-  min-width: 30px;
-  text-align: center;
-  font-size: 14px;
-  border-radius: 0.4rem;
-  text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    line-height: 1;
 }
+
+/* Số trang đang active (nền xanh, chữ trắng) */
+.PageNum .page-active {
+    background-color: #1a3a6b; /* Màu xanh đậm giống hình */
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(26, 58, 107, 0.3);
+}
+
+/* Các số trang chưa active (chữ trắng trên nền tối, hoặc chữ đen nếu nền sáng) */
+.PageNum a.page-link {
+    color: #2b7e8f; /* Đổi thành #333 nếu nền website sáng */
+    background-color: transparent;
+}
+
+.PageNum a.page-link:hover {
+    background-color: rgba(26, 58, 107, 0.15);
+    color: #1a3a6b;
+}
+
+/* Nút » và › */
+.PageNum a.page-next,
+.PageNum a.page-next-single {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2b7e8f;
+}
+
+.PageNum a.page-next:hover,
+.PageNum a.page-next-single:hover {
+    color: #1a3a6b;
+}
+
+/* Clear float */
 .clear {
-  clear: both;
-  height: 0;
-  float: none;
+    clear: both;
 }
+/*---------------*/
 .sb_page {
   flex: 1;
   display: flex;

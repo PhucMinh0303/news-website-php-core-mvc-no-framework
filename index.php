@@ -34,6 +34,7 @@ require_once 'app/controllers/Admin/AdminController.php';
 require_once 'app/controllers/Admin/AdminNewsController.php';
 require_once 'app/controllers/Admin/AdminRecruitmentController.php';
 require_once 'app/controllers/Admin/AdminContactController.php';
+require_once 'app/controllers/Admin/AdminApplicationController.php';
 
 
 // Create router instance

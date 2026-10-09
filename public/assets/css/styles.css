@@ -302,7 +302,37 @@ footer {
     position: relative;
     width: fit-content; /* hoặc 100% nếu cần full */
 }
+/* Container cần position relative + overflow hidden để các bar che ảnh */
+.footer-img {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
 
+/* Ảnh nằm dưới, hiện đầy đủ */
+.footer-img img {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+/* Lớp chứa các thanh bar */
+.footer-img .random-bars {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+}
+
+/* Mỗi thanh bar */
+.footer-img .random-bars .bar {
+  flex: 1;
+  height: 100%;
+  background: #ffffff; /* đổi màu theo nền footer của bạn */
+  transform: translateY(0);
+  will-change: transform;
+}
 /* Ảnh nền */
 .footer-img img {
     width: 100%;
@@ -310,10 +340,10 @@ footer {
     display: block;
 }
 
-.footer-img,
+/*.footer-img,
 .footer-logo {
     grid-area: 1 / 1;
-}
+}*/
 
 /* Logo chồng lên */
 .footer-logo {
@@ -321,6 +351,7 @@ footer {
     justify-self: start; /* góc trái */
     align-self: start; /* góc trên */
     z-index: 2;
+    
 }
 
 .footer-logo img {
@@ -881,7 +912,7 @@ footer {
     font-weight: 600;
 }
 
-.news {
+.news1 {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 40px;
@@ -977,6 +1008,8 @@ footer {
     padding-bottom: 10px;
     width: 200px;
     height: 100px;
+    color: #1d1d1d;
+    text-decoration: none;
 }
 
 .news-item img {
@@ -1075,6 +1108,30 @@ footer {
     background-position: center;
     background-repeat: no-repeat;
     position: relative;
+        overflow: hidden;
+
+}
+/* Lớp ::before chứa ảnh mới, wipe từ trái sang phải */
+.hero-slide1::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--bg-next, none);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    clip-path: inset(0 100% 0 0);   /* ẩn hoàn toàn */
+    transition: clip-path 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+    z-index: 1;
+    pointer-events: none;
+}
+.hero-slide1.wiping::before {
+    clip-path: inset(0 0 0 0);   /* hiển thị hoàn toàn */
+}
+/* Nội dung nằm trên lớp wipe */
+.hero-slide1 .hero-container {
+    position: relative;
+    z-index: 2;
 }
 
 .hero-overlay {
@@ -1110,6 +1167,29 @@ footer {
     gap: 0.5rem;
     /*padding-bottom: 60px;*/
     margin: 30px 10px 10px 10px;
+     opacity: 0;
+    transform: scale(0.6);
+    transform-origin: center center;
+    animation: heroZoomIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-iteration-count: 1;   /* chỉ chạy 1 lần */
+    animation-fill-mode: forwards;  /* giữ trạng thái cuối */
+}
+.hero-content.zoom-in {
+    animation: heroZoomIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes heroZoomIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .hero-content h1 {
@@ -1194,6 +1274,24 @@ footer {
     opacity: 1 !important;
     font-size: 16px;
     font-weight: 700;
+}
+.swiper-pagination-bullet {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+.swiper-pagination-bullet.active {
+    background: #00a651;
+    transform: scale(1.15);
 }
 
 /*menu-mobile-header*/

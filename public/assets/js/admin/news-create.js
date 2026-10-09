@@ -734,12 +734,21 @@ function initTextareaToolbar($form) {
             this.value = '';
             return;
         }
-        const reader = new FileReader();
-        reader.onload = function() {
-            insertNewsHtml(`<img src="${reader.result}" alt="${file.name.replace(/[&<>"']/g, '')}" style="max-width: 100%; height: auto;">`);
-        };
-        reader.onerror = function() { showToast('Không thể đọc tệp ảnh đã chọn.', 'error'); };
-        reader.readAsDataURL(file);
+        const uploadUrl = $form.data('upload-image-url');
+        const formData = new FormData();
+        formData.append('image', file);
+        const altText = file.name.replace(/\.[^.]+$/, '').replace(/[&<>"']/g, '');
+        fetch(uploadUrl, { method: 'POST', body: formData, credentials: 'same-origin' })
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) throw new Error(result.message || 'Upload thất bại');
+                const img = document.createElement('img');
+                img.src = result.url;
+                img.alt = altText;
+                img.style.cssText = 'max-width: 100%; height: auto;';
+                insertNewsHtml(img.outerHTML);
+            })
+            .catch(error => showToast(error.message || 'Không thể tải ảnh lên.', 'error'));
         this.value = '';
     });
     window.insertImageToTextarea = function() { rememberNewsSelection(); imagePicker.trigger('click'); };

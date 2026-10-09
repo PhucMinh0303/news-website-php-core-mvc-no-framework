@@ -64,210 +64,118 @@ fetch("../../app/views/pages/include/header.php")
 // Load SECTION1
 
 // section1.js (jQuery version)
-
 $(document).ready(function () {
-    // Load section content
-    $("#section1").load("introduce/section1.php", function () {
-        // Configuration
-        const config = {
-            backgroundImages: [
-                "../assets/img/section1/slide/slide-01-4-png-20251117085601MjdQzhHBq.png",
-                "../assets/img/section1/slide/slide-02-2-jpg-20251117085606kn0MGhh9lp.jpg",
-                "../assets/img/section1/slide/slide-03-2-jpg-20251117085611Ry7YCiuXjs.jpg",
-            ],
-            defaultDelayTime: 1500,
-            defaultSpeed: 800,
-            backgroundChangeInterval: 10000
-        };
 
-        let heroSwiperInstance = null;
+    // Danh sách 3 ảnh
+    var images = [
+        'public/assets/img/section1/slide/slide-01-4-png-20251117085601MjdQzhHBq.png',
+        'public/assets/img/section1/slide/slide-02-2-jpg-20251117085606kn0MGhh9lp.jpg',
+        'public/assets/img/section1/slide/slide-03-2-jpg-20251117085611Ry7YCiuXjs.jpg'
+    ];
 
-        // Get random background image
-        function getRandomBackground() {
-            if (!config.backgroundImages.length) return "";
-            const randomIndex = Math.floor(Math.random() * config.backgroundImages.length);
-            return config.backgroundImages[randomIndex];
-        }
+    var $slide    = $('.hero-slide1');
+    var $bullets  = $('.swiper-pagination-bullet');
+    var current   = 0;
+    var total     = images.length;
+    var interval  = 4000;   // 4 giây đổi ảnh
+    var wipeTime  = 1200;   // Thời gian wipe (khớp CSS)
+    var timer;
 
-        // Change slide background
-        function changeSlideBackground() {
-            $(".hero-slide1").each(function () {
-                const randomImage = getRandomBackground();
-                if (randomImage) {
-                    $(this).css("background-image", "url('" + randomImage + "')");
-                }
-            });
-        }
+    /**
+     * Chuyển ảnh với hiệu ứng WIPE (không đụng đến hero-content)
+     */
+    function fadeTo(index) {
+        if (index === current) return;
 
-        // Update slide transition time
-        function updateSlideTransitionTime(delayTime, speed) {
-            if (heroSwiperInstance && heroSwiperInstance.params) {
-                heroSwiperInstance.params.autoplay.delay = delayTime;
-                heroSwiperInstance.params.speed = speed;
+        var newImg = 'url("' + images[index] + '")';
 
-                if (heroSwiperInstance.autoplay && heroSwiperInstance.autoplay.running) {
-                    heroSwiperInstance.autoplay.stop();
-                    heroSwiperInstance.autoplay.start();
-                }
+        // Gán ảnh mới vào biến CSS --bg-next (dùng cho ::before)
+        $slide[0].style.setProperty('--bg-next', newImg);
 
-                console.log("Updated slide time - Delay:", delayTime, "ms, Speed:", speed, "ms");
-            }
-        }
+        // Kích hoạt wipe
+        $slide.addClass('wiping');
 
-        // Initialize Swiper
-        function initSwiperWithCustomTime(delayTime, speed) {
-            if (heroSwiperInstance) {
-                updateSlideTransitionTime(delayTime, speed);
-                return heroSwiperInstance;
-            }
+        // Sau khi wipe xong -> chốt ảnh mới vào background chính
+        setTimeout(function () {
+            $slide.css('background-image', newImg);
+            $slide.removeClass('wiping');
+            $slide[0].style.setProperty('--bg-next', 'none');
+        }, wipeTime);
 
-            heroSwiperInstance = new Swiper(".hero-swiper1", {
-                loop: true,
-                speed: speed,
-                effect: "fade",
-                wrapperClass: 'swiper-wrapper1',
-                slideClass: 'swiper-slide1',
-                autoplay: {
-                    delay: delayTime,
-                    disableOnInteraction: false,
-                },
-                pagination: {
-                    el: ".swiper-pagination",
-                    clickable: true,
-                },
-                on: {
-                    slideChange: function () {
-                        $(".hero-slide1").removeClass("active");
-                        $(".hero-slide1").eq(this.realIndex).addClass("active");
-                    },
-                },
-            });
+        // Cập nhật pagination
+        $bullets.removeClass('active');
+        $bullets.eq(index).addClass('active');
 
-            return heroSwiperInstance;
-        }
+        current = index;
+    }
 
-        // Initialize slider with random backgrounds
-        function initRandomBackground() {
-            if ($(".hero-slide1").length) {
-                changeSlideBackground();
-                initSwiperWithCustomTime(config.defaultDelayTime, config.defaultSpeed);
+    function nextSlide() {
+        fadeTo((current + 1) % total);
+    }
 
-                setInterval(function () {
-                    changeSlideBackground();
-                }, config.backgroundChangeInterval);
+    function startAuto() {
+        timer = setInterval(nextSlide, interval);
+    }
+    function stopAuto() {
+        clearInterval(timer);
+    }
 
-                console.log("Slider initialized successfully");
-            } else {
-                console.warn("No .hero-slide1 elements found");
-            }
-        }
-
-        // Public API
-        window.randomBackground = {
-            // Core functions
-            changeBackground: changeSlideBackground,
-            getRandomBackground: getRandomBackground,
-            backgroundImages: config.backgroundImages,
-
-            // Time control
-            setSlideTime: function (delayTime, speed) {
-                updateSlideTransitionTime(delayTime || config.defaultDelayTime, speed || config.defaultSpeed);
-            },
-
-            // Swiper control
-            initWithTime: function (delayTime, speed) {
-                initSwiperWithCustomTime(delayTime || config.defaultDelayTime, speed || config.defaultSpeed);
-            },
-
-            stopAutoplay: function () {
-                if (heroSwiperInstance && heroSwiperInstance.autoplay) {
-                    heroSwiperInstance.autoplay.stop();
-                    console.log("Autoplay stopped");
-                }
-            },
-
-            startAutoplay: function () {
-                if (heroSwiperInstance && heroSwiperInstance.autoplay) {
-                    heroSwiperInstance.autoplay.start();
-                    console.log("Autoplay started");
-                }
-            },
-
-            goToSlide: function (index) {
-                if (heroSwiperInstance && typeof heroSwiperInstance.slideTo === 'function') {
-                    heroSwiperInstance.slideTo(index);
-                    console.log("Navigated to slide:", index);
-                }
-            },
-
-            // Additional helper functions
-            destroy: function () {
-                if (heroSwiperInstance) {
-                    heroSwiperInstance.destroy(true, true);
-                    heroSwiperInstance = null;
-                    console.log("Swiper destroyed");
-                }
-            },
-
-            getCurrentIndex: function () {
-                return heroSwiperInstance ? heroSwiperInstance.realIndex : -1;
-            },
-
-            updateImages: function (newImages) {
-                if (Array.isArray(newImages) && newImages.length) {
-                    config.backgroundImages = newImages;
-                    changeSlideBackground();
-                    console.log("Background images updated");
-                }
-            }
-        };
-
-        // Start initialization
-        initRandomBackground();
+    // Click pagination: số 1 -> ảnh 1, số 2 -> ảnh 2, số 3 -> ảnh 3
+    $bullets.on('click', function () {
+        var idx = parseInt($(this).data('index'), 10);
+        if (isNaN(idx)) return;
+        stopAuto();
+        fadeTo(idx);
+        startAuto();
     });
+
+    // Hover dừng tự động
+    $('.hero-swiper1')
+        .on('mouseenter', stopAuto)
+        .on('mouseleave', startAuto);
+
+    // Khởi động auto slide
+    startAuto();
+
+    // KHÔNG gọi playZoomIn() ở đây nữa.
+    // Animation zoom in sẽ do CSS tự chạy 1 lần khi trang load/reload.
 });
+
 // Load SECTION2
 fetch("introduce/section2.php")
     .then((res) => res.text())
     .then((data) => {
         document.getElementById("section2").innerHTML = data;
     });
-// Load SECTION3
-$.get("introduce/section3-2.php", function (data) {
-    // Chèn nội dung vào phần tử có id="section3"
-    $("#section3").html(data);
+// SECTION3-2: hover vào <li> để hiển thị mô tả (.des_nd_rh_2) và đổi nền
+$(function () {
+    var $section3 = $(".rh_2");
+    var $items = $section3.find(".list_rh_2 > li");
+    var $bgLayer = $section3.find(".bg_rh_2");
 
-    // Lấy danh sách các mục và lớp nền
-    var $items = $(".list_rh_2 > li");
-    var $bgLayer = $(".bg_rh_2");
-
-    // Kiểm tra sự tồn tại của các phần tử cần thiết
     if ($items.length === 0 || $bgLayer.length === 0) return;
 
-    // Hàm kích hoạt một mục
     function activateItem(li) {
-        // 1. Xóa class 'active' khỏi tất cả các mục
+        var $li = $(li);
+        if ($li.hasClass("active")) return;
+
         $items.removeClass("active");
+        $li.addClass("active");
 
-        // 2. Thêm class 'active' vào mục hiện tại
-        $(li).addClass("active");
-
-        // 3. Thay đổi ảnh nền
-        var newBg = $(li).data("bg"); // hoặc .attr("data-bg")
+        var newBg = $li.data("bg");
         if (newBg) {
             $bgLayer.css("background-image", "url('" + newBg + "')");
         }
     }
 
-    // Kích hoạt mục đầu tiên
     activateItem($items[0]);
 
-    // Gắn sự kiện hover (mouseenter) cho từng mục
-    $items.on("mouseenter", function () {
-        activateItem(this);
-    });
-});
-// Load SECTION4
+    $items
+        .off(".section3")
+        .on("mouseenter.section3 focusin.section3", function () {
+            activateItem(this);
+        });
+});// Load SECTION4
 $(document).ready(function () {
     const $slider = $(".section4 .logo-slider");
     const $wrapper = $slider.find(".swiper-wrapper");
@@ -382,27 +290,6 @@ function initSection4Carousel() {
     );
 }
 
-// Load SECTION5
-fetch("../../app/views/pages/introduce/section5.php")
-    .then((res) => {
-        if (!res.ok) {
-            throw new Error(`Failed to load section5.php: ${res.status}`);
-        }
-        return res.text();
-    })
-    .then((data) => {
-        const section5Container = document.getElementById("section5");
-        if (!section5Container) {
-            console.error("Section 5: Container element #section5 not found in DOM");
-            return;
-        }
-        section5Container.innerHTML = data;
-        console.log("Section 5 loaded successfully");
-    })
-    .catch((error) => {
-        console.error("Error loading section5.php:", error);
-    });
-
 // Load FOOTER
 fetch("../../app/views/pages/include/footer.php")
     .then((res) => {
@@ -423,6 +310,90 @@ fetch("../../app/views/pages/include/footer.php")
     .catch((error) => {
         console.error("Error loading footer.php:", error);
     });
+    // Footer animation initialization (if any)
+    $(function () {
+  const $footerImg = $('.footer-img');
+  const $img = $footerImg.find('img');
+
+  if (!$footerImg.length || !$img.length) return;
+
+  const BAR_COUNT = 12;
+  const LOOP_INTERVAL = 2000; // 2 giây chạy lại 1 lần
+
+  // Tạo container + các bar
+  const $barsWrap = $('<div class="random-bars"></div>');
+  for (let i = 0; i < BAR_COUNT; i++) {
+    $barsWrap.append('<div class="bar"></div>');
+  }
+  $footerImg.append($barsWrap);
+
+  const $bars = $barsWrap.children('.bar');
+
+  const rand = (min, max) => Math.random() * (max - min) + min;
+
+  // Hàm chạy 1 vòng animation
+  function playRandomBars() {
+    $bars.each(function () {
+      const $bar = $(this);
+
+      // Reset về trạng thái phủ kín ảnh, không transition
+      $bar.css({
+        transition: 'none',
+        transform: 'translateY(0)',
+        opacity: 1
+      });
+
+      // Force reflow để reset có hiệu lực trước khi set transition mới
+      void this.offsetWidth;
+
+      const delay = rand(0, 400);
+      const duration = rand(500, 900);
+      const direction = Math.random() > 0.5 ? 1 : -1;
+
+      setTimeout(function () {
+        $bar.css({
+          transition: `transform ${duration}ms cubic-bezier(.77,0,.18,1), opacity ${duration}ms ease`,
+          transform: `translateY(${direction * 100}%)`,
+          opacity: 0
+        });
+      }, delay);
+    });
+  }
+
+  // Chạy lần đầu + lặp mỗi 2 giây
+  let loopTimer = null;
+
+  function startLoop() {
+    playRandomBars();
+    loopTimer = setInterval(playRandomBars, LOOP_INTERVAL);
+  }
+
+  function stopLoop() {
+    if (loopTimer) {
+      clearInterval(loopTimer);
+      loopTimer = null;
+    }
+  }
+
+  // Chỉ chạy khi footer-img vào viewport (tối ưu hiệu năng)
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            startLoop();
+          } else {
+            stopLoop();
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe($footerImg[0]);
+  } else {
+    startLoop();
+  }
+});
 // ----
 
 // ----
@@ -488,3 +459,14 @@ fetch("/api/news")
         // Update DOM with response data
         renderNews(data);
     });
+
+$(document).ready(function () {
+    $('input[name="filechon"]').on("change", function () {
+        const fileName = this.value;
+
+        if (fileName && !/\.pdf$/i.test(fileName)) {
+            alert("Vui lòng chọn file PDF.");
+            $(this).val("");
+        }
+    });
+});

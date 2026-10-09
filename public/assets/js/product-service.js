@@ -176,15 +176,6 @@ fetch("../../app/views/pages/Recruitment/recruitment-title2.php")
       }
     });
 
-    // (Tuỳ chọn) Demo submit form
-    const form = document.getElementById("fcb_td");
-    if (form) {
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        alert("Đã gửi đơn ứng tuyển!");
-        setTimeout(closePopup, 100);
-      });
-    }
   })
   .catch((err) => console.error(err));
 // News

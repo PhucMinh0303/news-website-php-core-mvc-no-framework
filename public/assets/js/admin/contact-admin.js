@@ -23,6 +23,12 @@ function loadMessageDetail(msgId) {
 function loadMessagesByTab(tab, selectedRow) {
     $('#tabsContainer .tab').removeClass('active').attr('aria-selected', 'false');
     $('#tabsContainer .tab[data-tab="' + tab + '"]').addClass('active').attr('aria-selected', 'true');
+    const isArchiveTab = tab === 'archive';
+    $('#archiveMsgBtn')
+        .attr('title', isArchiveTab ? 'quay về thư mục' : 'Lưu trữ')
+        .find('i')
+        .toggleClass('fa-reply', isArchiveTab)
+        .toggleClass('fa-box-archive', !isArchiveTab);
     $('#contactAdmin .message-item').removeClass('active').hide();
 
     const $visibleRows = $('#contactAdmin .message-item[data-tab="' + tab + '"]').show();
@@ -54,18 +60,31 @@ function moveActiveContact(status, destinationTab) {
     const $row = $('#contactAdmin .message-item.active').first();
     const contactId = Number($row.data('message-id'));
     const contact = (window.ADMIN_CONTACTS || []).find(item => Number(item.id) === contactId);
-    const $actionButtons = $('#archiveMsgBtn, #restoreMsgBtn, #deleteMsgBtn');
-
     if (!contactId || !contact) return;
 
-    if (contact.status === status) {
-        $row.attr('data-tab', destinationTab).data('tab', destinationTab);
+    const previousStatus = contact.status;
+    const previousTab = String($row.attr('data-tab'));
+
+    const applyState = function(newStatus, tab, selectTab) {
+        contact.status = newStatus;
+        $row.attr('data-tab', tab).data('tab', tab);
+
+        const $badge = $row.find('.status-badge');
+        $badge.attr('class', 'status-badge ' + newStatus);
+        $badge.empty().append($('<span>').addClass('dot'), document.createTextNode(newStatus.toUpperCase()));
+
         updateContactCounts();
-        loadMessagesByTab(destinationTab, $row);
+        loadMessagesByTab(selectTab, $row);
+    };
+
+    if (previousStatus === status) {
+        applyState(status, destinationTab, destinationTab);
         return;
     }
 
-    $actionButtons.prop('disabled', true);
+    // Cập nhật giao diện ngay, hoàn tác nếu server từ chối
+    applyState(status, destinationTab, destinationTab);
+
     $.ajax({
         url: $('#contactAdmin').data('status-url'),
         method: 'POST',
@@ -74,27 +93,33 @@ function moveActiveContact(status, destinationTab) {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     }).done(function(response) {
         if (!response || !response.success) {
+            applyState(previousStatus, previousTab, previousTab);
             window.alert(response && response.message ? response.message : 'Không thể cập nhật thư. Vui lòng thử lại.');
             return;
         }
 
-        contact.status = response.status;
-        $row.attr('data-tab', destinationTab).data('tab', destinationTab);
-
-        const $badge = $row.find('.status-badge');
-        $badge.attr('class', 'status-badge ' + response.status);
-        $badge.empty().append($('<span>').addClass('dot'), document.createTextNode(response.status.toUpperCase()));
-
-        updateContactCounts();
-        loadMessagesByTab(destinationTab, $row);
+        if (response.status && response.status !== status) {
+            contact.status = response.status;
+            $row.find('.status-badge')
+                .attr('class', 'status-badge ' + response.status)
+                .empty()
+                .append($('<span>').addClass('dot'), document.createTextNode(response.status.toUpperCase()));
+            $('#detailStatus').text('Trạng thái: ' + response.status);
+        }
     }).fail(function(xhr) {
+        applyState(previousStatus, previousTab, previousTab);
         const message = xhr.responseJSON && xhr.responseJSON.message;
         window.alert(message || 'Không thể cập nhật thư. Vui lòng thử lại.');
-    }).always(function() {
-        $actionButtons.prop('disabled', false);
     });
 }
 
+$(document).on('click', '#expandBtn', function() {
+    const expanded = $('#contactAdmin').toggleClass('detail-expanded').hasClass('detail-expanded');
+    $(this).attr('title', expanded ? 'Thu nhỏ' : 'Mở rộng')
+        .find('i')
+        .toggleClass('fa-expand', !expanded)
+        .toggleClass('fa-compress', expanded);
+});
 $(document).on('click', '#contactAdmin .message-item', function() {
     $('#contactAdmin .message-item').removeClass('active');
     $(this).addClass('active');
@@ -107,7 +132,11 @@ $(document).on('click', '#tabsContainer .tab', function() {
 });
 
 $(document).on('click', '#archiveMsgBtn', function() {
-    moveActiveContact('archived', 'archive');
+    if ($('#tabsContainer .tab.active').data('tab') === 'archive') {
+        moveActiveContact('read', 'inbox');
+    } else {
+        moveActiveContact('archived', 'archive');
+    }
 });
 
 $(document).on('click', '#deleteMsgBtn', function() {
@@ -123,4 +152,3 @@ $(function() {
     loadMessagesByTab(tab, $('#contactAdmin .message-item.active').first());
     updateContactCounts();
 });
-

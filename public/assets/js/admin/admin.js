@@ -11,6 +11,7 @@ async function loadHTML(url, containerId) {
     const container = document.getElementById(containerId);
     container.innerHTML = html;
     window.recruitmentForm?.init?.(container);
+    window.applicationAdmin?.init?.(container);
   } catch (error) {
     console.error("Lỗi tải file:", error);
     document.getElementById(containerId).innerHTML =
@@ -115,7 +116,6 @@ function attachMenuEvents(mainBaseUrl) {
     await loadHTML(mainFile, "main-container");
   });
 }
-
 
 
 

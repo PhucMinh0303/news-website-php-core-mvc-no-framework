@@ -565,3 +565,11 @@
     color: #0f172a;
     font-weight: 600;
 }
+#contactAdmin.detail-expanded .message-list {
+    display: none !important;
+}
+
+#contactAdmin.detail-expanded .detail-panel {
+    width: 100%;
+    flex: 1 1 100%;
+}
