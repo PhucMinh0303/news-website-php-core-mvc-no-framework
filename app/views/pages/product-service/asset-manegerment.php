@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Asset Management - Product Service Detail
  */
@@ -9,51 +10,46 @@
       <aside class="lf-aside-wrap-news">
         <ul class="list-wrap-news">
           <li>
-            <a href="<?php echo View::url('page/asset-management'); ?>">
+            <a href="<?= View::url(route: 'asset-management'); ?>">
               <figure class="logo-wrap-news">
                 <img
-                  src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>"
-                />
+                  src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>" />
               </figure>
               <span>Quản lý tài sản</span>
             </a>
           </li>
           <li>
-            <a href="<?php echo View::url('page/portfolio-management'); ?>">
+            <a href="<?php echo View::url('portfolio-management'); ?>">
               <figure class="logo-wrap-news">
                 <img
-                  src="<?php echo View::asset('img/product-service/logo/quan-ly-danh-muc-dau-tu-1763277274-6hzt.svg'); ?>"
-                />
+                  src="<?php echo View::asset('img/product-service/logo/quan-ly-danh-muc-dau-tu-1763277274-6hzt.svg'); ?>" />
               </figure>
               <span>Quản lý danh mục đầu tư</span>
             </a>
           </li>
           <li>
-            <a href="<?php echo View::url('page/business-management-consulting'); ?>">
+            <a href="<?php echo View::url('business-management'); ?>">
               <figure class="logo-wrap-news">
                 <img
-                  src="<?php echo View::asset('img/product-service/logo/tu-van-quan-tri-doanh-nghiep-1763277277-waxnv.svg'); ?>"
-                />
+                  src="<?php echo View::asset('img/product-service/logo/tu-van-quan-tri-doanh-nghiep-1763277277-waxnv.svg'); ?>" />
               </figure>
               <span>Tư vấn quản trị doanh nghiệp</span>
             </a>
           </li>
           <li>
-            <a href="<?php echo View::url('page/m-a-project-consulting'); ?>">
+            <a href="<?php echo View::url('m&a-project'); ?>">
               <figure class="logo-wrap-news">
                 <img
-                  src="<?php echo View::asset('img/product-service/logo/tu-van-dau-tu-phat-trien-du-an-1763277280-fpcox.svg'); ?>"
-                />
+                  src="<?php echo View::asset('img/product-service/logo/tu-van-dau-tu-phat-trien-du-an-1763277280-fpcox.svg'); ?>" />
               </figure>
               <span>Tư vấn dự án M&A</span>
             </a>
           </li>
           <li>
-            <a href="<?php echo View::url('page/m-a-and-corporate-restructuring'); ?>">
+            <a href="<?php echo View::url('m&a-restructuring'); ?>">
               <figure class="logo-wrap-news">
                 <img
-                  src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>"
-                />
+                  src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>" />
               </figure>
               <span>M&A và tái cấu trúc doanh nghiệp </span>
             </a>
@@ -90,13 +86,10 @@
             <div class="news-img">
               <img
                 src="<?php echo View::asset('img/section5/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272692-veex8.webp'); ?>"
-                alt="event"
-              />
+                alt="event" />
             </div>
             <div class="news-info">
-              <span class="category"
-                ><i class="fa-solid fa-calendar-week"></i> 21/12/2025</span
-              >
+              <span class="category"><i class="fa-solid fa-calendar-week"></i> 21/12/2025</span>
               <h3>
                 NÂNG HẠNG - KHỞI ĐẦU CHO CÁC QUYẾT SÁCH, CẢI CÁCH MẠNH MẼ HƠN,
                 CHUẨN MỰC HƠN VÀ KỶ LUẬT HƠN
@@ -109,13 +102,10 @@
             <div class="news-img">
               <img
                 src="<?php echo View::asset('img/section5/nang-hang-khoi-dau-cho-cac-quyet-sach-cai-cach-manh-me-hon-chuan-muc-hon-va-ky-luat-hon-1763272625-jr69f.webp'); ?>"
-                alt="VNeID"
-              />
+                alt="VNeID" />
             </div>
             <div class="news-info">
-              <span class="category"
-                ><i class="fa-solid fa-calendar-week"></i> 21/12/2025</span
-              >
+              <span class="category"><i class="fa-solid fa-calendar-week"></i> 21/12/2025</span>
               <h3>
                 Nâng hạng - khởi đầu cho các quyết sách, cải cách mạnh mẽ hơn,
                 chuẩn mực hơn và kỷ luật hơn

@@ -115,32 +115,10 @@ $listItems = array_slice($newsItems, 2);
                     <div class="des_list_news">Chưa có bài viết nào được đăng.</div>
                 <?php endif; ?>
 
-                <?php if ($totalPages > 1): ?>
-                    <div class="page"
-                        style="text-align: left">
-                        <div class="PageNum">
-                            <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                                <?php if ($p == $currentPage): ?>
-                                    <span><?php echo $p; ?></span>
-                                <?php else: ?>
-                                    <a rel="nofollow"
-                                        href="<?php echo View::url('news/page/' . $p); ?>"><?php echo $p; ?></a>
-                                <?php endif; ?>
-                            <?php endfor; ?>
-                            <?php if ($currentPage < $totalPages): ?>
-                                <a rel="nofollow"
-                                    href="<?php echo View::url('news/page/' . ($currentPage + 1)); ?>">
-                                    » </a><a rel="nofollow"
-                                    href="<?php echo View::url('news/page/' . ($currentPage + 1)); ?>">
-                                    ›
-                                </a>
-                            <?php endif; ?>
-                        </div>
 
-                        <div class="clear"></div>
-                    </div>
-                <?php endif; ?>
             </article>
+
+
             <!--end ct_page-->
 
             <aside class="sb_page">
@@ -203,7 +181,7 @@ $listItems = array_slice($newsItems, 2);
 
                 <ul class="list-wrap-news">
                     <li>
-                        <a href="<?php echo View::url('page/asset-management'); ?>">
+                        <a href="<?= View::url(route: 'asset-management'); ?>">
                             <figure class="logo-wrap-news">
                                 <img
                                     src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>" />
@@ -212,7 +190,7 @@ $listItems = array_slice($newsItems, 2);
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo View::url('page/portfolio-management'); ?>">
+                        <a href="<?php echo View::url('portfolio-management'); ?>">
                             <figure class="logo-wrap-news">
                                 <img
                                     src="<?php echo View::asset('img/product-service/logo/quan-ly-danh-muc-dau-tu-1763277274-6hzt.svg'); ?>" />
@@ -221,7 +199,7 @@ $listItems = array_slice($newsItems, 2);
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo View::url('page/business-management-consulting'); ?>">
+                        <a href="<?php echo View::url('business-management'); ?>">
                             <figure class="logo-wrap-news">
                                 <img
                                     src="<?php echo View::asset('img/product-service/logo/tu-van-quan-tri-doanh-nghiep-1763277277-waxnv.svg'); ?>" />
@@ -230,7 +208,7 @@ $listItems = array_slice($newsItems, 2);
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo View::url('page/m-a-project-consulting'); ?>">
+                        <a href="<?php echo View::url('m&a-project'); ?>">
                             <figure class="logo-wrap-news">
                                 <img
                                     src="<?php echo View::asset('img/product-service/logo/tu-van-dau-tu-phat-trien-du-an-1763277280-fpcox.svg'); ?>" />
@@ -239,7 +217,7 @@ $listItems = array_slice($newsItems, 2);
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo View::url('page/m-a-and-corporate-restructuring'); ?>">
+                        <a href="<?php echo View::url('m&a-restructuring'); ?>">
                             <figure class="logo-wrap-news">
                                 <img
                                     src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>" />
@@ -253,5 +231,157 @@ $listItems = array_slice($newsItems, 2);
             <!--end sb_page-->
         </div>
         <!--end min_wrap-->
+        <?php if ($totalPages > 1): ?>
+
+        <?php endif; ?>
+        <div class="pagination-wrapper">
+            <div class="PageNum" id="pagination">
+                <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+                    <?php if ($p == $currentPage): ?>
+                        <span class="page-active"><?php echo $p; ?></span>
+                    <?php else: ?>
+                        <a rel="nofollow" href="<?php echo View::url('news/page/' . $p); ?>"
+                            class="page-link" data-page="<?php echo $p; ?>"><?php echo $p; ?></a>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($currentPage < $totalPages): ?>
+                    <a rel="nofollow" href="<?php echo View::url('news/page/' . ($currentPage + 1)); ?>"
+                        class="page-link page-next" data-page="<?php echo $currentPage + 1; ?>">»</a>
+                    <a rel="nofollow" href="<?php echo View::url('news/page/' . ($currentPage + 1)); ?>"
+                        class="page-link page-next-single" data-page="<?php echo $currentPage + 1; ?>">›</a>
+                <?php endif; ?>
+            </div>
+            <div class="clear"></div>
+        </div>
     </section>
 </main>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Xử lý click chuyển trang bằng AJAX (không reload)
+        $(document).on('click', '.PageNum a.page-link', function(e) {
+            e.preventDefault();
+
+            var page = $(this).data('page');
+            var url = $(this).attr('href');
+
+            if (!page || !url) return;
+
+            // Hiệu ứng loading
+            $('.PageNum').css('opacity', '0.5');
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'html',
+                success: function(response) {
+                    // Parse HTML trả về
+                    var $response = $('<div>').html(response);
+
+                    // Cập nhật danh sách tin tức
+                    var newList = $response.find('.ct_page').html();
+                    if (newList) {
+                        $('.ct_page').html(newList);
+                    }
+
+                    // Cập nhật lại phân trang
+                    var newPagination = $response.find('.pagination-wrapper').html();
+                    if (newPagination) {
+                        $('.pagination-wrapper').html(newPagination);
+                    }
+
+                    // Cuộn lên đầu trang
+                    $('html, body').animate({
+                        scrollTop: $('.ct_page').offset().top - 100
+                    }, 400);
+
+                    // Cập nhật URL trên thanh địa chỉ (không reload)
+                    if (history.pushState) {
+                        history.pushState(null, '', url);
+                    }
+                },
+                error: function() {
+                    // Nếu AJAX lỗi, chuyển trang bình thường
+                    window.location.href = url;
+                },
+                complete: function() {
+                    $('.PageNum').css('opacity', '1');
+                }
+            });
+        });
+
+        // Xử lý nút » và › (cũng dùng AJAX)
+        $(document).on('click', '.PageNum a.page-next, .PageNum a.page-next-single', function(e) {
+            e.preventDefault();
+            $(this).trigger('click'); // Kích hoạt lại sự kiện page-link
+        });
+    });
+    /* =====================================================
+   Fly In Animation cho .news .news-card (kiểu PowerPoint)
+   Luôn chạy lại mỗi lần reload VÀ mỗi lần chuyển trang AJAX
+   ===================================================== */
+    (function($) {
+        'use strict';
+
+        var STAGGER = 180; // khoảng cách delay giữa các card (ms)
+        var BASE_DELAY = 120; // delay trước khi card đầu tiên bay vào
+
+        /**
+         * Reset card về trạng thái ban đầu (KHÔNG transition)
+         * để lần animate tiếp theo luôn bắt đầu từ đầu.
+         */
+        function resetFlyIn() {
+            $('.news .news-card')
+                .addClass('no-transition') // tắt transition tạm thời
+                .removeClass('fly-in') // bỏ trạng thái đã bay vào
+                .css({
+                    opacity: '',
+                    transform: '',
+                    filter: ''
+                });
+
+            // Buộc trình duyệt reflow để ghi nhận trạng thái reset
+            // rồi mới bật lại transition
+            void document.body.offsetWidth;
+
+            $('.news .news-card').removeClass('no-transition');
+        }
+
+        /**
+         * Chạy animation fly-in lần lượt cho từng card
+         */
+        function playFlyIn() {
+            var $cards = $('.news .news-card');
+            if (!$cards.length) return;
+
+            resetFlyIn();
+
+            $cards.each(function(index) {
+                var $card = $(this);
+                setTimeout(function() {
+                    $card.addClass('fly-in');
+                }, BASE_DELAY + index * STAGGER);
+            });
+        }
+
+        // ===== 1. Chạy khi trang load lần đầu =====
+        $(function() {
+            playFlyIn();
+        });
+
+        // ===== 2. Chạy lại mỗi khi AJAX phân trang hoàn tất =====
+        $(document).ajaxComplete(function(event, xhr, settings) {
+            if (settings && settings.url && settings.url.indexOf('news') !== -1) {
+                // Đợi DOM cập nhật xong rồi animate
+                setTimeout(playFlyIn, 60);
+            }
+        });
+        // Chạy lại animation NGAY SAU KHI nội dung mới được render vào DOM
+        $(document).on('click', '.PageNum a.page-link', function() {
+            // Đợi handler AJAX cũ chạy xong (nó cũng là async)
+            setTimeout(playFlyIn, 400); // 400ms ~ thời gian AJAX + render
+        });
+
+    })(jQuery);
+</script>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Section 1 - Hero Slider
  */
@@ -6,11 +7,12 @@
 <section class="section1 swiper hero-swiper1">
     <div class="swiper-wrapper1">
         <!-- Slide 1 -->
-        <div class="swiper-slide1 hero-slide1">
+        <div class="swiper-slide1 hero-slide1 active"
+            style="background-image: url('public/assets/img/section1/slide/slide-01-4-png-20251117085601MjdQzhHBq.png');">
             <div class="hero-container">
                 <div class="hero-content">
                     <h1>
-                        CHÀO MỪNG ĐẾN VỚI<br/>
+                        CHÀO MỪNG ĐẾN VỚI<br />
                         <strong>Tài chính thông minh</strong>
                     </h1>
                     <p>
@@ -31,17 +33,24 @@
                             </a>
                         </button>
                     </div>
-                    <!-- Pagination -->
+                    <!-- Pagination: số 1, 2, 3 tương ứng ảnh 1, 2, 3 -->
                     <div class="swiper-pagination">
-                        <span class="swiper-pagination-bullet">1</span>
-                        <span class="swiper-pagination-bullet">2</span>
-                        <span class="swiper-pagination-bullet">3</span>
+                        <span class="swiper-pagination-bullet active" data-index="0">1</span>
+                        <span class="swiper-pagination-bullet" data-index="1">2</span>
+                        <span class="swiper-pagination-bullet" data-index="2">3</span>
                     </div>
                 </div>
+
             </div>
+
         </div>
     </div>
+
+
 
     <!-- Mask -->
     <div class="mask_bot_slide"></div>
 </section>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="public/assets/js/section1.js"></script>

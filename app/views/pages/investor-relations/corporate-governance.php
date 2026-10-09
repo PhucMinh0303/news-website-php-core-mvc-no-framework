@@ -1,6 +1,6 @@
 <?php
 /**
- * Corporate Governance Page View
+ * Annual report page for investor relations
  */
 ?>
 <main class="section10">
@@ -9,7 +9,7 @@
       <aside class="lf-aside-wrap-news">
         <ul class="list-wrap-news">
           <li>
-            <a href="<?php echo View::url('page/annual-report'); ?>">
+            <a href="<?php echo View::url('financial-information'); ?>">
               <figure class="logo-wrap-news">
                 <img
                   src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>"
@@ -19,7 +19,7 @@
             </a>
           </li>
           <li>
-            <a href="<?php echo View::url('page/corporate-governance'); ?>">
+            <a href="<?php echo View::url('annual-report'); ?>">
               <figure class="logo-wrap-news">
                 <img
                   src="<?php echo View::asset('img/product-service/logo/quan-ly-danh-muc-dau-tu-1763277274-6hzt.svg'); ?>"
@@ -29,17 +29,17 @@
             </a>
           </li>
           <li>
-            <a href="<?php echo View::url('page/financial-information'); ?>">
+            <a href="<?php echo View::url('information-disclosure'); ?>">
               <figure class="logo-wrap-news">
                 <img
-                  src="<?php echo View::asset('img/product-service/logo/tu-van-quan-tri-doanh-nghiep-1763277277-waxnv.svg'); ?>"
+                  src="<?php echo View::asset('product-service/logo/tu-van-quan-tri-doanh-nghiep-1763277277-waxnv.svg'); ?>"
                 />
               </figure>
               <span>Công bố thông tin</span>
             </a>
           </li>
           <li>
-            <a href="<?php echo View::url('page/information-disclosure'); ?>">
+            <a href="<?php echo View::url('shareholder-information'); ?>">
               <figure class="logo-wrap-news">
                 <img
                   src="<?php echo View::asset('img/product-service/logo/tu-van-dau-tu-phat-trien-du-an-1763277280-fpcox.svg'); ?>"
@@ -49,7 +49,7 @@
             </a>
           </li>
           <li>
-            <a href="<?php echo View::url('page/investor-relations'); ?>">
+            <a href="<?php echo View::url('corporate-governance'); ?>">
               <figure class="logo-wrap-news">
                 <img
                   src="<?php echo View::asset('img/product-service/logo/m-a-va-tai-cau-truc-doanh-nghiep-1763277283-cngpf.svg'); ?>"

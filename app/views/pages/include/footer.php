@@ -5,7 +5,7 @@
       <div class="footer-section footer-info">
         <div class="footer-logo">
           <img
-            src="<?php echo View::asset('img/footer/logo-cas-png-20251209102030yGW1WOGlvr.png'); ?>"
+            src="<?php echo View::asset('img/footer/logo-2-png-20260518145348BHDjhSZzcy.png'); ?>"
             alt="<?php echo View::escape(SITE_NAME); ?>"
           />
         </div>

@@ -3,7 +3,7 @@
   <div class="logo">
     <a href="<?php echo View::url(''); ?>" class="logo-bg">
       <img
-        src="<?php echo View::asset('img/section1/logo-capital-am-png-2025120910123384zwFTaMUk.png'); ?>"
+        src="<?php echo View::asset('img/header/logo-png-20260518145340rY9wh7grzW.png'); ?>"
         alt="<?php echo View::escape(SITE_NAME); ?>" />
     </a>
   </div>

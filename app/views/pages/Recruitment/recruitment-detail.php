@@ -5,6 +5,20 @@ $successMessage = $successMessage ?? null;
 $errorMessage = $errorMessage ?? null;
 $oldData = $oldData ?? [];
 $canApply = !empty($job['can_apply']);
+$getRecruitmentImageUrl = static function ($image) {
+    $image = trim((string)$image);
+    if ($image === '' || $image === 'default-job.webp') {
+        return View::asset('img/recruitment/default-job.webp');
+    }
+
+    foreach (['public/upload/recruitments/', 'public/uploads/recruitments/'] as $directory) {
+        if (is_file(ROOT_PATH . $directory . $image)) {
+            return BASE_URL . $directory . rawurlencode($image);
+        }
+    }
+
+    return View::asset('img/recruitment/default-job.webp');
+};
 $imageUrl = View::asset('img/recruitment/default-job.webp');
 if (!empty($job['image']) && $job['image'] !== 'default-job.webp') {
     foreach (['public/upload/recruitments/', 'public/uploads/recruitments/'] as $directory) {
@@ -256,9 +270,7 @@ if (!empty($job['image']) && $job['image'] !== 'default-job.webp') {
     }
 
     /* --- Phần Tuyển dụng khác --- */
-    .f_td.r_p36 {
-        margin-top: 40px;
-    }
+    
 
     .tit_cont_1 {
         margin-bottom: 20px;
@@ -275,137 +287,6 @@ if (!empty($job['image']) && $job['image'] !== 'default-job.webp') {
         padding-left: 15px;
     }
 
-    /* Danh sách dạng lưới */
-    .list_td_grid {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    /* Thẻ Card */
-    .job-card {
-        display: flex;
-        align-items: center;
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 6px;
-        padding: 15px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-        transition: all 0.3s ease;
-    }
-
-    .job-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: #003B6F;
-    }
-
-    .job-card-thumb {
-        width: 120px;
-        height: 80px;
-        flex-shrink: 0;
-        margin-right: 20px;
-        border-radius: 4px;
-        overflow: hidden;
-    }
-
-    .job-card-thumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s;
-    }
-
-    .job-card:hover .job-card-thumb img {
-        transform: scale(1.05);
-    }
-
-    .job-card-content {
-        flex: 1;
-        padding-right: 20px;
-    }
-
-    .job-card-title {
-        font-size: 16px;
-        font-weight: 700;
-        margin: 0 0 8px 0;
-    }
-
-    .job-card-title a {
-        color: #003B6F;
-        text-decoration: none;
-    }
-
-    .job-card-title a:hover {
-        color: #0056b3;
-    }
-
-    .job-card-info p {
-        margin: 0 0 4px 0;
-        font-size: 13px;
-        color: #444;
-        line-height: 1.4;
-    }
-
-    .job-card-info strong {
-        font-weight: 700;
-        color: #000;
-    }
-
-    .separator {
-        margin: 0 5px;
-        color: #ccc;
-    }
-
-    .job-card-deadline {
-        width: 160px;
-        text-align: center;
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        border-right: 1px solid #eee;
-        padding-right: 15px;
-        margin-right: 15px;
-    }
-
-    .job-card-deadline .label {
-        font-size: 13px;
-        color: #333;
-        margin-bottom: 4px;
-    }
-
-    .job-card-deadline .date {
-        font-size: 15px;
-        font-weight: 700;
-        color: #000;
-    }
-
-    .job-card-action {
-        width: 140px;
-        text-align: right;
-        flex-shrink: 0;
-    }
-
-    .btn-view-detail {
-        display: inline-block;
-        padding: 8px 15px;
-        border: 1px solid #003B6F;
-        color: #003B6F;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        text-decoration: none;
-        border-radius: 4px;
-        background: transparent;
-        transition: all 0.3s;
-        white-space: nowrap;
-    }
-
-    .btn-view-detail:hover {
-        background-color: #003B6F;
-        color: #fff;
-    }
-
     /* --- Responsive --- */
     @media (max-width: 991px) {
         .ct_page {
@@ -417,48 +298,6 @@ if (!empty($job['image']) && $job['image'] !== 'default-job.webp') {
             margin-top: 30px;
         }
 
-        .job-card {
-            flex-direction: column;
-            align-items: flex-start;
-            position: relative;
-        }
-
-        .job-card-thumb {
-            width: 100%;
-            height: 180px;
-            margin-bottom: 15px;
-            margin-right: 0;
-        }
-
-        .job-card-content {
-            padding-right: 0;
-            margin-bottom: 10px;
-        }
-
-        .job-card-deadline {
-            width: 100%;
-            text-align: left;
-            border-right: none;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-            padding-right: 0;
-            margin-right: 0;
-            margin-bottom: 10px;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .job-card-action {
-            width: 100%;
-            text-align: left;
-        }
-
-        .btn-view-detail {
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-        }
     }
 </style>
 <main class="section10">
@@ -482,7 +321,7 @@ if (!empty($job['image']) && $job['image'] !== 'default-job.webp') {
                     </div>
 
                     <div class="f-detail clearfix">
-                        <strong>Mô tả công việc</strong>
+                        
                         <div><?php echo !empty($job['description']) ? $job['description'] : '<p>Chưa có mô tả</p>'; ?></div>
 
                         <strong>Yêu cầu công việc</strong>
@@ -545,7 +384,7 @@ if (!empty($job['image']) && $job['image'] !== 'default-job.webp') {
                                         </li>
                                         <li>
                                             <strong>Hồ sơ của bạn: (Cho nộp file CV)</strong><br />
-                                            <input type="file" name="filechon" />
+                                            <input type="file" name="filechon" accept=".pdf,application/pdf" />
                                         </li>
                                     </ul>
 
@@ -563,60 +402,78 @@ if (!empty($job['image']) && $job['image'] !== 'default-job.webp') {
                         <h2 class="na_til_cont">Tuyển dụng khác</h2>
                     </div>
 
-                    <div class="list_td_grid">
+                    <ul class="list_td">
                         <?php if (!empty($relatedRecruitments)): ?>
                             <?php foreach ($relatedRecruitments as $related): ?>
-                                <?php
-                                // Xử lý ảnh cho từng item (mặc định nếu không có)
-                                $relImageUrl = View::asset('img/recruitment/default-job.webp');
-                                if (!empty($related['image']) && $related['image'] !== 'default-job.webp') {
-                                    foreach (['public/upload/recruitments/', 'public/uploads/recruitments/'] as $directory) {
-                                        if (is_file(ROOT_PATH . $directory . $related['image'])) {
-                                            $relImageUrl = BASE_URL . $directory . rawurlencode($related['image']);
-                                            break;
-                                        }
-                                    }
-                                }
-                                ?>
-                                <div class="job-card">
-                                    <div class="job-card-thumb">
-                                        <a href="<?php echo $this->url('recruitment/' . $related['slug']); ?>">
-                                            <img src="<?php echo $relImageUrl; ?>" alt="<?php echo htmlspecialchars($related['title']); ?>">
+                                <?php $relatedUrl = $this->url('recruitment/' . ($related['slug'] ?? $related['id'])); ?>
+                                <li>
+                                    <div class="c1_list_td">
+                                        <a href="<?= htmlspecialchars($relatedUrl); ?>"
+                                            title="<?= htmlspecialchars($related['title'] ?? ''); ?>">
+                                            <figure class="img_list_td">
+                                                <img
+                                                    src="<?= htmlspecialchars($getRecruitmentImageUrl($related['image'] ?? 'default-job.webp')); ?>"
+                                                    alt="<?= htmlspecialchars($related['title'] ?? ''); ?>" />
+                                            </figure>
                                         </a>
-                                    </div>
 
-                                    <div class="job-card-content">
-                                        <h3 class="job-card-title">
-                                            <a href="<?php echo $this->url('recruitment/' . $related['slug']); ?>">
-                                                <?php echo htmlspecialchars($related['title']); ?>
-                                            </a>
-                                        </h3>
-                                        <div class="job-card-info">
-                                            <p><strong>Nơi làm việc:</strong> <?php echo htmlspecialchars($related['work_location'] ?? 'Đang cập nhật'); ?></p>
+                                        <div class="if_list_td">
+                                            <h3 class="na_list_td link_hv">
+                                                <a href="<?= htmlspecialchars($relatedUrl); ?>"
+                                                    class="link_hv"
+                                                    title="<?= htmlspecialchars($related['title'] ?? ''); ?>">
+                                                    <?= htmlspecialchars($related['title'] ?? ''); ?>
+                                                </a>
+                                            </h3>
+
                                             <p>
-                                                <strong>Bằng cấp:</strong> <?php echo htmlspecialchars($related['degree'] ?? 'Đang cập nhật'); ?>
-                                                <span class="separator">|</span>
-                                                <strong>Số lượng tuyển:</strong> <?php echo str_pad((int)($related['quantity'] ?? 0), 2, '0', STR_PAD_LEFT); ?>
+                                                Nơi làm
+                                                việc: <?= htmlspecialchars($related['work_location'] ?? $related['location'] ?? 'Đang cập nhật'); ?>
                                             </p>
+
+                                            <ol>
+                                                <li>
+                                                    Bằng cấp:
+                                                    <strong><?= htmlspecialchars($related['degree'] ?? $related['education'] ?? 'Cao Đẳng - Đại Học'); ?></strong>
+                                                </li>
+                                                <li>
+                                                    Số lượng tuyển:
+                                                    <strong><?= (int)($related['quantity'] ?? 1); ?></strong>
+                                                </li>
+                                                <?php if (!empty($related['salary_range'])): ?>
+                                                    <li>
+                                                        Mức lương:
+                                                        <strong><?= htmlspecialchars($related['salary_range']); ?></strong>
+                                                    </li>
+                                                <?php endif; ?>
+                                            </ol>
                                         </div>
                                     </div>
 
-                                    <div class="job-card-deadline">
-                                        <span class="label">Hạn nộp hồ sơ</span>
-                                        <span class="date"><?php echo !empty($related['deadline']) ? date('d-m-Y', strtotime($related['deadline'])) : 'Đang cập nhật'; ?></span>
-                                    </div>
+                                    <div class="c2_list_td">
+                                        <div class="date_list_td">
+                                            <span>Hạn nộp hồ sơ</span>
+                                            <strong>
+                                                <?= !empty($related['deadline']) ? date('d-m-Y', strtotime($related['deadline'])) : 'Đang cập nhật'; ?>
+                                            </strong>
+                                        </div>
 
-                                    <div class="job-card-action">
-                                        <a href="<?php echo $this->url('recruitment/' . $related['slug']); ?>" class="btn-view-detail">
-                                            XEM CHI TIẾT
-                                        </a>
+                                        <div class="but_list_td">
+                                            <a href="<?= htmlspecialchars($relatedUrl); ?>"
+                                                class="but_03"
+                                                title="<?= htmlspecialchars($related['title'] ?? ''); ?>">
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
                                     </div>
-                                </div>
+                                </li>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <p>Hiện chưa có tin tuyển dụng nào khác.</p>
+                            <li class="no-recruitment">
+                                Hiện chưa có tin tuyển dụng nào khác.
+                            </li>
                         <?php endif; ?>
-                    </div>
+                    </ul>
                 </div>
             </section>
             <!-- KẾT THÚC: Phần Tuyển dụng khác -->
