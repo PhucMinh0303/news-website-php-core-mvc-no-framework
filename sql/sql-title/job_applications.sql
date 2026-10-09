@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS job_applications
     email          VARCHAR(100) NOT NULL,
     content        TEXT,
     cv_file        VARCHAR(255),
-    status         ENUM ('pending', 'reviewed', 'interviewed', 'accepted', 'rejected') DEFAULT 'pending',
+    status         ENUM ('pending', 'reviewed', 'interviewed', 'accepted', 'rejected', 'archived', 'deleted') DEFAULT 'pending',
     notes          TEXT,
     created_at     TIMESTAMP                                                           DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP                                                           DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
