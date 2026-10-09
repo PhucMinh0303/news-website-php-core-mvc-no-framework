@@ -6,6 +6,10 @@
 
 class AdminController extends Controller
 {
+    public function __construct()
+    {
+        require_once __DIR__ . '/../../models/ApplicationModel.php';
+    }
 
     public function index()
     {
@@ -35,12 +39,6 @@ class AdminController extends Controller
      */
     public function main($page = 'dashboard')
     {
-        if (!$this->isAjax()) {
-            $this->setPageTitle('Admin Panel');
-            $this->render('admin/admin');
-            return;
-        }
-
         $allowedPages = [
             'dashboard' => 'admin/main/dashboard_admin',
             'news' => 'admin/main/news/news_admin',
@@ -57,9 +55,22 @@ class AdminController extends Controller
         ];
 
         $view = $allowedPages[$page] ?? $allowedPages['dashboard'];
+        $data = [];
+
+        if ($page === 'application') {
+            $data['applications'] = (new ApplicationModel())->getAllApplications();
+        }
+
+        if (!$this->isAjax()) {
+            $this->setPageTitle('Admin Panel');
+            $data['admin_page'] = isset($allowedPages[$page]) ? $page : 'dashboard';
+            $data['admin_view'] = $view;
+            $this->render('admin/admin', $data);
+            return;
+        }
 
         // Render without layout
-        $this->render($view, false);
+        $this->render($view, $data, false);
     }
 
     public function testDb()

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * Admin Contact Controller - Simplified version

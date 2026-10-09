@@ -86,6 +86,44 @@ class AdminNewsController extends Controller
     }
 
     /**
+     * Upload ảnh chèn trong nội dung bài viết, trả về URL để chèn vào editor
+     */
+    public function uploadContentImage()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => 'Method không hợp lệ.'], 405);
+        }
+
+        $file = $_FILES['image'] ?? null;
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            $this->json(['success' => false, 'message' => 'Không nhận được tệp ảnh hợp lệ.'], 400);
+        }
+        if ($file['size'] > 5 * 1024 * 1024) {
+            $this->json(['success' => false, 'message' => 'Ảnh không được vượt quá 5MB.'], 400);
+        }
+
+        $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        if (!isset($extensions[$mime])) {
+            $this->json(['success' => false, 'message' => 'Chỉ hỗ trợ ảnh JPG, PNG, WEBP.'], 400);
+        }
+
+        $dir = __DIR__ . '/../../../public/upload/news-content/';
+        if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+            $this->json(['success' => false, 'message' => 'Không thể tạo thư mục lưu ảnh.'], 500);
+        }
+
+        $filename = date('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $extensions[$mime];
+        if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
+            $this->json(['success' => false, 'message' => 'Không thể lưu ảnh.'], 500);
+        }
+
+        $this->json(['success' => true, 'url' => BASE_URL . 'public/upload/news-content/' . $filename]);
+    }
+
+    /**
      * Xử lý lưu bài viết mới
      */
     public function store($routeSlug)
